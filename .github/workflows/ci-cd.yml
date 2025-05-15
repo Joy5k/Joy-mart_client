@@ -3,8 +3,6 @@ name: JOY_MART CI/CD
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 jobs:
   build:
@@ -46,9 +44,7 @@ jobs:
         run: npm install -g vercel
 
       - name: Deploy project on Vercel
-        run: vercel --prod --yes --token $VERCEL_TOKEN --scope $VERCEL_SCOPE
+        run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_SCOPE }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}

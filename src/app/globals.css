@@ -136,9 +136,9 @@ body {
     display: none;
 }
 
-/* Hoe Page */
+/* Hore Page */
 #hero {
-    background-image: url(/img/hero4.png);
+    background-image: url(/img/hero4.webp);
     height: 90vh;
     width: 100%;
     background-size: cover;
@@ -159,7 +159,7 @@ body {
 }
 
 #hero button {
-    background-image: url(/img/button.png);
+    background-image: url(/img/button.webp);
     background-color: transparent;
     color: #088178;
     border: 0;

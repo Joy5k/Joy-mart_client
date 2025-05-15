@@ -1,4 +1,5 @@
 import Banner from "@/src/components/Banner/Banner"
+import Hero from "@/src/components/Banner/Hero"
 import FeatureBox from "@/src/components/FeatureBox/FeatureBox"
 import Footer from "@/src/components/Footer/Footer"
 import Header from "@/src/components/Navbar/header"
@@ -49,14 +50,17 @@ const HomePage: NextPage = () => {
     <>
       <Header />
       
-      <section id="hero">
+      {/* <section id="hero">
         <h4>Trade-in-offer</h4>
         <h2>Super value deals</h2>
         <h1>On all products</h1>
         <p>Save more with coupons & up to 70% off!</p>
         <button>Shop Now</button>
-      </section>
+      </section> */}
 
+        <div>
+          <Hero></Hero>
+        </div>
       <section id="feature" className="section-p1">
         {features.map((feature, index) => (
           <FeatureBox key={index} image={feature.image} title={feature.title} />

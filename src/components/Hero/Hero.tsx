@@ -21,7 +21,7 @@ const Hero = () => {
       <div className="relative z-10 h-full flex items-center justify-start pr-[10%]">
         {/* Text content container with fixed width */}
         <div className="w-[550px]">
-          <h4 className="text-xl font-medium pb-[15px]">Trade-in-offer</h4>
+          <h4 className="text-xl font-medium pb-[15px]">Trade-in-offer (update)</h4>
           <h2 className="text-5xl font-bold mb-4">Super value deals</h2>
           <h1 className="text-6xl font-extrabold mb-6 text-[#088178]">On all products</h1>
           <p className="text-xl mb-8">Save more with coupons & up to 70% off!</p>

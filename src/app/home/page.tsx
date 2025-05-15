@@ -1,5 +1,5 @@
 import Banner from "@/src/components/Banner/Banner"
-import Hero from "@/src/components/Banner/Hero"
+import Hero from "@/src/components/Hero/Hero"
 import FeatureBox from "@/src/components/FeatureBox/FeatureBox"
 import Footer from "@/src/components/Footer/Footer"
 import Header from "@/src/components/Navbar/header"

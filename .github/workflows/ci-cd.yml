@@ -1,12 +1,10 @@
-name: Portfolio CI/CD
+name: JOY_MART CI/CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build:
@@ -32,7 +30,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-       
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -43,15 +41,14 @@ jobs:
 
       - name: Build project
         run: npm run build
+
       - name: Install Vercel CLI
         run: npm install -g vercel
 
       - name: Deploy project on Vercel
-        run: vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_SCOPE }} --confirm
+        run: vercel --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE" --confirm
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
-
-         

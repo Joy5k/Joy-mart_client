@@ -79,7 +79,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 80px;
+    padding: 1px 80px;
     background: #E3E6F3;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
     z-index: 999;
@@ -345,7 +345,7 @@ body {
         justify-content: center;
         align-items: flex-start;
         background-image: url(/img/banner/b17.jpg);
-        min-width: 540px;
+        min-width: 520px;
         height: 50vh;
         background-size: cover;
         background-position: center;
@@ -451,6 +451,7 @@ body {
 #newsletter .form {
     display: flex;
     width: 40%;
+
 }
 
 #newsletter input {
@@ -458,11 +459,12 @@ body {
     padding: 0 1.25rem;
     font-size: 14px;
     width: 100%;
-    border: 1px solid transparent;
+    border: 1px solid rgb(65, 63, 63);
     border-radius: 4px;
     outline: none;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
+    color: #c9cbce;
 }
 
 #newsletter button {
@@ -1237,16 +1239,6 @@ footer .copyright {
         width: 100%;
     }
 
-    #form-details {
-        margin: 10px;
-        padding: 30px 10px;
-        flex-wrap: wrap;
-    }
-
-    #form-details form {
-        width: 100%;
-        margin-bottom: 30px;
-    }
 
     /* Cart Page */
     #cart-add {

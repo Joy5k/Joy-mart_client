@@ -1,5 +1,4 @@
-import Image from 'next/image'
-import React from 'react'
+import Image from "next/image"
 
 const Hero = () => {
   return (
@@ -17,10 +16,10 @@ const Hero = () => {
         blurDataURL="/img/hero4-blur.webp"
       />
       
-      {/* Content container aligned to right */}
-      <div className="relative z-10 h-full flex items-center justify-start pr-[10%]">
-        {/* Text content container with fixed width */}
-        <div className="w-[550px]">
+      {/* Content container */}
+      <div className="relative z-10 h-full flex items-center pl-[10%] w-full max-w-[1400px] mx-auto">
+        {/* Text content container */}
+        <div className="max-w-[750px] p-6 md:p-10 lg:p-20">
           <h4 className="text-xl font-medium pb-[15px]">Trade-in-offer (update)</h4>
           <h2 className="text-5xl font-bold mb-4">Super value deals</h2>
           <h1 className="text-6xl font-extrabold mb-6 text-[#088178]">On all products</h1>
@@ -51,5 +50,4 @@ const Hero = () => {
     </section>
   )
 }
-
-export default Hero
+export default Hero;

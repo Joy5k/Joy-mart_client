@@ -1,7 +1,11 @@
+'use client'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Image from 'next/image'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShoppingCart, faStar, faHeart } from '@fortawesome/free-solid-svg-icons'
+import { useAppDispatch } from '@/src/redux/hooks'
+import { addItem } from '@/src/redux/features/localstorage/wishlistSlice'
 
 interface ProductCardProps {
   product: {
@@ -14,6 +18,10 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const dispatch = useAppDispatch()
+  const handleAddToWishlist = (product: any) => {
+    dispatch(addItem(product))
+  }
   return (
     <div className="pro group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
       {/* Image with zoom effect */}
@@ -29,7 +37,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       {/* Quick actions (appear on hover) */}
       <div className="absolute top-3 right-3 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <button className="w-8 h-8 bg-transparent rounded-full flex items-start justify-start shadow-md hover:bg-transparent transition-colors hover:cursor-pointer">
+        <button onClick={() => handleAddToWishlist(product)} className="w-6 h-6 bg-transparent rounded-full flex items-center justify-center shadow-md hover:bg-transparent transition-colors hover:cursor-pointer">
           <FontAwesomeIcon icon={faHeart} className="text-gray-600 hover:text-red-500" />
         </button>
       </div>

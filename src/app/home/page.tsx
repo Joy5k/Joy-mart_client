@@ -2,7 +2,7 @@ import Banner from "@/src/components/Banner/Banner"
 import Hero from "@/src/components/Hero/Hero"
 import FeatureBox from "@/src/components/FeatureBox/FeatureBox"
 import Footer from "@/src/components/Footer/Footer"
-import Header from "@/src/components/Navbar/header"
+import Navbar from "@/src/components/Navbar/Navbar"
 import ProductCard from "@/src/components/ProductCart/ProductCart"
 import { NextPage } from "next"
 
@@ -48,7 +48,7 @@ const HomePage: NextPage = () => {
 
   return (
     <>
-      <Header />
+      <Navbar />
       
       {/* <section id="hero">
         <h4>Trade-in-offer</h4>
@@ -93,6 +93,7 @@ const HomePage: NextPage = () => {
         </div>
       </section>
 
+{/* Advertisement Static two carts */}
       <section id="sm-banner" className="section-p1">
         <div className="banner-box">
           <h4>crazy deals</h4>
@@ -108,6 +109,8 @@ const HomePage: NextPage = () => {
         </div>
       </section>
 
+
+{/* products vareities Advertisement */}
       <section id="banner3">
         <div className="banner-box">
           <h2>SEASONAL SALE</h2>
@@ -123,6 +126,7 @@ const HomePage: NextPage = () => {
         </div>
       </section>
 
+{/* Subscribe to Newsletter */}
       <section id="newsletter" className="section-p1 section-m1">
         <div className="newstext">
           <h4>Sign Up For Newsletters</h4>

@@ -12,8 +12,8 @@ import { RootState } from "../store";
 import { logout, setUser } from "../features/Auth/authSlice";
 
 const baseQuery = fetchBaseQuery({
-  // baseUrl: "http://localhost:5000/",
-  baseUrl: "https://electon-server-three.vercel.app/",
+  baseUrl: "http://localhost:5000/api/v1",
+  // baseUrl: "https://electon-server-three.vercel.app/",
   //below the line set the cookies on browser
   credentials: "include",
   prepareHeaders: (headers, { getState }) => {
@@ -35,8 +35,8 @@ const baseQueryWithRefreshToken:BaseQueryFn<FetchArgs,BaseQueryApi,DefinitionTyp
    }
 
   if (result?.error?.status === 401) {
-    // const res = await fetch("http://localhost:5000/auth/refresh-token", {
-    const res = await fetch("https: //electon-server-three.vercel.app/auth/refresh-token", {
+    const res = await fetch("http://localhost:5000/api/v1/auth/refresh-token", {
+    // const res = await fetch("https: //electon-server-three.vercel.app/auth/refresh-token", {
       method: "POST",
       credentials: "include",
     });

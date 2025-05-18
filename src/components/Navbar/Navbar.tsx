@@ -9,17 +9,24 @@ import { FaShop } from "react-icons/fa6";
 import { RiDashboard3Line } from "react-icons/ri";
 import { CiHeart } from "react-icons/ci";
 import { FiMenu, FiX } from "react-icons/fi";
+import { getToken, removeToken } from "@/src/utils/localStorageManagement";
+import { GrLogin } from "react-icons/gr";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  const token=getToken()
+  const navigate=useRouter()
+
+
+
 
   const toggleNav = () => {
     setIsNavOpen(!isNavOpen);
   };
-
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
@@ -39,6 +46,14 @@ const Navbar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+const handleLogout=()=>{
+  removeToken()
+  setIsDropdownOpen(false)
+  setIsNavOpen(false)
+  navigate.push('/login')
+}
+
 
   return (
     <section className="flex items-center justify-between bg-white shadow-md sticky top-0 z-50">
@@ -187,7 +202,10 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Desktop Right Side Icons */}
+      { !token ? <Link href="/login" className="text-[#1a1a1a] text-[#088178] transition-colors duration-300 mt-3 mx-5 flex justify-center items-center align-bottom gap-1">
+          <GrLogin  className="text-2xl"/> <span className="font-bold">Login</span>
+        </Link>:
+         
       <div className="hidden md:flex items-center gap-4 pr-10">
         {/* Wishlist */}
         <Link href="/wishlist" className="text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300">
@@ -232,9 +250,9 @@ const Navbar = () => {
               </li>
               <li className="border-t border-gray-200">
                 <Link 
-                  href="/logout" 
+                  href="/login" 
                   className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300"
-                  onClick={() => setIsDropdownOpen(false)}
+                  onClick={() => handleLogout()}
                 >
                   <BiLogOut />
                   <span>Logout</span>
@@ -243,7 +261,7 @@ const Navbar = () => {
             </ul>
           )}
         </div>
-      </div>
+      </div>}
     </section>
   );
 };

@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaGoogle, FaFacebook, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Image from 'next/image';
+import { useLoginMutation } from '@/src/redux/features/Auth/authApi';
+import { setToken } from '@/src/utils/localStorageManagement';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +16,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const [LoginMutation]=useLoginMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,10 +24,13 @@ const LoginPage = () => {
     setError('');
     
     try {
-      // Replace with your actual authentication logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      localStorage.setItem('authToken', 'dummy-token');
-      router.push('/dashboard');
+      const res = await LoginMutation({ email, password }).unwrap();
+            localStorage.setItem('token', res.data.accessToken);
+
+      if(res.success){
+        setToken(res.data.accessToken);
+          router.push('/');
+      }
     } catch (err:any) {
       setError('Invalid email or password');
     } finally {
@@ -59,7 +65,7 @@ const LoginPage = () => {
           <div className="flex justify-between gap-4 mb-6">
             <button
               onClick={() => handleSocialLogin('google')}
-              className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700 hover:bg-gray-50 transition-colors"
+              className="cursor-pointer  flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <FaGoogle className="text-red-500" />
               <span className="text-sm">Google</span>
@@ -67,7 +73,7 @@ const LoginPage = () => {
 
             <button
               onClick={() => handleSocialLogin('facebook')}
-              className="flex-1 flex items-center justify-center gap-2 bg-[#1877F2] text-white rounded-md py-2 px-4 hover:bg-[#166FE5] transition-colors"
+              className="cursor-pointer  flex-1 flex items-center justify-center gap-2 bg-[#1877F2] text-white rounded-md py-2 px-4 hover:bg-[#166FE5] transition-colors"
             >
               <FaFacebook />
               <span className="text-sm">Facebook</span>
@@ -109,7 +115,7 @@ const LoginPage = () => {
             <div className="mb-6">
               <label htmlFor="password" className="block text-gray-700 mb-2">Password</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none " >
                   <FaLock className="text-gray-400" />
                 </div>
                 <input
@@ -124,7 +130,7 @@ const LoginPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>

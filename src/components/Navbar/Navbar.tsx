@@ -16,9 +16,10 @@ import { useRouter } from "next/navigation";
 const Navbar = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [token,setToken]=useState<string>("")
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
-  const token=getToken()
+  
   const navigate=useRouter()
 
 
@@ -33,6 +34,12 @@ const Navbar = () => {
 
   // Close dropdown/nav when clicking outside
   useEffect(() => {
+  const authToken=getToken()
+  if(authToken){
+    setToken(authToken)
+  }
+
+
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);

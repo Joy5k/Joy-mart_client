@@ -6,10 +6,10 @@ interface BannerProps {
   
   const Banner = ({ title, subtitle, buttonText }: BannerProps) => {
     return (
-      <section id="banner" className="section-m1">
+      <section id="banner" className="">
         <h4>{title}</h4>
         <h2 dangerouslySetInnerHTML={{ __html: subtitle }}></h2>
-        <button className="normal">{buttonText}</button>
+        <button className="normal bg-[#088178] cursor-pointer border-white px-2 py-1 rounded-sm">{buttonText}</button>
       </section>
     )
   }

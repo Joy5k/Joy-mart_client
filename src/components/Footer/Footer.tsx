@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 const Footer = () => {
   return (
-    <footer className="section-p1">
+    <footer className="px-10 py-10 md:py-20 lg:py-20">
       <div className="col">
         <Image className="logo" src="/img/logo.png" alt=""  width={100} height={100}/>
         <h4>Contact</h4>

@@ -49,27 +49,19 @@ const HomePage: NextPage = () => {
   return (
     <>
       <Navbar />
-      
-      {/* <section id="hero">
-        <h4>Trade-in-offer</h4>
-        <h2>Super value deals</h2>
-        <h1>On all products</h1>
-        <p>Save more with coupons & up to 70% off!</p>
-        <button>Shop Now</button>
-      </section> */}
-
+ 
         <div>
           <Hero></Hero>
         </div>
-      <section id="feature" className="section-p1">
+      <section id="feature" className=" py-10 md:py-20 lg:py-20 flex justify-center align-middle items-center flex-wrap">
         {features.map((feature, index) => (
           <FeatureBox key={index} image={feature.image} title={feature.title} />
         ))}
       </section>
 
-      <section id="product1" className="section-p1">
-        <h2>Featured Products</h2>
-        <p>Summer Collection New Modern Design</p>
+      <section id="product1" className="px-10 py-10 md:py-20 lg:py-20">
+        <h2 className="text-2xl font-black text-gray-800 ">Featured Products</h2>
+        <p className="text-gray-700 font-semibold text-xl">Summer Collection New Modern Design</p>
         <div className="pro-container">
           {featuredProducts.map(product => (
             <ProductCard key={product.id} product={product} />
@@ -83,9 +75,9 @@ const HomePage: NextPage = () => {
         buttonText="Explore More" 
       />
 
-      <section id="product1" className="section-p1">
-        <h2>New Arrivals</h2>
-        <p>Summer Collection New Modern Design</p>
+      <section id="product1" className="px-10 py-10 md:py-20 lg:py-20">
+        <h2 className="text-2xl font-bold text-gray-800">New Arrivals</h2>
+        <p className="text-xl font-bold text-gray-700">Summer Collection New Modern Design</p>
         <div className="pro-container">
           {newArrivals.map(product => (
             <ProductCard key={product.id} product={product} />
@@ -94,18 +86,18 @@ const HomePage: NextPage = () => {
       </section>
 
 {/* Advertisement Static two carts */}
-      <section id="sm-banner" className="section-p1">
+      <section id="sm-banner" className="px-10 py-10 md:py-20 lg:py-20">
         <div className="banner-box">
           <h4>crazy deals</h4>
           <h2>buy 1 get 1 free</h2>
           <span>The best classic dress is on sale at cara</span>
-          <button className="white">Learn More</button>
+          <button className="white p-2 text-white border cursor-pointer">Learn More</button>
         </div>
         <div className="banner-box banner-box2">
           <h4>spring/summer</h4>
           <h2>upcoming season</h2>
           <span>The best classic dress is on sale at cara</span>
-          <button className="white">Collection</button>
+          <button className="white p-2 text-white border cursor-pointer">Learn More</button>
         </div>
       </section>
 
@@ -127,14 +119,14 @@ const HomePage: NextPage = () => {
       </section>
 
 {/* Subscribe to Newsletter */}
-      <section id="newsletter" className="section-p1 section-m1">
+      <section id="newsletter" className="px-10 py-10 md:py-20 lg:20 my-10">
         <div className="newstext">
           <h4>Sign Up For Newsletters</h4>
           <p>Get E-mail updates about our latest shop and <span>special offers.</span></p>
         </div>
         <div className="form">
           <input type="text" placeholder="Your email address" />
-          <button className="normal">Sign Up</button>
+          <button className=" px-5 rounded-r-2xl cursor-pointer">Sign Up</button>
         </div>
       </section>
 

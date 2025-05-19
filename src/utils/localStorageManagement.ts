@@ -1,5 +1,4 @@
-// utils/storage.ts
-"use client"; // Add this if the file is in the app directory
+"use client"; 
 
 export const setToken = (token: string) => {
   if (typeof window !== 'undefined') {

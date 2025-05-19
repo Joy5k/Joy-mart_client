@@ -7,12 +7,12 @@ interface FeatureBoxProps {
 
 const FeatureBox = ({ image, title }: FeatureBoxProps) => {
   return (
-    <div className="fe-box relative bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 ease-in-out group overflow-hidden">
+    <div className="fe-box relative bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 ease-in-out group overflow-hidden mb-5 mr-7 ">
       {/* Subtle background animation */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white opacity-0 group-hover:opacity-20 transition-opacity duration-500 -translate-x-full group-hover:translate-x-0" />
       
       {/* Image with gentle float effect */}
-      <div className="flex justify-center mb-4 transform transition-transform duration-500 group-hover:-translate-y-1">
+      <div className="flex justify-center mb-4 transform transition-transform duration-500 group-hover:-translate-y-1 ">
         <Image 
           src={image} 
           alt={title}  

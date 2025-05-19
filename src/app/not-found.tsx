@@ -3,27 +3,16 @@
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { FaHome, FaExclamationTriangle, FaEnvelope, FaQuestionCircle, FaRocket } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 
 const NotFoundPage = () => {
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [showContactForm, setShowContactForm] = useState(false);
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
 
 
 
@@ -43,41 +32,25 @@ const NotFoundPage = () => {
     setTimeout(() => setSubmitSuccess(false), 3000);
   };
 
-  if (!isClient) {
-    return null;
-  }
-
-  // Calculate parallax effect based on mouse position
-  const parallaxX = (mousePosition.x / window.innerWidth) * 20 - 10;
-  const parallaxY = (mousePosition.y / window.innerHeight) * 20 - 10;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white overflow-hidden relative">
       {/* Floating elements */}
       <motion.div
         animate={{
-          x: parallaxX * 0.5,
-          y: parallaxY * 0.5,
+       
           rotate: Math.sin(Date.now() / 1000) * 5,
         }}
         transition={{ type: "spring", damping: 10 }}
         className="absolute top-1/4 left-1/4 w-16 h-16 rounded-full bg-[#088178] opacity-20 blur-xl"
       />
       <motion.div
-        animate={{
-          x: -parallaxX * 0.3,
-          y: -parallaxY * 0.3,
-          rotate: Math.cos(Date.now() / 1000) * 5,
-        }}
+      
         transition={{ type: "spring", damping: 10 }}
         className="absolute bottom-1/3 right-1/3 w-24 h-24 rounded-full bg-[#0abab5] opacity-20 blur-xl"
       />
       <motion.div
-        animate={{
-          x: parallaxX * 0.7,
-          y: -parallaxY * 0.7,
-          rotate: Math.sin(Date.now() / 1500) * 10,
-        }}
+       
         transition={{ type: "spring", damping: 10 }}
         className="absolute top-2/3 right-1/4 w-20 h-20 rounded-full bg-[#7c3aed] opacity-20 blur-xl"
       />

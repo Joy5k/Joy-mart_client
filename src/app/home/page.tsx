@@ -38,12 +38,12 @@ const HomePage: NextPage = () => {
   ]
 
   const features = [
-    { image: '/img/features/f1.png', title: 'Free Shipping' },
-    { image: '/img/features/f2.png', title: 'Online Order' },
-    { image: '/img/features/f3.png', title: 'Save Money' },
-    { image: '/img/features/f4.png', title: 'Promotions' },
-    { image: '/img/features/f5.png', title: 'Happy Sell' },
-    { image: '/img/features/f6.png', title: '24/7 Support' },
+    { id:1, image: '/img/features/f1.png', title: 'Free Shipping' },
+    { id:2, image: '/img/features/f2.png', title: 'Online Order' },
+    { id:3, image: '/img/features/f3.png', title: 'Save Money' },
+    { id:4, image: '/img/features/f4.png', title: 'Promotions' },
+    { id:5, image: '/img/features/f5.png', title: 'Happy Sell' },
+    { id:6, image: '/img/features/f6.png', title: '24/7 Support' },
   ]
 
   return (

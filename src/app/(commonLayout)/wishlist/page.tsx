@@ -9,7 +9,6 @@ import Link from 'next/link';
 import { removeItem } from '@/src/redux/features/localstorage/wishlistSlice';
 import { RootState } from '@/src/redux/store';
 import { useEffect, useState } from 'react';
-import Navbar from '@/src/components/Navbar/Navbar';
 
 const WishlistPage = () => {
   const dispatch = useDispatch();
@@ -66,7 +65,6 @@ const WishlistPage = () => {
   return (
    
     <div>
-        <Navbar></Navbar>
          <section className="section-p1 py-12 min-h-screen bg-[#E3E6F3]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">

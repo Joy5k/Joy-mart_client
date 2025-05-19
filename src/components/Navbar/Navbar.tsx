@@ -165,7 +165,7 @@ const handleLogout=()=>{
               </li>
               <li>
                 <Link 
-                  href="/cart" 
+                  href="/booking" 
                   className="flex items-center gap-3 py-3 text-[#1a1a1a] hover:text-[#088178] font-semibold transition-colors duration-300"
                   onClick={() => setIsNavOpen(false)}
                 >
@@ -220,7 +220,7 @@ const handleLogout=()=>{
         </Link>
         
         {/* Cart */}
-        <Link href="/cart" className="text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300">
+        <Link href="/booking" className="text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300">
           <FaShoppingBag className="text-xl" />
         </Link>
         

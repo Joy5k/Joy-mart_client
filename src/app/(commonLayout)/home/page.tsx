@@ -1,8 +1,6 @@
 import Banner from "@/src/components/Banner/Banner"
 import Hero from "@/src/components/Hero/Hero"
 import FeatureBox from "@/src/components/FeatureBox/FeatureBox"
-import Footer from "@/src/components/Footer/Footer"
-import Navbar from "@/src/components/Navbar/Navbar"
 import ProductCard from "@/src/components/ProductCart/ProductCart"
 import { NextPage } from "next"
 
@@ -48,7 +46,6 @@ const HomePage: NextPage = () => {
 
   return (
     <>
-      <Navbar />
  
         <div>
           <Hero></Hero>
@@ -130,7 +127,6 @@ const HomePage: NextPage = () => {
         </div>
       </section>
 
-      <Footer  />
     </>
   )
 }

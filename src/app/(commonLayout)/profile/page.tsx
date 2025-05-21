@@ -1,8 +1,12 @@
 
-import ProfileClient from '@/src/components/ProfileClient/ProfileClient';
+'use client'; // ← Make this a Client Component if using dynamic
 
-export default async function ProfilePage() {
+import dynamic from 'next/dynamic';
 
+const ProfileClient = dynamic(
+  () => import('@/src/components/ProfileClient/ProfileClient'),
+  { ssr: false } // ← Disable SSR if needed
+);
 
   const user= {
     name: "John Doe",
@@ -52,7 +56,7 @@ export default async function ProfilePage() {
     }
   ]
 
-
+export default function ProfilePage() {
     
   return (
     <ProfileClient 

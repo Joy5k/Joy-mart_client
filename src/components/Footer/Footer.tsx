@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="col">
         <Image className="logo" src="/img/logo.png" alt=""  width={100} height={100}/>
         <h4>Contact</h4>
-        <p><strong>Address:</strong> Patuakhanli, Barisal,Bangladesh</p>
+        <p><strong>Address:</strong> Patuakhali, Barisal,Bangladesh</p>
         <p><strong>Phone</strong> +880 01601588531 /(+880) 01923588531</p>
         <p><strong>Hours</strong>10:00 - 18:00, Mon - Sat</p>
         <div className="follow">

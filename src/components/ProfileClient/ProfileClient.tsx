@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// app/profile/ProfileClient.tsx
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -201,7 +200,7 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                   { id: 'wishlist', icon: FaHeart, label: 'Wishlist', count: wishlist.length },
                   { id: 'addresses', icon: FaMapMarkerAlt, label: 'Addresses', count: addresses.length },
                   { id: 'settings', icon: FaCog, label: 'Settings', count: null },
-                ].map((item) => (
+                ]?.map((item) => (
                   <motion.button
                     key={item.id}
                     whileHover={{ x: 5 }}
@@ -283,9 +282,9 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                     <div>
                       <h3 className="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h3>
                       <div className="space-y-4">
-                        {orders.slice(0, 3).map((order:any) => (
+                        {orders?.slice(0, 3)?.map((order:any) => (
                           <motion.div 
-                            key={order.id}
+                            key={order?.id}
                             whileHover={{ x: 5 }}
                             className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg cursor-pointer"
                             onClick={() => setActiveTab('orders')}
@@ -294,12 +293,12 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                               <FaShoppingBag className="text-[#088178] text-xl" />
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-medium">Order #{order.orderNumber}</h4>
-                              <p className="text-sm text-gray-500">{new Date(order.date).toLocaleDateString()} • {order.status}</p>
+                              <h4 className="font-medium">Order #{order?.orderNumber}</h4>
+                              <p className="text-sm text-gray-500">{new Date(order?.date).toLocaleDateString()} • {order?.status}</p>
                             </div>
                             <div className="text-right">
-                              <p className="font-bold">${order.total.toFixed(2)}</p>
-                              <p className="text-sm text-gray-500">{order.items.length} items</p>
+                              <p className="font-bold">${order?.total.toFixed(2)}</p>
+                              <p className="text-sm text-gray-500">{order?.items.length} items</p>
                             </div>
                           </motion.div>
                         ))}
@@ -328,29 +327,29 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {orders.map((order:any) => (
-                          <div key={order.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                        {orders?.map((order:any) => (
+                          <div key={order?.id} className="border border-gray-200 rounded-xl overflow-hidden">
                             <div 
                               className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer"
-                              onClick={() => toggleOrderExpand(order.id)}
+                              onClick={() => toggleOrderExpand(order?.id)}
                             >
                               <div>
-                                <h3 className="font-medium">Order #{order.orderNumber}</h3>
-                                <p className="text-sm text-gray-500">{new Date(order.date).toLocaleDateString()}</p>
+                                <h3 className="font-medium">Order #{order?.orderNumber}</h3>
+                                <p className="text-sm text-gray-500">{new Date(order?.date).toLocaleDateString()}</p>
                               </div>
                               <div className="flex items-center gap-4">
                                 <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                  order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                  order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
-                                  order.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' :
+                                  order?.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                                  order?.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
+                                  order?.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
-                                  {order.status}
+                                  {order?.status}
                                 </div>
                                 <div className="text-right">
-                                  <p className="font-bold">${order.total.toFixed(2)}</p>
+                                  <p className="font-bold">${order?.total.toFixed(2)}</p>
                                 </div>
-                                {expandedOrder === order.id ? (
+                                {expandedOrder === order?.id ? (
                                   <FiChevronUp className="text-gray-500" />
                                 ) : (
                                   <FiChevronDown className="text-gray-500" />
@@ -359,7 +358,7 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                             </div>
                             
                             <AnimatePresence>
-                              {expandedOrder === order.id && (
+                              {expandedOrder === order?.id && (
                                 <motion.div
                                   initial={{ opacity: 0, height: 0 }}
                                   animate={{ opacity: 1, height: 'auto' }}
@@ -370,7 +369,7 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                                   <div className="p-4 border-t">
                                     <h4 className="font-medium mb-3">Order Items</h4>
                                     <div className="space-y-3">
-                                    {order.items.map((item: any) => (
+                                    {order?.items?.map((item: any) => (
                                         <div key={item.id} className="flex items-center gap-4">
                                             <div className="relative w-16 h-16 rounded-lg overflow-hidden">
                                                 <Image
@@ -400,31 +399,31 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                                         <div>
                                           <h4 className="font-medium mb-3">Shipping Address</h4>
                                           <address className="not-italic text-gray-600">
-                                            {order.shippingAddress.street}<br />
-                                            {order.shippingAddress.city}, {order.shippingAddress.state}<br />
-                                            {order.shippingAddress.zip}, {order.shippingAddress.country}
+                                            {order?.shippingAddress.street}<br />
+                                            {order?.shippingAddress.city}, {order?.shippingAddress.state}<br />
+                                            {order?.shippingAddress.zip}, {order?.shippingAddress.country}
                                           </address>
                                         </div>
                                         <div>
                                           <h4 className="font-medium mb-3">Payment Method</h4>
-                                          <p className="text-gray-600">{order.paymentMethod}</p>
+                                          <p className="text-gray-600">{order?.paymentMethod}</p>
                                           <h4 className="font-medium mt-4 mb-3">Order Summary</h4>
                                           <div className="space-y-2">
                                             <div className="flex justify-between">
                                               <span>Subtotal</span>
-                                              <span>${order.subtotal.toFixed(2)}</span>
+                                              <span>${order?.subtotal.toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between">
                                               <span>Shipping</span>
-                                              <span>${order.shippingCost.toFixed(2)}</span>
+                                              <span>${order?.shippingCost.toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between">
                                               <span>Tax</span>
-                                              <span>${order.tax.toFixed(2)}</span>
+                                              <span>${order?.tax.toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between font-bold pt-2 border-t">
                                               <span>Total</span>
-                                              <span>${order.total.toFixed(2)}</span>
+                                              <span>${order?.total.toFixed(2)}</span>
                                             </div>
                                           </div>
                                         </div>
@@ -470,7 +469,7 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {wishlist.map((item: any) => (
+                        {wishlist?.map((item: any) => (
                           <motion.div
                             key={item.id}
                             whileHover={{ y: -5 }}
@@ -532,7 +531,7 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {addresses.map((address: any) => (
+                        {addresses?.map((address: any) => (
                           <motion.div
                             key={address.id}
                             whileHover={{ scale: 1.02 }}

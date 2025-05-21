@@ -1,6 +1,35 @@
 @import "tailwindcss";
 
 
+/* Make progress bar appear below navbar */
+#nprogress {
+  position: relative;
+  z-index: 999999;
+}
+
+#nprogress .bar {
+  background: #29d; /* Change color to match your theme */
+  height: 3px;
+}
+
+/* Optional: customize the spinner (if you enable it later) */
+#nprogress .spinner {
+  display: none; /* We hide it by default */
+}
+
+/* Position below navbar */
+#progress-bar-container {
+  top: var(--navbar-height); /* Set this variable in your navbar component */
+  height: 3px;
+}
+
+/* Custom progress bar styles */
+#progress-bar-container > div {
+  height: 100%;
+  background: linear-gradient(90deg, #088178, #0AB7B2); /* Gradient color */
+  transition: width 0.4s ease;
+}
+
 
 
 #product1 {

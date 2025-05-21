@@ -8,10 +8,15 @@ const nextConfig: NextConfig = {
     },
     compiler: {
       styledComponents: true,
+          reactRemoveProperties: process.env.NODE_ENV === 'production'
+
     },
     experimental: {
     },
-  
+    reactStrictMode: true, 
+  eslint: {
+    ignoreDuringBuilds: false
+  },
 };
 
 export default nextConfig;

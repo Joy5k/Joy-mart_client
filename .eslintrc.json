@@ -1,0 +1,11 @@
+{
+  "extends": ["next", "plugin:@next/next/recommended"],
+  "rules": {
+    "react/no-dangerously-set-innerhtml": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "@next/next/no-sync-scripts": "error", // 🚫 Blocks unsafe synchronous scripts
+    "@next/next/no-html-link-for-pages": "error", // 🔗 Catches incorrect Next.js links
+    "react/no-unescaped-entities": "error", // ❌ Prevents HTML entity mismatches
+    "react-hooks/exhaustive-deps": "error" // ⚠️ Flags missing useEffect dependencies
+  }
+}

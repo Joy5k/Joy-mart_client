@@ -19,3 +19,19 @@ export interface User {
   updatedAt: string;
 
 }
+// types/product.ts
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  stock: number;
+  images: string[];
+  status: 'active' | 'inactive' | 'draft';
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string; // User ID who created the product
+}
+
+export type ProductCategory = 'electronics' | 'clothing' | 'home' | 'books' | 'other';

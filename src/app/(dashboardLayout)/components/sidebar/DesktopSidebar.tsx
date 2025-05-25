@@ -5,11 +5,13 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FiHome, FiPieChart, FiSettings, FiUsers, FiFileText } from 'react-icons/fi';
+import { AiOutlineProduct } from "react-icons/ai";
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: FiHome },
   { name: 'Analytics', href: '/dashboard/analytics', icon: FiPieChart },
   { name: 'Users', href: '/dashboard/users', icon: FiUsers },
+  { name: 'Products', href: '/dashboard/products', icon: AiOutlineProduct },
   { name: 'Reports', href: '/dashboard/reports', icon: FiFileText },
   { name: 'Settings', href: '/dashboard/settings', icon: FiSettings },
 ];

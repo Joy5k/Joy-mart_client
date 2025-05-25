@@ -1,4 +1,3 @@
-// app/(dashboardLayout)/dashboard/products/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,13 +8,11 @@ import {
   FiEdit2, 
   FiTrash2, 
   FiSearch, 
-  FiFilter,
   FiImage,
   FiDollarSign,
-  FiTag,
-  FiLayers
 } from 'react-icons/fi';
 import { Product, ProductCategory } from '@/src/types';
+import AddProduct from '../../components/productsComponents/addProduct';
 
 export default function ProductManagementPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -31,16 +28,7 @@ export default function ProductManagementPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
 
-  // Form states
-  const [newProduct, setNewProduct] = useState<Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>>({
-    name: '',
-    description: '',
-    price: 0,
-    category: 'electronics',
-    stock: 0,
-    images: [],
-    status: 'draft'
-  });
+
 
   // Fetch products from API
   useEffect(() => {
@@ -83,35 +71,6 @@ export default function ProductManagementPage() {
     setFilteredProducts(result);
   }, [searchTerm, categoryFilter, statusFilter, products]);
 
-  // CRUD Operations
-  const handleAddProduct = async () => {
-    try {
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newProduct),
-      });
-      
-      if (response.ok) {
-        const addedProduct = await response.json();
-        setProducts([...products, addedProduct]);
-        setIsAddModalOpen(false);
-        setNewProduct({
-          name: '',
-          description: '',
-          price: 0,
-          category: 'electronics',
-          stock: 0,
-          images: [],
-          status: 'draft'
-        });
-      }
-    } catch (error) {
-      console.error('Error adding product:', error);
-    }
-  };
 
   const handleEditProduct = async () => {
     if (!currentProduct) return;
@@ -153,10 +112,7 @@ export default function ProductManagementPage() {
   };
 
   // Handle image upload (simplified)
-  const handleImageUpload = async (file: File) => {
-    // In a real app, you would upload to cloud storage or your server
-    return URL.createObjectURL(file);
-  };
+
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -356,181 +312,9 @@ export default function ProductManagementPage() {
       </motion.div>
 
       {/* Add Product Modal */}
-      {isAddModalOpen && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
-              <div>
-                <div className="mt-3 text-center sm:mt-5">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">Add New Product</h3>
-                  <div className="mt-6 space-y-6">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 text-left">
-                        Product Name
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#088178] focus:ring-[#088178] sm:text-sm"
-                        value={newProduct.name}
-                        onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="description" className="block text-sm font-medium text-gray-700 text-left">
-                        Description
-                      </label>
-                      <textarea
-                        id="description"
-                        rows={3}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#088178] focus:ring-[#088178] sm:text-sm"
-                        value={newProduct.description}
-                        onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                      <div>
-                        <label htmlFor="price" className="block text-sm font-medium text-gray-700 text-left">
-                          Price
-                        </label>
-                        <div className="mt-1 relative rounded-md shadow-sm">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <FiDollarSign className="h-5 w-5 text-gray-400" />
-                          </div>
-                          <input
-                            type="number"
-                            id="price"
-                            className="focus:ring-[#088178] focus:border-[#088178] block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                            value={newProduct.price}
-                            onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label htmlFor="stock" className="block text-sm font-medium text-gray-700 text-left">
-                          Stock
-                        </label>
-                        <input
-                          type="number"
-                          id="stock"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#088178] focus:ring-[#088178] sm:text-sm"
-                          value={newProduct.stock}
-                          onChange={(e) => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})}
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="category" className="block text-sm font-medium text-gray-700 text-left">
-                          Category
-                        </label>
-                        <select
-                          id="category"
-                          className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
-                          value={newProduct.category}
-                          onChange={(e) => setNewProduct({...newProduct, category: e.target.value as ProductCategory})}
-                        >
-                          <option value="electronics">Electronics</option>
-                          <option value="clothing">Clothing</option>
-                          <option value="home">Home Goods</option>
-                          <option value="books">Books</option>
-                          <option value="other">Other</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <label htmlFor="status" className="block text-sm font-medium text-gray-700 text-left">
-                        Status
-                      </label>
-                      <select
-                        id="status"
-                        className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
-                        value={newProduct.status}
-                        onChange={(e) => setNewProduct({...newProduct, status: e.target.value as 'active' | 'inactive' | 'draft'})}
-                      >
-                        <option value="draft">Draft</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 text-left">
-                        Images
-                      </label>
-                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                        <div className="space-y-1 text-center">
-                          <FiImage className="mx-auto h-12 w-12 text-gray-400" />
-                          <div className="flex text-sm text-gray-600">
-                            <label
-                              htmlFor="file-upload"
-                              className="relative cursor-pointer bg-white rounded-md font-medium text-[#088178] hover:text-[#07756e] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#088178]"
-                            >
-                              <span>Upload images</span>
-                              <input id="file-upload" name="file-upload" type="file" className="sr-only" multiple 
-                                onChange={async (e) => {
-                                  if (e.target.files) {
-                                    const urls = await Promise.all(
-                                      Array.from(e.target.files).map(handleImageUpload)
-                                    );
-                                    setNewProduct({...newProduct, images: [...newProduct.images, ...urls]});
-                                  }
-                                }}
-                              />
-                            </label>
-                            <p className="pl-1">or drag and drop</p>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            PNG, JPG, GIF up to 10MB
-                          </p>
-                        </div>
-                      </div>
-                      {newProduct.images.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {newProduct.images.map((img, idx) => (
-                            <div key={idx} className="relative h-20 w-20 rounded-md overflow-hidden">
-                              <img src={img} alt={`Preview ${idx}`} className="h-full w-full object-cover" />
-                              <button
-                                type="button"
-                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
-                                onClick={() => setNewProduct({
-                                  ...newProduct,
-                                  images: newProduct.images.filter((_, i) => i !== idx)
-                                })}
-                              >
-                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                <button
-                  type="button"
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[#088178] text-base font-medium text-white hover:bg-[#07756e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178] sm:col-start-2 sm:text-sm"
-                  onClick={handleAddProduct}
-                >
-                  Add Product
-                </button>
-                <button
-                  type="button"
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178] sm:mt-0 sm:col-start-1 sm:text-sm"
-                  onClick={() => setIsAddModalOpen(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+     {
+      isAddModalOpen && <AddProduct isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen}></AddProduct>
+     }
 
       {/* Edit Product Modal */}
       {isEditModalOpen && currentProduct && (

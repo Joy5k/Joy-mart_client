@@ -10,73 +10,66 @@ import {
   FiSearch, 
   FiImage,
   FiDollarSign,
+  FiStar,
+  FiTag,
+  FiBox,
+  FiTruck
 } from 'react-icons/fi';
-import { Product, ProductCategory } from '@/src/types';
+import { IProduct } from '@/src/types';
 import AddProduct from '../../components/productsComponents/addProduct';
+import { useGetProductsQuery } from '@/src/redux/features/productManagement/productApi';
+
 
 export default function ProductManagementPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  //redux api
+  const {data:products, isLoading:loading} = useGetProductsQuery({});
+
+  // State variables
+  const [filteredProducts, setFilteredProducts] = useState<IProduct[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<ProductCategory | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | 'draft' | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | 'all'>('all');
   
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
-
-
+  const [currentProduct, setCurrentProduct] = useState<IProduct | null>(null);
 
   // Fetch products from API
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/products');
-        const data = await response.json();
-        setProducts(data);
-        setFilteredProducts(data);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    setFilteredProducts(products || []);
+  }, [products]);
 
-    fetchProducts();
-  }, []);
+console.log(products,"Products Data");
 
   // Apply filters
   useEffect(() => {
     let result = products;
     
     if (searchTerm) {
-      result = result.filter(product => 
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase())
+      result = result.filter((product:IProduct) =>
+        product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
     
     if (categoryFilter !== 'all') {
-      result = result.filter(product => product.category === categoryFilter);
+      result = result.filter((product:IProduct) => product.category?.categoryName === categoryFilter);
     }
-    
+    // Filter by status 
     if (statusFilter !== 'all') {
-      result = result.filter(product => product.status === statusFilter);
+      result = result.filter((product:IProduct) => product.isActive === (statusFilter === 'active'));
     }
-    
+
     setFilteredProducts(result);
   }, [searchTerm, categoryFilter, statusFilter, products]);
-
 
   const handleEditProduct = async () => {
     if (!currentProduct) return;
     
     try {
-      const response = await fetch(`/api/products/${currentProduct.id}`, {
+      const response = await fetch(`/api/products/${currentProduct._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +79,6 @@ export default function ProductManagementPage() {
       
       if (response.ok) {
         const updatedProduct = await response.json();
-        setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
         setIsEditModalOpen(false);
       }
     } catch (error) {
@@ -98,21 +90,17 @@ export default function ProductManagementPage() {
     if (!currentProduct) return;
     
     try {
-      const response = await fetch(`/api/products/${currentProduct.id}`, {
+      const response = await fetch(`/api/products/${currentProduct._id}`, {
         method: 'DELETE',
       });
       
       if (response.ok) {
-        setProducts(products.filter(p => p.id !== currentProduct.id));
         setIsDeleteModalOpen(false);
       }
     } catch (error) {
       console.error('Error deleting product:', error);
     }
   };
-
-  // Handle image upload (simplified)
-
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -173,7 +161,7 @@ export default function ProductManagementPage() {
               id="category"
               className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value as ProductCategory | 'all')}
+              onChange={(e) => setCategoryFilter(e.target.value)}
             >
               <option value="all">All Categories</option>
               <option value="electronics">Electronics</option>
@@ -192,12 +180,11 @@ export default function ProductManagementPage() {
               id="status"
               className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as 'active' | 'inactive' | 'draft' | 'all')}
+              onChange={(e) => setStatusFilter(e.target.value as 'active' | 'inactive' | 'all')}
             >
               <option value="all">All Statuses</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
-              <option value="draft">Draft</option>
             </select>
           </div>
         </div>
@@ -241,13 +228,13 @@ export default function ProductManagementPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {filteredProducts.map((product) => (
-                    <tr key={product.id}>
+                  { (products.data || [])?.map((product:IProduct) => (
+                    <tr key={product._id}>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
-                            {product.images.length > 0 ? (
-                              <img className="h-10 w-10 rounded-md object-cover" src={product.images[0]} alt={product.name} />
+                            {product.images && product.images.length > 0 ? (
+                              <img className="h-10 w-10 rounded-md object-cover" src={product.images[0]} alt={product.title} />
                             ) : (
                               <div className="flex items-center justify-center h-10 w-10 rounded-md bg-[#c8faf7] text-[#088178]">
                                 <FiPackage className="h-5 w-5" />
@@ -255,30 +242,45 @@ export default function ProductManagementPage() {
                             )}
                           </div>
                           <div className="ml-4">
-                            <div className="font-medium text-gray-900">{product.name}</div>
-                            <div className="text-gray-500 line-clamp-1">{product.description}</div>
+                            <div className="font-medium text-gray-900">{product.title}</div>
+                            <div className="text-gray-500 line-clamp-1">{product.shortTitle || product.description}</div>
                           </div>
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 capitalize">
-                        {product.category}
+                        {product?.category?.categoryName || "Uncategorized"}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        ${product.price.toFixed(2)}
+                        <div className="flex items-center">
+                          <FiDollarSign className="mr-1 h-3 w-3 text-gray-400" />
+                          {product.price.toFixed(2)}
+                          {product.originalPrice && (
+                            <span className="ml-2 text-xs text-gray-400 line-through">
+                              <FiDollarSign className="inline h-2 w-2" />
+                              {product.originalPrice.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         {product.stock}
+                        {product.lowStockThreshold && product.stock <= product.lowStockThreshold && (
+                          <span className="ml-1 text-xs text-red-500">(Low)</span>
+                        )}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          product.status === 'active' 
+                          product.isActive 
                             ? 'bg-green-100 text-green-800' 
-                            : product.status === 'inactive' 
-                              ? 'bg-red-100 text-red-800' 
-                              : 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
                         }`}>
-                          {product.status}
+                          {product.isActive ? 'Active' : 'Inactive'}
                         </span>
+                        {product.featured && (
+                          <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            <FiStar className="mr-1 h-3 w-3" /> Featured
+                          </span>
+                        )}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                         <div className="flex space-x-2">
@@ -312,87 +314,61 @@ export default function ProductManagementPage() {
       </motion.div>
 
       {/* Add Product Modal */}
-     {
-      isAddModalOpen && <AddProduct isAddModalOpen={isAddModalOpen} setIsAddModalOpen={setIsAddModalOpen}></AddProduct>
-     }
+      {isAddModalOpen && (
+        <AddProduct 
+          isAddModalOpen={isAddModalOpen} 
+          setIsAddModalOpen={setIsAddModalOpen}
+          onProductAdded={(newProduct) => {
+          }}
+        />
+      )}
 
       {/* Edit Product Modal */}
       {isEditModalOpen && currentProduct && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
-              <div>
-                <div className="mt-3 text-center sm:mt-5">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">Edit Product</h3>
-                  <div className="mt-6 space-y-6">
-                    {/* Same form fields as Add Product, but with currentProduct values */}
-                    {/* Omitted for brevity - use the same fields as Add Product modal */}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                <button
-                  type="button"
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[#088178] text-base font-medium text-white hover:bg-[#07756e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178] sm:col-start-2 sm:text-sm"
-                  onClick={handleEditProduct}
-                >
-                  Save Changes
-                </button>
-                <button
-                  type="button"
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178] sm:mt-0 sm:col-start-1 sm:text-sm"
-                  onClick={() => setIsEditModalOpen(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AddProduct
+          isAddModalOpen={isEditModalOpen}
+          setIsAddModalOpen={setIsEditModalOpen}
+          onProductAdded={(updatedProduct) => {
+          }}
+          initialProduct={currentProduct}
+        />
       )}
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && currentProduct && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+        <div className="fixed z-50 inset-0 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/10 backdrop-blur-sm" onClick={() => setIsDeleteModalOpen(false)} />
+          
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <FiTrash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <div className="mt-3 text-center">
+                <h3 className="text-lg font-medium text-gray-900">Delete Product</h3>
+                <div className="mt-2">
+                  <p className="text-sm text-gray-500">
+                    Are you sure you want to delete {currentProduct.title}? This action cannot be undone.
+                  </p>
+                </div>
+              </div>
             </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-              <div>
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                  <FiTrash2 className="h-6 w-6 text-red-600" />
-                </div>
-                <div className="mt-3 text-center sm:mt-5">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">Delete Product</h3>
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500">
-                      Are you sure you want to delete {currentProduct.name}? This action cannot be undone.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                <button
-                  type="button"
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:col-start-2 sm:text-sm"
-                  onClick={handleDeleteProduct}
-                >
-                  Delete
-                </button>
-                <button
-                  type="button"
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178] sm:mt-0 sm:col-start-1 sm:text-sm"
-                  onClick={() => setIsDeleteModalOpen(false)}
-                >
-                  Cancel
-                </button>
-              </div>
+            
+            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <button
+                type="button"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                onClick={handleDeleteProduct}
+              >
+                Delete
+              </button>
+              <button
+                type="button"
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

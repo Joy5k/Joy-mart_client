@@ -3,34 +3,34 @@ import { baseApi } from "../../api/baseApi";
 const productApi=baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getProducts: builder.query({
-            query: ({query}) => ({
-                url: `/products/get-all-products?limit=${query.limit}&offset=${query.offset}&search=${query.search}`,
+            query: () => ({
+                url: `/product/get-all-products`,
                 method: "GET",
             }),
         }),
         getProductById: builder.query({
             query: (id) => ({
-                url: `/products/getSingle-product/${id}`,
+                url: `/product/getSingle-product/${id}`,
                 method: "GET",
             }),
         }),
         createProduct: builder.mutation({
             query: (productData) => ({
-                url: "/products/create",
+                url: "/product/create",
                 method: "POST",
                 body: productData,
             }),
         }),
         updateProduct: builder.mutation({
             query: ({ id, productData }) => ({
-                url: `/products/update/${id}`,
+                url: `/product/update/${id}`,
                 method: "PUT",
                 body: productData,
             }),
         }),
         deleteProduct: builder.mutation({
             query: (id) => ({
-                url: `/products/delete/${id}`,
+                url: `/product/delete/${id}`,
                 method: "DELETE",
             }),
         }),

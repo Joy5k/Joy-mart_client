@@ -36,16 +36,6 @@ export interface Product {
 
 export type ProductCategory = 'electronics' | 'clothing' | 'home' | 'books' | 'other';
 
-export interface Icategory{
-  categoryName: string;
-  description?: string;
-  imageUrl?: string;
-  isActive: boolean;
-  isDeleted?: boolean;
-  isSubCategory?: boolean; // false or undefined means main category
-  parentCategoryId?: string; // Required only for subcategories
-}
-
 export interface IProduct {
   _id:string
   title: string; 
@@ -71,7 +61,7 @@ export interface IProduct {
   };
 
   // Categorization
-  category: Icategory; 
+  category: TCategory; 
   subCategory?: string; 
   tags?: string[]; 
 
@@ -100,4 +90,17 @@ export interface IProduct {
 
   isDeleted?: boolean;
   isActive?: boolean;
+}
+
+
+export type TCategory = {
+  _id: string;
+  categoryName: string;
+  description: string;
+  imageUrl: string;
+  isActive: boolean;
+  isDeleted: boolean;
+  isSubCategory: boolean;
+  createdAt: string; 
+  updatedAt: string;
 }

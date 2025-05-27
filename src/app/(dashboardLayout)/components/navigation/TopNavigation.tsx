@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FiBell, FiSearch } from 'react-icons/fi';
+import { FiBell } from 'react-icons/fi';
 import { usePathname } from 'next/navigation';
 import UserDropdown from './UserDropdown';
 

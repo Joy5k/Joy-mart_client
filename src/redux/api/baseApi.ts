@@ -10,10 +10,10 @@ import {
 } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store";
 import { logout, setUser } from "../features/Auth/authSlice";
+import {  tagTypesList } from "../tagTypes";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: "http://localhost:5000/api/v1",
-  // baseUrl: "https://electon-server-three.vercel.app/",
   //below the line set the cookies on browser
   credentials: "include",
   prepareHeaders: (headers, { getState }) => {
@@ -63,6 +63,6 @@ const baseQueryWithRefreshToken:BaseQueryFn<FetchArgs,BaseQueryApi,DefinitionTyp
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithRefreshToken,
-  tagTypes:["auth2","products","users","bookings","payments","subscribe","offers"],
+  tagTypes:tagTypesList ,
   endpoints: () => ({}),
 });

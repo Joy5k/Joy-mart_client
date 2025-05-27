@@ -2,12 +2,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaGoogle, FaFacebook, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Image from 'next/image';
 import { useLoginMutation } from '@/src/redux/features/Auth/authApi';
-import { setToken } from '@/src/utils/localStorageManagement';
+import { getToken, setToken } from '@/src/utils/localStorageManagement';
+import { toast } from 'react-toastify';
+import { useAppDispatch } from '@/src/redux/hooks';
+import { setUser } from '@/src/redux/features/Auth/authSlice';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -17,17 +20,26 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const router = useRouter();
   const [LoginMutation]=useLoginMutation();
+  const userToken=getToken()
+  const dispatch=useAppDispatch()
+  useEffect(() => {
+    if (userToken) {
+      router.push('/');
+    }
+  }, [userToken, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
+ 
     try {
       const res = await LoginMutation({ email, password }).unwrap();
             localStorage.setItem('token', res.data.accessToken);
-
       if(res.success){
+         dispatch(setUser({
+        token: res.data.accessToken
+      }));
         setToken(res.data.accessToken);
           router.push('/');
       }

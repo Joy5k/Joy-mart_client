@@ -1,159 +1,82 @@
 'use client';
 
-import uploadImage from '@/src/hooks/imageUploader';
 import { useGetCategoriesQuery } from '@/src/redux/features/productManagement/categoryApi';
-import { useCreateProductMutation } from '@/src/redux/features/productManagement/productApi';
-import {IProduct, TCategory } from '@/src/types';
-import React, { useRef, useState } from 'react';
-import { FiDollarSign, FiImage, FiX, FiTag, FiBox, FiTruck, FiStar, FiEdit } from 'react-icons/fi';
+import { useUpdateProductMutation } from '@/src/redux/features/productManagement/productApi';
+import { IProduct, TCategory } from '@/src/types';
+import React, { useState } from 'react';
+import { FiDollarSign, FiImage, FiX, FiTag, FiBox, FiTruck, FiStar } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
 interface AddProductProps {
   isAddModalOpen: boolean;
   setIsAddModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  onProductAdded?: (newProduct: IProduct) => void;
-    initialProduct?: IProduct;
+    initialProduct: IProduct;
 
 }
 
-function AddProduct({ isAddModalOpen, setIsAddModalOpen, onProductAdded }: AddProductProps) {
-  const [addProduct,{isLoading}]=useCreateProductMutation()
-    const {data:categories} = useGetCategoriesQuery({});
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [imageLoading, setImageLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: AddProductProps) {
+      const {data:categories} = useGetCategoriesQuery({});
+  
   const [newProduct, setNewProduct] = useState<Omit<IProduct, '_id' | 'rating'>>({
-    title: '',
-    shortTitle: '',
-    description: '',
-    shortDescription: '',
-    price: 0,
-    originalPrice: undefined,
-    discountPercentage: undefined,
-    costPrice: undefined,
-    stock: 0,
-    lowStockThreshold: 5,
-    weight: undefined,
-    dimensions: undefined,
-    category: undefined as unknown as IProduct['category'],
-    images:[],
-    thumbnail: '',
-    videoUrl: '',
-    attributes: {},
-    featured: false,
+    title:initialProduct.title,
+    shortTitle: initialProduct.shortTitle || '',
+    description: initialProduct.description || '',
+    shortDescription: initialProduct.shortDescription || '',
+    price: initialProduct.price || 0,
+    originalPrice: initialProduct.originalPrice || undefined,
+    discountPercentage: initialProduct.discountPercentage || undefined,
+    costPrice: initialProduct.costPrice || undefined,
+    stock: initialProduct.stock || 0,
+    lowStockThreshold: initialProduct.lowStockThreshold || 5,
+    weight: initialProduct.weight || undefined,
+    dimensions: initialProduct.dimensions || undefined,
+    category: initialProduct.category || ({} as IProduct['category']),
+    subCategory: initialProduct.subCategory || '',
+    tags: initialProduct.tags || [],
+    images: initialProduct.images || [],
+    thumbnail: initialProduct.thumbnail || '',
+    videoUrl: initialProduct.videoUrl || '',
+    attributes: initialProduct.attributes || {},
+    featured: initialProduct.featured || false,
     shipping: {
-      free: false,
-      processingTime: '3-5 business days'
+      free: initialProduct.shipping?.free || false,
+      processingTime: initialProduct.shipping?.processingTime || '3-5 business days'
     },
     isDeleted: false,
     isActive: true
   });
-console.log(newProduct,'newProduct')
-  const resetForm = () => {
-    setNewProduct({
-      title: '',
-      shortTitle: '',
-      description: '',
-      shortDescription: '',
-      price: 0,
-      originalPrice: undefined,
-      discountPercentage: undefined,
-      costPrice: undefined,
-      stock: 0,
-      lowStockThreshold: 5,
-      weight: undefined,
-      dimensions: undefined,
-      category: undefined as unknown as IProduct['category'],
-      subCategory: '',
-      tags: [],
-      images: [],
-      thumbnail: '',
-      videoUrl: '',
-      attributes: {},
-      featured: false,
-      shipping: {
-        free: false,
-        processingTime: '3-5 business days'
-      },
-      isDeleted: false,
-      isActive: true
-    });
-  };
-  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = event.target.files;
-    setImageLoading(true);
-    if (!selectedFiles) {
-      console.log("No files selected");
-      return;
-    }
- 
- try {
-    const uploadedPhotos: string[] = [];
-    
-    for (let i = 0; i < selectedFiles?.length; i++) {
-      const file = selectedFiles[i];
-      const response = await uploadImage(file);
-      if (response) {
-        uploadedPhotos.push(response.imageUrl);
-      }
-      setImageLoading(false);
-      setImagePreviews(prev => [...prev, response?.imageUrl]);
-    }
-    
-    // Update the product state with new images
-    setNewProduct(prev => ({
-      ...prev,
-      images: [...prev.images, ...uploadedPhotos]
-    }));
-    
-  } catch (error) {
-    console.error(error);
-  }
+  const [productUpdate,{isLoading}]=useUpdateProductMutation()
 
-  };
 
   const handleAddProduct = async () => {
-    if (!newProduct.title.trim()) {
-      toast.error('Product title is required');
-      return;
-    }
-
-    if (newProduct.price <= 0) {
-      toast.error('Price must be greater than 0');
-      return;
-    }
-    if(!newProduct.category){
-      toast.error('Category is required');
-      return;
-    }
-
+ 
 
     try {
-      const response=await addProduct(newProduct).unwrap();
-      console.log(response,'response from addProduct')
-      if (response.success) {
-        const addedProduct = await response.json();
-        toast.success('Product added successfully');
-        onProductAdded?.(addedProduct);
-        setIsAddModalOpen(false);
-        resetForm();
-      } 
+      const response = await productUpdate({ id: initialProduct._id, data: newProduct }).unwrap();
+      console.log(response)
+      if(response.success){
+      toast.success(`${initialProduct.title} Product updated successfully`);
+
+      setIsAddModalOpen(false);
+      }
     } catch (error) {
       console.error('Error adding product:', error);
       toast.error('An error occurred while adding the product');
-    } 
-
+    } finally {
+    }
   };
 
-  const handleRemoveImage = (index: number) => {
-    const newPreviews = [...imagePreviews];
-    newPreviews.splice(index, 1);
-    setImagePreviews(newPreviews);
-    
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      const urls = files.map(file => URL.createObjectURL(file));
+      setNewProduct(prev => ({
+        ...prev,
+        images: [...prev.images, ...urls],
+        thumbnail: prev.thumbnail || urls[0] // Set first image as thumbnail if not set
+      }));
+    }
   };
-
-
 
   const addAttribute = () => {
     setNewProduct(prev => ({
@@ -189,7 +112,6 @@ console.log(newProduct,'newProduct')
         className="absolute inset-0 bg-gray-900/10 backdrop-blur-sm"
         onClick={() => {
           setIsAddModalOpen(false);
-          resetForm();
         }}
       />
       
@@ -202,7 +124,6 @@ console.log(newProduct,'newProduct')
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10"
           onClick={() => {
             setIsAddModalOpen(false);
-            resetForm();
           }}
         >
           <FiX className="h-6 w-6" />
@@ -468,29 +389,29 @@ console.log(newProduct,'newProduct')
                     Category *
                   </label>
                   <select
-                  className='border w-full px-3 py-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]'
-  id="category"
-  value={newProduct.category?._id || ''}
-  onChange={(e) => {
-    const selectedCategory = categories?.data.find(
-      (cat:TCategory) => cat._id === e.target.value
-    );
-    setNewProduct({
-      ...newProduct,
-      category: selectedCategory._id || null
-    });
-  }}
-  required
->
-  <option value="">Select a category</option>
-  {categories?.data.map((category: TCategory) => (
-    <option
-    
-    key={category._id} value={category._id}>
-      {category.categoryName}
-    </option>
-  ))}
-</select>
+                                 className='border w-full px-3 py-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]'
+                 id="category"
+                 value={newProduct.category?._id || ''}
+                 onChange={(e) => {
+                   const selectedCategory = categories?.data.find(
+                     (cat:TCategory) => cat._id === e.target.value
+                   );
+                   setNewProduct({
+                     ...newProduct,
+                     category: selectedCategory._id || null
+                   });
+                 }}
+                 required
+               >
+                 <option value="">Select a category</option>
+                 {categories?.data.map((category: TCategory) => (
+                   <option
+                   
+                   key={category._id} value={category._id}>
+                     {category.categoryName}
+                   </option>
+                 ))}
+               </select>
                 </div>
                 
                 <div>
@@ -529,70 +450,37 @@ console.log(newProduct,'newProduct')
             <div className="border-t border-gray-200 pt-6">
               <h4 className="text-lg font-medium text-gray-900 mb-4">Media</h4>
               
-            <div className="mt-1">
-              <h4 className='text-md font-bold text-gray-700 mb-2' >Product Images</h4>
-      {imagePreviews.length > 0 ? (
-        <div className="grid grid-cols-3 gap-4">
-          {imagePreviews.map((preview, index) => (
-            <div key={index} className="relative group">
-              <img 
-                src={preview} 
-                alt={`Preview ${index}`}
-                className="w-full h-32 object-cover rounded-md"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-md">
-                <button
-                  onClick={() => handleRemoveImage(index)}
-                  className="p-2 bg-white rounded-full text-red-500 hover:bg-red-50 mr-2"
-                >
-                  <FiX />
-                </button>
-          
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                <div className="space-y-1 text-center">
+                  <FiImage className="mx-auto h-12 w-12 text-gray-400" />
+                  <div className="flex text-sm text-gray-600 justify-center">
+                    <label
+                      htmlFor="file-upload"
+                      className="relative cursor-pointer bg-white rounded-md font-medium text-[#088178] hover:text-[#07756e] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#088178]"
+                    >
+                      <span>Upload images</span>
+                      <input 
+                        id="file-upload" 
+                        name="file-upload" 
+                        type="file" 
+                        className="sr-only" 
+                        multiple 
+                        accept="image/jpeg, image/png, image/gif"
+                        onChange={handleImageUpload}
+                      />
+                    </label>
+                    <p className="pl-1">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    PNG, JPG, GIF up to 10MB
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-          <div className="space-y-1 text-center">
-            <FiImage className="mx-auto h-12 w-12 text-gray-400" />
-            <div className="flex text-sm text-gray-600 justify-center">
-              <label
-                htmlFor="file-upload"
-                className="relative cursor-pointer bg-white rounded-md font-medium text-[#088178] hover:text-[#07756e] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#088178]"
-              >
-                <span>Upload images</span>
-                <input 
-                  id="file-upload" 
-                  ref={fileInputRef}
-                  name="file-upload" 
-                  type="file" 
-                  className="sr-only" 
-                  multiple 
-                  accept="image/jpeg, image/png, image/gif"
-                  onChange={handleImageChange}
-                />
-              </label>
-              <p className="pl-1">or drag and drop</p>
-            </div>
-            <p className="text-xs text-gray-500">
-              PNG, JPG, GIF up to 10MB
-            </p>
-          </div>
-        </div>
-      )}
-      
-      {imageLoading && (
-        <div className="mt-4 text-center text-gray-500">
-          Uploading images...
-        </div>
-      )}
-    </div>
               
               {newProduct.images.length > 0 && (
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Choose Thumbnail Image in ({newProduct.images.length})
+                    Product Images ({newProduct.images.length})
                   </label>
                   
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -778,7 +666,6 @@ console.log(newProduct,'newProduct')
               className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]"
               onClick={() => {
                 setIsAddModalOpen(false);
-                resetForm();
               }}
               disabled={isLoading}
             >
@@ -790,7 +677,7 @@ console.log(newProduct,'newProduct')
               onClick={handleAddProduct}
               disabled={isLoading}
             >
-              {isLoading ? 'Adding...' : 'Add Product'}
+              {isLoading ? 'Updating...' : 'Update Product'}
             </button>
           </div>
         </div>
@@ -799,4 +686,4 @@ console.log(newProduct,'newProduct')
   );
 }
 
-export default AddProduct;
+export default UpdateProduct;

@@ -1,12 +1,25 @@
 'use client';
 
+import { setUser } from '@/src/redux/features/Auth/authSlice';
+import { useAppDispatch } from '@/src/redux/hooks';
+import { removeToken } from '@/src/utils/localStorageManagement';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { FiChevronDown, FiUser, FiLogOut } from 'react-icons/fi';
 
 export default function UserDropdown() {
+    const navigate=useRouter()
+    const dispatch=useAppDispatch()
   const [isOpen, setIsOpen] = useState(false);
-  
+  const handleLogout=()=>{
+    dispatch(setUser({
+      token: '',
+    }))
+    removeToken()
+    navigate.push('/login')
+  }
   return (
     <div className="relative ml-3">
       <div>
@@ -40,22 +53,27 @@ export default function UserDropdown() {
             aria-orientation="vertical"
             aria-labelledby="user-menu-button"
           >
-            <a
-              href="#"
+            <Link
+              href="/profile"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               role="menuitem"
             >
               <FiUser className="mr-2 h-4 w-4" />
               Your Profile
-            </a>
-            <a
+            </Link>
+            <button
+            className='w-full text-left'
+            onClick={handleLogout}>
+              <Link
+            
               href="#"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               role="menuitem"
             >
               <FiLogOut className="mr-2 h-4 w-4" />
               Sign out
-            </a>
+            </Link>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

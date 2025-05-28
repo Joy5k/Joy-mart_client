@@ -3,20 +3,45 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaUser, FaShoppingBag, FaHeart, FaMapMarkerAlt, FaCog, FaSignOutAlt, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import { removeToken } from '@/src/utils/localStorageManagement';
+import uploadImage from '@/src/hooks/imageUploader';
+import { IProfile } from '@/src/types';
+import { useGetProfileQuery, useUpdateProfileMutation } from '@/src/redux/features/profile/profileApi';
 
-const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
+const ProfileClient = ({ orders, wishlist, addresses }: any) => {
   const router = useRouter();
+  const { data, refetch } = useGetProfileQuery({});
+  const user = data?.data;
+
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
-  const [userData, setUserData] = useState(user);
+  const [userData, setUserData] = useState<IProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  
+  const [updatedData, setUpdatedData] = useState<IProfile>({
+    firstName: '',
+    lastName: '',
+    image: '',
+    email: '',
+    phoneNumber: '',
+    address: '',
+    city: '',
+    state: '',
+    country: '',
+    zipCode: '',
+    dateOfBirth: '',
+    isDeleted: false,
+  });
+
   const [newAddress, setNewAddress] = useState({
     street: '',
     city: '',
@@ -26,6 +51,68 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
     isDefault: false
   });
 
+  const [updateProfile] = useUpdateProfileMutation();
+
+  // Initialize user data when component mounts or user changes
+  useEffect(() => {
+    if (user) {
+      setUserData(user);
+      setUpdatedData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        image: user.image || '',
+        email: user.email || '',
+        phoneNumber: user.phoneNumber || '',
+        address: user.address || '',
+        city: user.city || '',
+        state: user.state || '',
+        country: user.country || '',
+        zipCode: user.zipCode || '',
+        dateOfBirth: user.dateOfBirth || '',
+        isDeleted: user.isDeleted || false,
+      });
+      setImagePreview(user.image || null);
+    }
+  }, [user]);
+
+
+  const handleImageChangeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+   
+    const files = event.target.files;
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    const file = files[0];
+    setImageFile(file);
+
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setImagePreview(e.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+ try {
+   
+      const response = await uploadImage(file);
+      if (response) {
+        console.log(response.imageUrl)
+        setUpdatedData(prev=>({...prev,image:response?.imageUrl}))
+        setImagePreview(response?.imageUrl);
+      }
+     
+    
+    
+ 
+    
+  } catch (error) {
+    console.error(error);
+  }
+
+}
+console.log(updatedData)
   // Animation variants
   const tabContentVariants = {
     hidden: { opacity: 0, y: 10 },
@@ -33,18 +120,35 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
     exit: { opacity: 0, y: -10 }
   };
 
+
+
   const handleSaveProfile = async () => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Profile updated successfully');
-      setIsEditing(false);
-    } catch (error:any) {
-      toast.error('Failed to update profile');
+  
+
+      const res = await updateProfile({ updatedData }).unwrap();
+      console.log(res,'res')
+      if (res) {
+        toast.success('Profile updated successfully');
+        setUserData(res.data); // Update local user data with response
+        refetch(); // Refetch the latest data
+        setIsEditing(false);
+      }
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast.error(error.data?.message || 'Failed to update profile');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setUpdatedData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleAddAddress = async () => {
@@ -61,21 +165,27 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
         country: '',
         isDefault: false
       });
-    } catch (error:any) {
+    } catch (error: any) {
       toast.error('Failed to add address');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleOrderExpand = (orderId:any) => {
+  const toggleOrderExpand = (orderId: any) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
-  // Prefetch data on hover for better UX
-  const prefetchData = (tab:any) => {
-    // This would actually prefetch data for the tab
-    console.log(`Prefetching data for ${tab}`);
+  const handleLogout = () => {
+    document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    removeToken();
+    router.push('/login');
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    setImageFile(null);
+    setUpdatedData(prev => ({ ...prev, image: '' }));
   };
 
   return (
@@ -100,19 +210,53 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
               transition={{ delay: 0.2 }}
             >
               <div className="relative w-32 h-32 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
-                <Image
-                  src={'/default-avatar.jpg'}
-                  alt="Profile"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 640px) 100vw, 640px"
-                  priority
-                />
-                {isEditing && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <button className="text-white p-2 bg-[#088178] rounded-full">
-                      <FaEdit />
-                    </button>
+                {imagePreview ? (
+                  <>
+                    <img
+                      src={imagePreview || "https://i.ibb.co/1zh2txz/men.jpg"}
+                      alt="Profile"
+                      
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, 640px"
+                    />
+                    {isEditing && (
+                      <div className="absolute inset-0 opacity-70  bg-black  flex items-center justify-center gap-2 ">
+                        <label className="cursor-pointer p-2 rounded-full bg-opacity-20 transition ">
+                          <input 
+                            type="file" 
+                            className="hidden " 
+                            accept="image/*"
+                            onChange={handleImageChangeUpload}
+                          />
+                          <FaEdit className="text-white text-lg" />
+                        </label>
+                        <button 
+                          onClick={removeImage}
+                          className="cursor-pointer p-2 rounded-full bg-red-500 bg-opacity-20  transition"
+                        >
+                          <FaTrash className="text-white text-lg" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    {isEditing ? (
+                      <label className="w-full h-full flex items-center justify-center cursor-pointer">
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*"
+                          onChange={handleImageChangeUpload}
+                        />
+                        <div className="text-center p-4">
+                          <FaPlus className="mx-auto text-gray-500 text-2xl mb-2" />
+                          <span className="text-gray-600 text-sm">Add Photo</span>
+                        </div>
+                      </label>
+                    ) : (
+                      <FaUser className="text-gray-500 text-4xl" />
+                    )}
                   </div>
                 )}
               </div>
@@ -127,8 +271,9 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                       <input
                         type="text"
-                        value={userData.firstName}
-                        onChange={(e) => setUserData({...userData, firstName: e.target.value})}
+                        name="firstName"
+                        value={updatedData.firstName}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                       />
                     </div>
@@ -136,8 +281,9 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
                       <input
                         type="text"
-                        value={userData.lastName}
-                        onChange={(e) => setUserData({...userData, lastName: e.target.value})}
+                        name="lastName"
+                        value={updatedData.lastName}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                       />
                     </div>
@@ -146,14 +292,93 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input
                       type="email"
-                      value={userData.email}
-                      onChange={(e) => setUserData({...userData, email: e.target.value})}
+                      name="email"
+                      value={updatedData.email}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <input
+                      type="tel"
+                      name="phoneNumber"
+                      value={updatedData.phoneNumber}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                      <input
+                        type="date"
+                        name="dateOfBirth"
+                        value={updatedData.dateOfBirth}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                      <input
+                        type="text"
+                        name="address"
+                        value={updatedData.address}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={updatedData.city}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={updatedData.state}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
+                      <input
+                        type="text"
+                        name="zipCode"
+                        value={updatedData.zipCode}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                    <input
+                      type="text"
+                      name="country"
+                      value={updatedData.country}
+                      onChange={handleInputChange}
                       className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                     />
                   </div>
                   <div className="flex justify-end space-x-3 pt-4">
                     <button
-                      onClick={() => setIsEditing(false)}
+                      onClick={() => {
+                        setIsEditing(false);
+                        setImagePreview(user?.image || null);
+                        setImageFile(null);
+                      }}
                       className="px-4 py-2 border border-gray-300 rounded-lg font-medium"
                     >
                       Cancel
@@ -170,9 +395,17 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
               ) : (
                 <>
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900">{user?.firstName||"Mehedi"} {user?.lastName||"hasan"}</h1>
-                    <p className="text-gray-600">{user?.email||"mmehediahasanjoyv@gmail.com"}</p>
-                    <p className="text-gray-500 mt-2">Member since {new Date(user?.joinDate).toLocaleDateString()}</p>
+                    <h1 className="text-3xl font-bold text-gray-900">{userData?.firstName} {userData?.lastName}</h1>
+                    <p className="text-gray-600">{userData?.email}</p>
+                    {userData?.phoneNumber && <p className="text-gray-500 mt-1">Phone: {userData.phoneNumber}</p>}
+                    {userData?.address && (
+                      <p className="text-gray-500 mt-1">
+                        Address: {userData.address}, {userData.city}, {userData.state} {userData.zipCode}, {userData.country}
+                      </p>
+                    )}
+                    {/* {userData?.joinDate && (
+                      <p className="text-gray-500 mt-2">Member since {new Date(userData.joinDate).toLocaleDateString()}</p>
+                    )} */}
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -187,6 +420,41 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
             </div>
           </div>
         </motion.div>
+      
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         {/* Main profile content */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -204,7 +472,6 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                   <motion.button
                     key={item.id}
                     whileHover={{ x: 5 }}
-                    onMouseEnter={() => prefetchData(item.id)}
                     onClick={() => setActiveTab(item.id)}
                     className={`w-full flex items-center justify-between px-4 py-3 text-left rounded-lg transition-colors ${activeTab === item.id ? 'bg-[#088178] text-white' : 'text-gray-700 hover:bg-gray-100'}`}
                   >
@@ -222,11 +489,7 @@ const ProfileClient = ({ user, orders, wishlist, addresses }:any) => {
                 <motion.button
                   whileHover={{ x: 5 }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 rounded-lg hover:bg-red-50 mt-4"
-                  onClick={() => {
-                    // Logout logic
-                    toast.success('Logged out successfully');
-                    router.push('/login');
-                  }}
+                  onClick={handleLogout}
                 >
                   <FaSignOutAlt />
                   <span>Sign Out</span>

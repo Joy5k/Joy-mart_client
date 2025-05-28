@@ -1,24 +1,28 @@
 'use client';
 
+import uploadImage from '@/src/hooks/imageUploader';
 import { useGetCategoriesQuery } from '@/src/redux/features/productManagement/categoryApi';
 import { useUpdateProductMutation } from '@/src/redux/features/productManagement/productApi';
 import { IProduct, TCategory } from '@/src/types';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { FiDollarSign, FiImage, FiX, FiTag, FiBox, FiTruck, FiStar } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
-interface AddProductProps {
+interface UpdateProductProps {
   isAddModalOpen: boolean;
   setIsAddModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    initialProduct: IProduct;
-
+  initialProduct: IProduct;
 }
 
-function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: AddProductProps) {
-      const {data:categories} = useGetCategoriesQuery({});
-  
-  const [newProduct, setNewProduct] = useState<Omit<IProduct, '_id' | 'rating'>>({
-    title:initialProduct.title,
+function UpdateProduct({ isAddModalOpen, setIsAddModalOpen, initialProduct }: UpdateProductProps) {
+  const { data: categories } = useGetCategoriesQuery({});
+  const [productUpdate, { isLoading }] = useUpdateProductMutation();
+  const [imagePreviews, setImagePreviews] = useState<string[]>(initialProduct.images || []);
+  const [imageLoading, setImageLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [updatedProduct, setUpdatedProduct] = useState<Omit<IProduct, '_id' | 'rating'>>({
+    title: initialProduct.title,
     shortTitle: initialProduct.shortTitle || '',
     description: initialProduct.description || '',
     shortDescription: initialProduct.shortDescription || '',
@@ -43,43 +47,91 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
       processingTime: initialProduct.shipping?.processingTime || '3-5 business days'
     },
     isDeleted: false,
-    isActive: true
+    isActive: initialProduct.isActive !== undefined ? initialProduct.isActive : true
   });
-  const [productUpdate,{isLoading}]=useUpdateProductMutation()
 
-
-  const handleAddProduct = async () => {
- 
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files;
+    setImageLoading(true);
+    if (!selectedFiles) {
+      console.log("No files selected");
+      return;
+    }
 
     try {
-      const response = await productUpdate({ id: initialProduct._id, data: newProduct }).unwrap();
-      console.log(response)
-      if(response.success){
-      toast.success(`${initialProduct.title} Product updated successfully`);
-
-      setIsAddModalOpen(false);
+      const uploadedPhotos: string[] = [];
+      
+      for (let i = 0; i < selectedFiles?.length; i++) {
+        const file = selectedFiles[i];
+        const response = await uploadImage(file);
+        if (response) {
+          uploadedPhotos.push(response.imageUrl);
+        }
+        setImageLoading(false);
+        setImagePreviews(prev => [...prev, response?.imageUrl]);
       }
+      
+      // Update the product state with new images
+      setUpdatedProduct(prev => ({
+        ...prev,
+        images: [...prev.images, ...uploadedPhotos]
+      }));
+      
     } catch (error) {
-      console.error('Error adding product:', error);
-      toast.error('An error occurred while adding the product');
-    } finally {
+      console.error(error);
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      const urls = files.map(file => URL.createObjectURL(file));
-      setNewProduct(prev => ({
-        ...prev,
-        images: [...prev.images, ...urls],
-        thumbnail: prev.thumbnail || urls[0] // Set first image as thumbnail if not set
-      }));
+  const handleRemoveImage = (index: number) => {
+    const newPreviews = [...imagePreviews];
+    newPreviews.splice(index, 1);
+    setImagePreviews(newPreviews);
+    
+    // Also remove from the product images array
+    const newImages = [...updatedProduct.images];
+    newImages.splice(index, 1);
+    
+    setUpdatedProduct(prev => ({
+      ...prev,
+      images: newImages,
+      thumbnail: prev.thumbnail === updatedProduct.images[index] ? '' : prev.thumbnail
+    }));
+  };
+
+  const handleUpdateProduct = async () => {
+    if (!updatedProduct.title.trim()) {
+      toast.error('Product title is required');
+      return;
+    }
+
+    if (updatedProduct.price <= 0) {
+      toast.error('Price must be greater than 0');
+      return;
+    }
+    
+    if (!updatedProduct.category) {
+      toast.error('Category is required');
+      return;
+    }
+
+    try {
+      const response = await productUpdate({ 
+        id: initialProduct._id, 
+        data: updatedProduct 
+      }).unwrap();
+      
+      if (response.success) {
+        toast.success(`${updatedProduct.title} updated successfully`);
+        setIsAddModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Error updating product:', error);
+      toast.error('An error occurred while updating the product');
     }
   };
 
   const addAttribute = () => {
-    setNewProduct(prev => ({
+    setUpdatedProduct(prev => ({
       ...prev,
       attributes: {
         ...prev.attributes,
@@ -89,7 +141,7 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
   };
 
   const updateAttribute = (key: string, value: string) => {
-    setNewProduct(prev => {
+    setUpdatedProduct(prev => {
       const newAttributes = { ...prev.attributes };
       if (value === '') {
         delete newAttributes[key];
@@ -130,7 +182,7 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
         </button>
         
         <div className="p-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">Add New Product</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">Update Product</h3>
           
           <div className="space-y-6">
             {/* Basic Information */}
@@ -143,8 +195,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                   type="text"
                   id="title"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                  value={newProduct.title}
-                  onChange={(e) => setNewProduct({...newProduct, title: e.target.value})}
+                  value={updatedProduct.title}
+                  onChange={(e) => setUpdatedProduct({...updatedProduct, title: e.target.value})}
                   required
                 />
               </div>
@@ -157,8 +209,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                   type="text"
                   id="shortTitle"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                  value={newProduct.shortTitle || ''}
-                  onChange={(e) => setNewProduct({...newProduct, shortTitle: e.target.value})}
+                  value={updatedProduct.shortTitle || ''}
+                  onChange={(e) => setUpdatedProduct({...updatedProduct, shortTitle: e.target.value})}
                 />
               </div>
             </div>
@@ -171,8 +223,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                 id="description"
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                value={newProduct.description}
-                onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                value={updatedProduct.description}
+                onChange={(e) => setUpdatedProduct({...updatedProduct, description: e.target.value})}
                 required
               />
             </div>
@@ -185,8 +237,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                 id="shortDescription"
                 rows={2}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                value={newProduct.shortDescription || ''}
-                onChange={(e) => setNewProduct({...newProduct, shortDescription: e.target.value})}
+                value={updatedProduct.shortDescription || ''}
+                onChange={(e) => setUpdatedProduct({...updatedProduct, shortDescription: e.target.value})}
               />
             </div>
             
@@ -211,8 +263,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                       min="0"
                       step="0.01"
                       className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                      value={newProduct.price || ''}
-                      onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})}
+                      value={updatedProduct.price || ''}
+                      onChange={(e) => setUpdatedProduct({...updatedProduct, price: parseFloat(e.target.value) || 0})}
                       required
                     />
                   </div>
@@ -232,8 +284,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                       min="0"
                       step="0.01"
                       className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                      value={newProduct.originalPrice || ''}
-                      onChange={(e) => setNewProduct({...newProduct, originalPrice: parseFloat(e.target.value) || undefined})}
+                      value={updatedProduct.originalPrice || ''}
+                      onChange={(e) => setUpdatedProduct({...updatedProduct, originalPrice: parseFloat(e.target.value) || undefined})}
                     />
                   </div>
                 </div>
@@ -252,8 +304,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                       min="0"
                       step="0.01"
                       className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                      value={newProduct.costPrice || ''}
-                      onChange={(e) => setNewProduct({...newProduct, costPrice: parseFloat(e.target.value) || undefined})}
+                      value={updatedProduct.costPrice || ''}
+                      onChange={(e) => setUpdatedProduct({...updatedProduct, costPrice: parseFloat(e.target.value) || undefined})}
                     />
                   </div>
                 </div>
@@ -276,8 +328,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     id="stock"
                     min="0"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                    value={newProduct.stock || ''}
-                    onChange={(e) => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})}
+                    value={updatedProduct.stock || ''}
+                    onChange={(e) => setUpdatedProduct({...updatedProduct, stock: parseInt(e.target.value) || 0})}
                     required
                   />
                 </div>
@@ -291,8 +343,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     id="lowStockThreshold"
                     min="0"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                    value={newProduct.lowStockThreshold || ''}
-                    onChange={(e) => setNewProduct({...newProduct, lowStockThreshold: parseInt(e.target.value) || undefined})}
+                    value={updatedProduct.lowStockThreshold || ''}
+                    onChange={(e) => setUpdatedProduct({...updatedProduct, lowStockThreshold: parseInt(e.target.value) || undefined})}
                   />
                 </div>
                 
@@ -305,8 +357,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     id="weight"
                     min="0"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                    value={newProduct.weight || ''}
-                    onChange={(e) => setNewProduct({...newProduct, weight: parseFloat(e.target.value) || undefined})}
+                    value={updatedProduct.weight || ''}
+                    onChange={(e) => setUpdatedProduct({...updatedProduct, weight: parseFloat(e.target.value) || undefined})}
                   />
                 </div>
               </div>
@@ -321,13 +373,13 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     id="length"
                     min="0"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                    value={newProduct.dimensions?.length || ''}
-                    onChange={(e) => setNewProduct({
-                      ...newProduct,
-                     dimensions: {
-                        length: newProduct.dimensions?.length ?? 0,
-                        width: parseFloat(e.target.value) || 0,
-                        height: newProduct.dimensions?.height ?? 0
+                    value={updatedProduct.dimensions?.length || ''}
+                    onChange={(e) => setUpdatedProduct({
+                      ...updatedProduct,
+                      dimensions: {
+                        length: parseFloat(e.target.value) || 0,
+                        width: updatedProduct.dimensions?.width ?? 0,
+                        height: updatedProduct.dimensions?.height ?? 0
                       }
                     })}
                   />
@@ -342,15 +394,15 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     id="width"
                     min="0"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                    value={newProduct.dimensions?.width || ''}
-                    onChange={(e) => setNewProduct({
-                      ...newProduct,
+                    onChange={(e) => setUpdatedProduct({
+                      ...updatedProduct,
                       dimensions: {
-                        length: newProduct.dimensions?.length ?? 0,
+                        length: updatedProduct.dimensions?.length ?? 0,
                         width: parseFloat(e.target.value) || 0,
-                        height: newProduct.dimensions?.height ?? 0
+                        height: updatedProduct.dimensions?.height ?? 0
                       }
                     })}
+                    
                   />
                 </div>
                 
@@ -362,16 +414,15 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     type="number"
                     id="height"
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                    value={newProduct?.dimensions?.height || ''}
-                    onChange={(e) => setNewProduct({
-                      ...newProduct,
-                     dimensions: {
-                        length: newProduct.dimensions?.length ?? 0,
-                        width: parseFloat(e.target.value) || 0,
-                        height: newProduct.dimensions?.height ?? 0
+                    onChange={(e) => setUpdatedProduct({
+                      ...updatedProduct,
+                      dimensions: {
+                        length: updatedProduct.dimensions?.length ?? 0,
+                        width: updatedProduct.dimensions?.width ?? 0,
+                        height: parseFloat(e.target.value) || 0
                       }
                     })}
+                 
                   />
                 </div>
               </div>
@@ -389,29 +440,27 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     Category *
                   </label>
                   <select
-                                 className='border w-full px-3 py-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]'
-                 id="category"
-                 value={newProduct.category?._id || ''}
-                 onChange={(e) => {
-                   const selectedCategory = categories?.data.find(
-                     (cat:TCategory) => cat._id === e.target.value
-                   );
-                   setNewProduct({
-                     ...newProduct,
-                     category: selectedCategory._id || null
-                   });
-                 }}
-                 required
-               >
-                 <option value="">Select a category</option>
-                 {categories?.data.map((category: TCategory) => (
-                   <option
-                   
-                   key={category._id} value={category._id}>
-                     {category.categoryName}
-                   </option>
-                 ))}
-               </select>
+                    className='border w-full px-3 py-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]'
+                    id="category"
+                    value={updatedProduct.category?._id || ''}
+                    onChange={(e) => {
+                      const selectedCategory = categories?.data.find(
+                        (cat: TCategory) => cat._id === e.target.value
+                      );
+                      setUpdatedProduct({
+                        ...updatedProduct,
+                        category: selectedCategory || null
+                      });
+                    }}
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {categories?.data.map((category: TCategory) => (
+                      <option key={category._id} value={category._id}>
+                        {category.categoryName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
@@ -422,8 +471,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     type="text"
                     id="subCategory"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                    value={newProduct.subCategory || ''}
-                    onChange={(e) => setNewProduct({...newProduct, subCategory: e.target.value})}
+                    value={updatedProduct.subCategory || ''}
+                    onChange={(e) => setUpdatedProduct({...updatedProduct, subCategory: e.target.value})}
                   />
                 </div>
               </div>
@@ -436,9 +485,9 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                   type="text"
                   id="tags"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                  value={newProduct.tags?.join(', ') || ''}
-                  onChange={(e) => setNewProduct({
-                    ...newProduct,
+                  value={updatedProduct.tags?.join(', ') || ''}
+                  onChange={(e) => setUpdatedProduct({
+                    ...updatedProduct,
                     tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag)
                   })}
                   placeholder="e.g., summer, cotton, men's"
@@ -450,70 +499,90 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
             <div className="border-t border-gray-200 pt-6">
               <h4 className="text-lg font-medium text-gray-900 mb-4">Media</h4>
               
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                <div className="space-y-1 text-center">
-                  <FiImage className="mx-auto h-12 w-12 text-gray-400" />
-                  <div className="flex text-sm text-gray-600 justify-center">
-                    <label
-                      htmlFor="file-upload"
-                      className="relative cursor-pointer bg-white rounded-md font-medium text-[#088178] hover:text-[#07756e] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#088178]"
-                    >
-                      <span>Upload images</span>
-                      <input 
-                        id="file-upload" 
-                        name="file-upload" 
-                        type="file" 
-                        className="sr-only" 
-                        multiple 
-                        accept="image/jpeg, image/png, image/gif"
-                        onChange={handleImageUpload}
-                      />
-                    </label>
-                    <p className="pl-1">or drag and drop</p>
+              <div className="mt-1">
+                <h4 className='text-md font-bold text-gray-700 mb-2'>Product Images</h4>
+                {imagePreviews.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-4">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative group">
+                        <img 
+                          src={preview} 
+                          alt={`Preview ${index}`}
+                          className="w-full h-32 object-cover rounded-md"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-md">
+                          <button
+                            onClick={() => handleRemoveImage(index)}
+                            className="p-2 bg-white rounded-full text-red-500 hover:bg-red-50 mr-2"
+                          >
+                            <FiX />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-xs text-gray-500">
-                    PNG, JPG, GIF up to 10MB
-                  </p>
-                </div>
+                ) : (
+                  <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div className="space-y-1 text-center">
+                      <FiImage className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="flex text-sm text-gray-600 justify-center">
+                        <label
+                          htmlFor="file-upload"
+                          className="relative cursor-pointer bg-white rounded-md font-medium text-[#088178] hover:text-[#07756e] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#088178]"
+                        >
+                          <span>Upload images</span>
+                          <input 
+                            id="file-upload" 
+                            ref={fileInputRef}
+                            name="file-upload" 
+                            type="file" 
+                            className="sr-only" 
+                            multiple 
+                            accept="image/jpeg, image/png, image/gif"
+                            onChange={handleImageChange}
+                          />
+                        </label>
+                        <p className="pl-1">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, GIF up to 10MB
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {imageLoading && (
+                  <div className="mt-4 text-center text-gray-500">
+                    Uploading images...
+                  </div>
+                )}
               </div>
               
-              {newProduct.images.length > 0 && (
+              {updatedProduct.images.length > 0 && (
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Product Images ({newProduct.images.length})
+                    Choose Thumbnail Image in ({updatedProduct.images.length})
                   </label>
                   
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {newProduct.images.map((img, idx) => (
+                    {updatedProduct.images.map((img, idx) => (
                       <div key={idx} className="relative group">
                         <img 
                           src={img} 
                           alt={`Preview ${idx}`} 
-                          className={`h-32 w-full object-cover rounded-md border-2 ${newProduct.thumbnail === img ? 'border-[#088178]' : 'border-gray-200'}`}
+                          className={`h-32 w-full object-cover rounded-md border-2 ${updatedProduct.thumbnail === img ? 'border-[#088178]' : 'border-gray-200'}`}
                         />
                         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <button
                             type="button"
                             className="p-1 bg-white/80 rounded-full hover:bg-white"
-                            onClick={() => setNewProduct({
-                              ...newProduct,
+                            onClick={() => setUpdatedProduct({
+                              ...updatedProduct,
                               thumbnail: img
                             })}
                             title="Set as thumbnail"
                           >
-                            <FiStar className={`h-4 w-4 ${newProduct.thumbnail === img ? 'text-yellow-500 fill-yellow-500' : 'text-gray-700'}`} />
-                          </button>
-                          <button
-                            type="button"
-                            className="p-1 bg-white/80 rounded-full hover:bg-white ml-1"
-                            onClick={() => setNewProduct({
-                              ...newProduct,
-                              images: newProduct.images.filter((_, i) => i !== idx),
-                              thumbnail: newProduct.thumbnail === img ? '' : newProduct.thumbnail
-                            })}
-                            title="Remove image"
-                          >
-                            <FiX className="h-4 w-4 text-gray-700" />
+                            <FiStar className={`h-4 w-4 ${updatedProduct.thumbnail === img ? 'text-yellow-500 fill-yellow-500' : 'text-gray-700'}`} />
                           </button>
                         </div>
                       </div>
@@ -530,8 +599,8 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                   type="url"
                   id="videoUrl"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                  value={newProduct.videoUrl || ''}
-                  onChange={(e) => setNewProduct({...newProduct, videoUrl: e.target.value})}
+                  value={updatedProduct.videoUrl || ''}
+                  onChange={(e) => setUpdatedProduct({...updatedProduct, videoUrl: e.target.value})}
                   placeholder="https://youtube.com/embed/..."
                 />
               </div>
@@ -542,7 +611,7 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
               <h4 className="text-lg font-medium text-gray-900 mb-4">Variants & Attributes</h4>
               
               <div>
-                {Object.entries(newProduct.attributes || {}).map(([key, value]) => (
+                {Object.entries(updatedProduct.attributes || {}).map(([key, value]) => (
                   <div key={key} className="grid grid-cols-2 gap-2 mb-2">
                     <input
                       type="text"
@@ -591,13 +660,13 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     type="text"
                     id="processingTime"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#088178] focus:border-[#088178]"
-                    value={newProduct.shipping?.processingTime || ''}
-                    onChange={(e) => setNewProduct({
-                      ...newProduct,
+                    value={updatedProduct.shipping?.processingTime || ''}
+                    onChange={(e) => setUpdatedProduct({
+                      ...updatedProduct,
                       shipping: {
-                        ...newProduct.shipping,
+                        ...updatedProduct.shipping,
                         processingTime: e.target.value || '',
-                        free: newProduct.shipping?.free ?? false
+                        free: updatedProduct.shipping?.free ?? false
                       }
                     })}
                   />
@@ -608,13 +677,13 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     type="checkbox"
                     id="freeShipping"
                     className="h-4 w-4 text-[#088178] focus:ring-[#088178] border-gray-300 rounded"
-                    checked={newProduct.shipping?.free || false}
-                    onChange={(e) => setNewProduct({
-                      ...newProduct,
-                       shipping: {
-                        ...newProduct.shipping,
-                        processingTime: e.target.value || '',
-                        free: newProduct.shipping?.free ?? false
+                    checked={updatedProduct.shipping?.free || false}
+                    onChange={(e) => setUpdatedProduct({
+                      ...updatedProduct,
+                      shipping: {
+                        ...updatedProduct.shipping,
+                                                processingTime: e.target.value || '',
+                                                free: updatedProduct.shipping?.free ?? false
                       }
                     })}
                   />
@@ -630,9 +699,9 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     type="checkbox"
                     id="featured"
                     className="h-4 w-4 text-[#088178] focus:ring-[#088178] border-gray-300 rounded"
-                    checked={newProduct.featured || false}
-                    onChange={(e) => setNewProduct({
-                      ...newProduct,
+                    checked={updatedProduct.featured || false}
+                    onChange={(e) => setUpdatedProduct({
+                      ...updatedProduct,
                       featured: e.target.checked
                     })}
                   />
@@ -646,9 +715,9 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
                     type="checkbox"
                     id="isActive"
                     className="h-4 w-4 text-[#088178] focus:ring-[#088178] border-gray-300 rounded"
-                    checked={newProduct.isActive || false}
-                    onChange={(e) => setNewProduct({
-                      ...newProduct,
+                    checked={updatedProduct.isActive || false}
+                    onChange={(e) => setUpdatedProduct({
+                      ...updatedProduct,
                       isActive: e.target.checked
                     })}
                   />
@@ -674,7 +743,7 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen,initialProduct }: Add
             <button
               type="button"
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#088178] hover:bg-[#07756e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178] disabled:opacity-75"
-              onClick={handleAddProduct}
+              onClick={handleUpdateProduct}
               disabled={isLoading}
             >
               {isLoading ? 'Updating...' : 'Update Product'}

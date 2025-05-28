@@ -1,18 +1,10 @@
 
-'use client'; // ← Make this a Client Component if using dynamic
-
 import dynamic from 'next/dynamic';
 
 const ProfileClient = dynamic(
   () => import('@/src/components/ProfileClient/ProfileClient'),
-  { ssr: false } // ← Disable SSR if needed
 );
 
-  const user= {
-    name: "John Doe",
-    email: "johndoe@example.com",
-    joined: "Jan 2022"
-  }
  const recentOrders= [
     {
       id: "ORD-1001",
@@ -60,7 +52,6 @@ export default function ProfilePage() {
     
   return (
     <ProfileClient 
-      user={user}
       orders={recentOrders}
       wishlist={wishlist}
       addresses={addresses}

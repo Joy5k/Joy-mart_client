@@ -40,6 +40,7 @@ const LoginPage = () => {
          dispatch(setUser({
         token: res.data.accessToken
       }));
+      document.cookie= `authToken=${res.data.accessToken}`;
         setToken(res.data.accessToken);
           router.push('/');
       }

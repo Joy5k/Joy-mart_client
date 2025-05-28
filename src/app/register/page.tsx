@@ -42,8 +42,8 @@ const RegisterPage = () => {
         console.log(res)
       if(res.success){
         setToken(res.data.accessToken);
-        console.log(res)
-        // router.push('/');
+              document.cookie= `authToken=${res.data.accessToken}`;
+
       }
     } catch (err:any) {
         console.log(err.data.errorSources[0].message)

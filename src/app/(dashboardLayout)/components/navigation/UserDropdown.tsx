@@ -18,6 +18,9 @@ export default function UserDropdown() {
       token: '',
     }))
     removeToken()
+    //delete auth token from cookie
+          document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
     navigate.push('/login')
   }
   return (

@@ -6,12 +6,16 @@ import { useState } from 'react';
 import { FiHome, FiPieChart, FiSettings, FiUsers, FiFileText, FiX, FiMenu } from 'react-icons/fi';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { AiOutlineProduct } from 'react-icons/ai';
+import { MdCategory } from "react-icons/md";
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: FiHome },
   { name: 'Analytics', href: '/dashboard/analytics', icon: FiPieChart },
   { name: 'Users', href: '/dashboard/users', icon: FiUsers },
   { name: 'Reports', href: '/dashboard/reports', icon: FiFileText },
+    { name: 'Products', href: '/dashboard/products', icon: AiOutlineProduct },
+    {name:'Category',href:'/dashboard/category',icon:MdCategory},
   { name: 'Settings', href: '/dashboard/settings', icon: FiSettings },
 ];
 

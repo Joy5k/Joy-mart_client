@@ -4,7 +4,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { FaUser, FaShoppingBag, FaHeart, FaMapMarkerAlt, FaCog, FaSignOutAlt, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaUser, FaShoppingBag, FaHeart, FaMapMarkerAlt, FaCog, FaSignOutAlt, FaEdit, FaTrash, FaPlus, FaEyeSlash, FaEye, FaLock } from 'react-icons/fa';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -13,11 +13,13 @@ import { removeToken } from '@/src/utils/localStorageManagement';
 import uploadImage from '@/src/hooks/imageUploader';
 import { IProfile } from '@/src/types';
 import { useGetProfileQuery, useUpdateProfileMutation } from '@/src/redux/features/profile/profileApi';
+import { useChangePasswordMutation } from '@/src/redux/features/Auth/authApi';
 
 const ProfileClient = ({ orders, wishlist, addresses }: any) => {
   const router = useRouter();
   const { data, refetch } = useGetProfileQuery({});
   const user = data?.data;
+  const [showPassword, setShowPassword] = useState(false);
 
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
@@ -50,9 +52,14 @@ const ProfileClient = ({ orders, wishlist, addresses }: any) => {
     country: '',
     isDefault: false
   });
-
+  const [changePassword,setChangePassword]=useState({
+    currentPassword:"",
+    newPassword:"",
+    confirmPassword:""
+  })
+  const [passwordError,setPasswordError]=useState<string>("")
   const [updateProfile] = useUpdateProfileMutation();
-
+  const [changePasswordMutation]=useChangePasswordMutation()
   // Initialize user data when component mounts or user changes
   useEffect(() => {
     if (user) {
@@ -112,7 +119,6 @@ const ProfileClient = ({ orders, wishlist, addresses }: any) => {
   }
 
 }
-console.log(updatedData)
   // Animation variants
   const tabContentVariants = {
     hidden: { opacity: 0, y: 10 },
@@ -177,7 +183,7 @@ console.log(updatedData)
   };
 
   const handleLogout = () => {
-    document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "authToken=; expires=Thu, 01 Jan 2025 00:00:00 UTC; path=/;";
     removeToken();
     router.push('/login');
   };
@@ -187,6 +193,34 @@ console.log(updatedData)
     setImageFile(null);
     setUpdatedData(prev => ({ ...prev, image: '' }));
   };
+
+
+const handlePasswordChange=async()=>{
+  let payload={
+    oldPassword:'',
+    newPassword:""
+  }
+  if(changePassword.confirmPassword===changePassword.newPassword&&changePassword.currentPassword){
+    payload={
+      oldPassword:changePassword.currentPassword,
+      newPassword:changePassword.newPassword,
+
+    }
+  }
+  try {
+    const res=await changePasswordMutation(payload).unwrap()
+    console.log(res)
+    if(res.success){
+      toast.success('Password Changeed successfully,Please Login again')
+      handleLogout()
+    }
+  } catch (err:any) {
+  console.log(err,"Something went wrong, while changing passowrd")
+  setPasswordError(err?.data?.message)
+  } finally {
+    
+  }
+} 
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -422,36 +456,6 @@ console.log(updatedData)
         </motion.div>
       
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -831,6 +835,52 @@ console.log(updatedData)
                   </div>
                 )}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 {activeTab === 'settings' && (
                   <div className="p-6">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Account Settings</h2>
@@ -841,26 +891,98 @@ console.log(updatedData)
                         <div className="max-w-md space-y-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                            <input
-                              type="password"
-                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                            />
+                        
+                               <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none " >
+                                              <FaLock className="text-gray-400" />
+                                            </div>
+                                            <input
+                                              id="password"
+                                              type={showPassword ? "text" : "password"}
+                                             onChange={(e) =>
+                              (  setChangePassword((prev) => ({
+                                  ...prev,
+                                  currentPassword: e.target.value
+                                })),
+                                setPasswordError('')
+                              )
+                              }
+                                              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
+                                              placeholder="••••••••"
+                                              required
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => setShowPassword(!showPassword)}
+                                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                                            >
+                                              {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                            </button>
+                                          </div>
+                            {passwordError && <p className="text-orange-600 font-semibold">{passwordError}</p>}
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                            <input
-                              type="password"
-                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                            />
+                         
+                         <div className="relative">
+                                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none " >
+                                        <FaLock className="text-gray-400" />
+                                      </div>
+                                      <input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                       onChange={(e) =>
+                                setChangePassword((prev) => ({
+                                  ...prev,
+                                  newPassword: e.target.value
+                                }))
+                              }
+                                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
+                                        required
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                                      >
+                                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                      </button>
+                                    </div>
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                            <input
-                              type="password"
-                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                            />
+                          
+                               <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none " >
+                                              <FaLock className="text-gray-400" />
+                                            </div>
+                                            <input
+                                              id="password"
+                                              type={showPassword ? "text" : "password"}
+                                            onChange={(e) =>
+                                setChangePassword((prev) => ({
+                                  ...prev,
+                                  confirmPassword: e.target.value
+                                }))
+                              }
+                                              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
+                                              required
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => setShowPassword(!showPassword)}
+                                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                                            >
+                                              {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                            </button>
+                                          </div>
+                            {
+                              changePassword?.newPassword !==changePassword?.confirmPassword && <p className="text-orange-600 font-semibold"> Your password is miss match</p>
+                            }
                           </div>
-                          <button className="mt-2 px-6 py-2 bg-[#088178] text-white rounded-lg">
+                          <button onClick={handlePasswordChange} 
+                          disabled={changePassword?.newPassword !==changePassword?.confirmPassword}
+                          className={`mt-2 px-6 py-2 ${ changePassword?.newPassword !==changePassword?.confirmPassword ? 'bg-gray-500 cursor-not-allowed' : 'bg-[#088178] cursor-pointer'}  text-white rounded-lg `}>
                             Update Password
                           </button>
                         </div>

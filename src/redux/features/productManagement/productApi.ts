@@ -10,7 +10,8 @@ const productApi=baseApi.injectEndpoints({
 
                 url: `/product/get-all-products?searchTerm=${searchText?searchText:""}`,
                 method: "GET",
-            }            },
+            }           
+         },
             providesTags:[tagTypes.product],
         }),
         getProductById: builder.query({

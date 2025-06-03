@@ -121,3 +121,11 @@ export interface IProfile {
   dateOfBirth?: string;
   isDeleted?: boolean;
 }
+
+
+
+export type TFormData = {
+  categoryName: string;
+  description: string;
+  isActive:boolean
+};

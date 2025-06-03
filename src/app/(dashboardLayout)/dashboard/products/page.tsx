@@ -17,6 +17,7 @@ import AddProduct from '../../components/productsComponents/addProduct';
 import { useGetProductsQuery } from '@/src/redux/features/productManagement/productApi';
 import UpdateProduct from '../../components/productsComponents/updateProduct';
 import DeleteProductModal from '../../components/productsComponents/deleteProductModal';
+import Loader from '@/src/hooks/loader';
 
 
 export default function ProductManagementPage() {
@@ -191,9 +192,7 @@ export default function ProductManagementPage() {
       >
         <div className="bg-white">
           {loading ? (
-            <div className="flex justify-center items-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#088178]"></div>
-            </div>
+           <Loader></Loader>
           ) : (
             <div className="overflow-x-auto">
            <table className="min-w-full divide-y divide-gray-300">

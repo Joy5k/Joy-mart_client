@@ -11,6 +11,7 @@ import { getToken, setToken } from '@/src/utils/localStorageManagement';
 import { toast } from 'react-toastify';
 import { useAppDispatch } from '@/src/redux/hooks';
 import { setUser } from '@/src/redux/features/Auth/authSlice';
+import { signIn } from 'next-auth/react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -51,9 +52,22 @@ const LoginPage = () => {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    console.log(`Logging in with ${provider}`);
+ const handleSocialLogin = async (provider: 'google' | 'facebook') => {
+    try {
+      setIsLoading(true);
+      const result = await signIn(provider, { callbackUrl: '/' });
+      
+      if (result?.error) {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError('Failed to initiate login');
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+
 
   return (
     <section className="px-10 py-10 md:py-10 lg:py-20 flex items-center justify-center min-h-screen bg-[#E3E6F3]">

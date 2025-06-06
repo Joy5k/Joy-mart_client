@@ -18,10 +18,12 @@ interface AddProductProps {
 
 function AddProduct({ isAddModalOpen, setIsAddModalOpen, onProductAdded }: AddProductProps) {
   const [addProduct,{isLoading}]=useCreateProductMutation()
-    const {data:categories} = useGetCategoriesQuery({});
+  const {data:categories} = useGetCategoriesQuery({});
+  
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [imageLoading, setImageLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   const [newProduct, setNewProduct] = useState<Omit<IProduct, '_id' | 'rating'>>({
     title: '',
@@ -49,7 +51,6 @@ function AddProduct({ isAddModalOpen, setIsAddModalOpen, onProductAdded }: AddPr
     isDeleted: false,
     isActive: true
   });
-console.log(newProduct,'newProduct')
   const resetForm = () => {
     setNewProduct({
       title: '',
@@ -152,7 +153,6 @@ console.log(newProduct,'newProduct')
     setImagePreviews(newPreviews);
     
   };
-
 
 
   const addAttribute = () => {

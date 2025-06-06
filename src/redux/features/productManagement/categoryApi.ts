@@ -41,7 +41,6 @@ const categoryApi = baseApi.injectEndpoints({
         }),
         deleteCategory: builder.mutation({
            query: ({ id }) => {
-  console.log("ID received by API:", id); // Temporarily log
   return {
     url: `/categories/delete/${id}`,
     method: "DELETE",

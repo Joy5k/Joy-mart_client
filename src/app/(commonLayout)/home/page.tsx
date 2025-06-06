@@ -87,13 +87,13 @@ const HomePage: NextPage = () => {
         <div className="banner-box">
           <h4>crazy deals</h4>
           <h2>buy 1 get 1 free</h2>
-          <span>The best classic dress is on sale at cara</span>
+          <span>The best classic dress is on sale at joy_mart</span>
           <button className="white p-2 text-white border cursor-pointer">Learn More</button>
         </div>
         <div className="banner-box banner-box2">
           <h4>spring/summer</h4>
           <h2>upcoming season</h2>
-          <span>The best classic dress is on sale at cara</span>
+          <span>The best classic dress is on sale at joy_mart</span>
           <button className="white p-2 text-white border cursor-pointer">Learn More</button>
         </div>
       </section>

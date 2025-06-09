@@ -8,7 +8,6 @@ import { FaGoogle, FaFacebook, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'rea
 import Image from 'next/image';
 import { useLoginMutation } from '@/src/redux/features/Auth/authApi';
 import { getToken, setToken } from '@/src/utils/localStorageManagement';
-import { toast } from 'react-toastify';
 import { useAppDispatch } from '@/src/redux/hooks';
 import { setUser } from '@/src/redux/features/Auth/authSlice';
 import { signIn } from 'next-auth/react';
@@ -41,7 +40,8 @@ const LoginPage = () => {
          dispatch(setUser({
         token: res.data.accessToken
       }));
-      document.cookie= `authToken=${res.data.accessToken}`;
+      document.cookie= `authToken=${res?.data?.accessToken}`;
+      document.cookie=`refreshToken =${res?.data?.refreshToken}`
         setToken(res.data.accessToken);
           router.push('/');
       }

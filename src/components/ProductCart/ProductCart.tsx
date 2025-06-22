@@ -6,18 +6,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShoppingCart, faStar, faHeart } from '@fortawesome/free-solid-svg-icons'
 import { useAppDispatch } from '@/src/redux/hooks'
 import { addItem } from '@/src/redux/features/localstorage/wishlistSlice'
+import { IProduct } from '@/src/types'
 
 interface ProductCardProps {
-  product: {
-    id: number
-    image: string
-    brand: string
-    name: string
-    price: number
-  }
+  product: IProduct
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product }: any) => {
   const dispatch = useAppDispatch()
   const handleAddToWishlist = (product: any) => {
     dispatch(addItem(product))
@@ -27,8 +22,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
       {/* Image with zoom effect */}
       <div className="overflow-hidden">
         <Image 
-          src={product.image} 
-          alt={product.name} 
+          src={product?.images[0]||""} 
+          alt={product.title} 
           width={200} 
           height={250}
           className="w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -44,9 +39,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       {/* Product info */}
       <div className="p-4 bg-white">
-        <span className="text-gray-600 text-sm text-start">{product.brand}</span>
+        <span className="text-gray-600 text-sm text-start">{product?.category?.categoryName}</span>
         <h5 className="font-semibold mt-1 text-gray-800 hover:text-green-600 transition-colors">
-          {product.name}
+          {product.title}
         </h5>
         <div className="star flex mt-2 text-yellow-400">
           {[...Array(5)].map((_, i) => (
@@ -80,7 +75,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </div>
 
       {/* Sale badge (example) */}
-      {product.id % 3 === 0 && (
+      {product._id  && (
         <div className="absolute top-5 left-4 bg-red-500 text-white text-xs font-bold rounded-full animate-pulse w-10">
           HOT
         </div>

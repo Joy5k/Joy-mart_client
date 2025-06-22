@@ -1,6 +1,7 @@
 'use client';
 
 import uploadImage from '@/src/hooks/imageUploader';
+import Loader from '@/src/hooks/loader';
 import { useGetCategoriesQuery } from '@/src/redux/features/productManagement/categoryApi';
 import { useCreateProductMutation } from '@/src/redux/features/productManagement/productApi';
 import {IProduct, TCategory } from '@/src/types';
@@ -134,9 +135,7 @@ function AddProduct({ isAddModalOpen, setIsAddModalOpen, onProductAdded }: AddPr
       const response=await addProduct(newProduct).unwrap();
       console.log(response,'response from addProduct')
       if (response.success) {
-        const addedProduct = await response.json();
         toast.success('Product added successfully');
-        onProductAdded?.(addedProduct);
         setIsAddModalOpen(false);
         resetForm();
       } 
@@ -584,7 +583,7 @@ function AddProduct({ isAddModalOpen, setIsAddModalOpen, onProductAdded }: AddPr
       
       {imageLoading && (
         <div className="mt-4 text-center text-gray-500">
-          Uploading images...
+       <Loader></Loader>
         </div>
       )}
     </div>

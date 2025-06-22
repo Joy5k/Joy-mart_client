@@ -61,7 +61,7 @@ export interface IProduct {
   };
 
   // Categorization
-  category: TCategory; 
+  category?: TCategory  ; 
   subCategory?: string; 
   tags?: string[]; 
 

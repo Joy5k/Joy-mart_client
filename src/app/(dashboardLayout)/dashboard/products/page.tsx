@@ -58,27 +58,6 @@ export default function ProductManagementPage() {
 
   }, [searchText, categoryFilter, statusFilter, products]);
 
-  const handleEditProduct = async () => {
-    if (!currentProduct) return;
-    
-    try {
-      const response = await fetch(`/api/products/${currentProduct._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(currentProduct),
-      });
-      
-      if (response.ok) {
-        const updatedProduct = await response.json();
-        setIsEditModalOpen(false);
-      }
-    } catch (error) {
-      console.error('Error updating product:', error);
-    }
-  };
-
 
 
 
@@ -255,7 +234,7 @@ export default function ProductManagementPage() {
               </div>
               <div className="ml-4">
                 <div className="font-medium text-gray-900">{product.title}</div>
-                <div className="text-gray-500 line-clamp-1">{product.shortTitle || product.description}</div>
+                <div className="text-gray-500 line-clamp-1">{product.shortTitle ||  product.description.slice(0,20)}...</div>
               </div>
             </div>
           </td>

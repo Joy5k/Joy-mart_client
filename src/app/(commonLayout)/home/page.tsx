@@ -5,34 +5,35 @@ import ProductCard from "@/src/components/ProductCart/ProductCart"
 import { NextPage } from "next"
 
 interface Product {
-  id: number
+  _id: string
   image: string
-  brand: string
-  name: string
+  category: {categoryName:string}
+  title: string
   price: number
+  description: string
+  stock: number
+  images: string[]
 }
-
-const HomePage: NextPage = () => {
-  const featuredProducts: Product[] = [
-    { id: 1, image: '/img/products/f1.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
-    { id: 2, image: '/img/products/f2.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
-    { id: 3, image: '/img/products/f3.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
-    { id: 4, image: '/img/products/f4.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
-    { id: 5, image: '/img/products/f5.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
-    { id: 6, image: '/img/products/f6.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
-    { id: 7, image: '/img/products/f7.jpg', brand: 'adidas', name: 'Cartoon Ladies paint', price: 78 },
-    { id: 8, image: '/img/products/f8.jpg', brand: 'adidas', name: 'Cartoon Astronaut Dress', price: 78 },
+ export const featuredProducts: Product[] = [
+    { _id: '1', image: '/img/products/f1.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 10, images: ['/img/products/f1.jpg'] },
+    { _id: '2', image: '/img/products/f2.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 12, images: ['/img/products/f2.jpg'] },
+    { _id: '3', image: '/img/products/f3.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 8, images: ['/img/products/f3.jpg'] },
+    { _id: '4', image: '/img/products/f4.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 15, images: ['/img/products/f4.jpg'] },
+    { _id: '5', image: '/img/products/f5.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 20, images: ['/img/products/f5.jpg'] },
+    { _id: '6', image: '/img/products/f6.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 7, images: ['/img/products/f6.jpg'] },
+    { _id: '7', image: '/img/products/f7.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Ladies paint', price: 78, description: 'A stylish ladies paint.', stock: 9, images: ['/img/products/f7.jpg'] },
+    { _id: '8', image: '/img/products/f8.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut Dress', price: 78, description: 'A trendy astronaut dress.', stock: 11, images: ['/img/products/f8.jpg'] },
   ]
+ export const newArrivals: Product[] = [
+    { _id: '9', image: '/img/products/n1.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 10, images: ['/img/products/n1.jpg'] },
+    { _id: '10', image: '/img/products/n2.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 12, images: ['/img/products/n2.jpg'] },
+    { _id: '11', image: '/img/products/n3.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 8, images: ['/img/products/n3.jpg'] },
+    { _id: '12', image: '/img/products/n4.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 15, images: ['/img/products/n4.jpg'] },
+    { _id: '13', image: '/img/products/n5.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 20, images: ['/img/products/n5.jpg'] },
+    { _id: '14', image: '/img/products/n6.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut Paint', price: 78, description: 'A stylish astronaut paint.', stock: 7, images: ['/img/products/n6.jpg'] },
+    { _id: '15', image: '/img/products/n7.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut Shirts', price: 78, description: 'A cool astronaut shirt.', stock: 9, images: ['/img/products/n7.jpg'] },
+    { _id: '16', image: '/img/products/n8.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 11, images: ['/img/products/n8.jpg'] },
 
-  const newArrivals: Product[] = [
-    { id: 9, image: '/img/products/n1.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
-    { id: 10, image: '/img/products/n2.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
-    { id: 11, image: '/img/products/n3.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
-    { id: 12, image: '/img/products/n4.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
-    { id: 13, image: '/img/products/n5.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
-    { id: 14, image: '/img/products/n6.jpg', brand: 'adidas', name: 'Cartoon Astronaut Paint', price: 78 },
-    { id: 15, image: '/img/products/n7.jpg', brand: 'adidas', name: 'Cartoon Astronaut Shirts', price: 78 },
-    { id: 16, image: '/img/products/n8.jpg', brand: 'adidas', name: 'Cartoon Astronaut T-Shirts', price: 78 },
   ]
 
   const features = [
@@ -43,6 +44,10 @@ const HomePage: NextPage = () => {
     { id:5, image: '/img/features/f5.png', title: 'Happy Sell' },
     { id:6, image: '/img/features/f6.png', title: '24/7 Support' },
   ]
+
+const HomePage: NextPage = () => {
+
+ 
 
   return (
     <>
@@ -61,7 +66,7 @@ const HomePage: NextPage = () => {
         <p className="text-gray-700 font-semibold text-xl">Summer Collection New Modern Design</p>
         <div className="pro-container">
           {featuredProducts.map(product => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product._id} product={product} />
           ))}
         </div>
       </section>
@@ -76,8 +81,8 @@ const HomePage: NextPage = () => {
         <h2 className="text-2xl font-bold text-gray-800">New Arrivals</h2>
         <p className="text-xl font-bold text-gray-700">Summer Collection New Modern Design</p>
         <div className="pro-container">
-          {newArrivals.map(product => (
-            <ProductCard key={product.id} product={product} />
+          {newArrivals.map((product:Product) => (
+            <ProductCard key={product._id} product={product} />
           ))}
         </div>
       </section>

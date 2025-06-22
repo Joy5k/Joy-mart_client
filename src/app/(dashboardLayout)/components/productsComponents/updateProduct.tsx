@@ -98,37 +98,41 @@ function UpdateProduct({ isAddModalOpen, setIsAddModalOpen, initialProduct }: Up
     }));
   };
 
-  const handleUpdateProduct = async () => {
-    if (!updatedProduct.title.trim()) {
-      toast.error('Product title is required');
-      return;
-    }
+const handleUpdateProduct = async () => {
+  if (!updatedProduct.title.trim()) {
+    toast.error('Product title is required');
+    return;
+  }
 
-    if (updatedProduct.price <= 0) {
-      toast.error('Price must be greater than 0');
-      return;
-    }
+  if (updatedProduct.price <= 0) {
+    toast.error('Price must be greater than 0');
+    return;
+  }
+  
+  if (!updatedProduct.category) {
+    toast.error('Category is required');
+    return;
+  }
+
+  try {
+    const response = await productUpdate({ 
+      id: initialProduct._id, 
+      data: {
+        ...updatedProduct,
+        category: updatedProduct.category._id,  // Send only the category ID
+        subCategory: updatedProduct.subCategory || undefined // Ensure subCategory is properly handled
+      } 
+    }).unwrap();
     
-    if (!updatedProduct.category) {
-      toast.error('Category is required');
-      return;
+    if (response.success) {
+      toast.success(`${updatedProduct.title} updated successfully`);
+      setIsAddModalOpen(false);
     }
-
-    try {
-      const response = await productUpdate({ 
-        id: initialProduct._id, 
-        data: updatedProduct 
-      }).unwrap();
-      
-      if (response.success) {
-        toast.success(`${updatedProduct.title} updated successfully`);
-        setIsAddModalOpen(false);
-      }
-    } catch (error) {
-      console.error('Error updating product:', error);
-      toast.error('An error occurred while updating the product');
-    }
-  };
+  } catch (error) {
+    console.error('Error updating product:', error);
+    toast.error('An error occurred while updating the product');
+  }
+};
 
   const addAttribute = () => {
     setUpdatedProduct(prev => ({

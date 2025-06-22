@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
     images: {
       formats: ['image/webp'],
       deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+          remotePatterns: [new URL('https://i.ibb.co/**')],
+
     },
     compiler: {
       styledComponents: true,

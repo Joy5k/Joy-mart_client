@@ -104,12 +104,12 @@ const handleLogout=()=>{
             </li>
             <li>
               <Link 
-                href="/shop" 
+                href="/products" 
                 className="flex items-center gap-3 py-3 text-[#1a1a1a] hover:text-[#088178] font-semibold transition-colors duration-300"
                 onClick={() => setIsNavOpen(false)}
               >
                 <FaShop className="text-xl" />
-                <span className="text-lg">Shop</span>
+                <span className="text-lg">Products</span>
               </Link>
             </li>
             <li>

@@ -3,6 +3,10 @@ import Hero from "@/src/components/Hero/Hero"
 import FeatureBox from "@/src/components/FeatureBox/FeatureBox"
 import ProductCard from "@/src/components/ProductCart/ProductCart"
 import { NextPage } from "next"
+import { useGetProductsQuery } from "@/src/redux/features/productManagement/productApi"
+import { IProduct } from "@/src/types"
+import SummerCollection from "@/src/components/summerCollection/SummerCollection"
+import NewArrivals from "@/src/components/newArrivalsCollections/NewArrivals"
 
 interface Product {
   _id: string
@@ -47,7 +51,7 @@ interface Product {
 
 const HomePage: NextPage = () => {
 
- 
+
 
   return (
     <>
@@ -60,32 +64,16 @@ const HomePage: NextPage = () => {
           <FeatureBox key={index} image={feature.image} title={feature.title} />
         ))}
       </section>
-
-      <section id="product1" className="px-10 py-10 md:py-20 lg:py-20">
-        <h2 className="text-2xl font-black text-gray-800 ">Featured Products</h2>
-        <p className="text-gray-700 font-semibold text-xl">Summer Collection New Modern Design</p>
-        <div className="pro-container">
-          {featuredProducts.map(product => (
-            <ProductCard key={product._id} product={product} />
-          ))}
-        </div>
-      </section>
+      {/* //new arrivals products appearing */}
+        <NewArrivals></NewArrivals>
 
       <Banner 
         title="Repair Services" 
         subtitle="Up to 70% Off - All t-shirts & Accessories" 
         buttonText="Explore More" 
       />
-
-      <section id="product1" className="px-10 py-10 md:py-20 lg:py-20">
-        <h2 className="text-2xl font-bold text-gray-800">New Arrivals</h2>
-        <p className="text-xl font-bold text-gray-700">Summer Collection New Modern Design</p>
-        <div className="pro-container">
-          {newArrivals.map((product:Product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
-        </div>
-      </section>
+{/* // summer collection products appearing here */}
+          <SummerCollection></SummerCollection>
 
 {/* Advertisement Static two carts */}
       <section id="sm-banner" className="px-10 py-10 md:py-20 lg:py-20">

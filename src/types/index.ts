@@ -129,3 +129,23 @@ export type TFormData = {
   description: string;
   isActive:boolean
 };
+
+
+export interface Product {
+  _id: string;
+  title: string;
+  price: number;
+  images: string[];
+  stock: number;
+  isActive: boolean;
+}
+
+export interface Booking {
+  _id: string;
+  productId: Product;
+  bookingQuantity: number;
+  userId: string;
+  orderStatus: string;
+  createdAt: string;
+  totalPrice: number;
+}

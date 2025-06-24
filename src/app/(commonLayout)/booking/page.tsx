@@ -7,13 +7,15 @@ import { FaCalendarAlt, FaClock, FaUser, FaMapMarkerAlt, FaCreditCard, FaCheckCi
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useGetAllBookingsQuery } from '@/src/redux/features/booking/bookingApi';
 
 const BookingPage = () => {
   const [isClient, setIsClient] = useState(false);
   const { items: wishlistItems } = useSelector((state: RootState) => state.wishlist);
   const [activeTab, setActiveTab] = useState('details');
   const [bookingSuccess, setBookingSuccess] = useState(false);
-
+  const {data}=useGetAllBookingsQuery({})
+  const bookingData=data?.data ||[]
   // Demo booking data (will be replaced with real data later)
   const demoBookingData = {
     date: new Date(Date.now() + 86400000 * 3).toLocaleDateString(),

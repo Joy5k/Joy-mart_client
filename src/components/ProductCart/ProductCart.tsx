@@ -12,7 +12,7 @@ interface ProductCardProps {
   product: IProduct
 }
 
-const ProductCard = ({ product }: any) => {
+const ProductCard = ({ product }: ProductCardProps) => {
   const dispatch = useAppDispatch()
   const handleAddToWishlist = (product: any) => {
     dispatch(addItem(product))
@@ -40,9 +40,9 @@ const ProductCard = ({ product }: any) => {
       {/* Product info */}
       <div className="p-4 bg-white">
         <span className="text-gray-600 text-sm text-start">{product?.category?.categoryName}</span>
-        <h5 className="font-semibold mt-1 text-gray-800 hover:text-green-600 transition-colors">
+        <Link href={`/productDetails/${product._id}`} className="font-semibold mt-1 block text-start text-gray-800 hover:text-green-600 transition-colors">
           {product.title}
-        </h5>
+        </Link>
         <div className="star flex mt-2 text-yellow-400">
           {[...Array(5)].map((_, i) => (
             <FontAwesomeIcon 

@@ -35,13 +35,12 @@ const LoginPage = () => {
  
     try {
       const res = await LoginMutation({ email, password }).unwrap();
-            localStorage.setItem('token', res.data.accessToken);
       if(res.success){
+        localStorage.setItem('authToken', res.data.accessToken);
          dispatch(setUser({
-        token: res.data.accessToken
+        authToken: res.data.accessToken
       }));
-      document.cookie= `authToken=${res?.data?.accessToken}`;
-      document.cookie=`refreshToken =${res?.data?.refreshToken}`
+   
         setToken(res.data.accessToken);
           router.push('/');
       }

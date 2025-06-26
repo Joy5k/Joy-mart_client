@@ -1,22 +1,29 @@
+import Cookies from 'js-cookie';
 
- 
-
-export const setToken = (token: string) => {
+export const setToken = (token: string): void => {
   if (typeof window !== 'undefined') {
-    document.cookie = `authToken=${token}; path=/; max-age=31536000`; // 1 year
+    // Using js-cookie for consistency (instead of document.cookie)
+    Cookies.set('authToken', token, { 
+      expires: 365, // days
+      path: '/',
+      secure: process.env.NODE_ENV === 'production', // secure in production
+      sameSite: 'strict'
+    });
   }
 };
 
 export const getToken = (): string | null => {
   if (typeof window !== 'undefined') {
-    return (document.cookie.split('; ').find(row => row.startsWith('authToken='))?.split('=')[1] || '')
+    return localStorage.getItem('authToken') ?? null;
   }
   return null;
 };
 
-export const removeToken =() => {
+export const removeToken = (): void => {
   if (typeof window !== 'undefined') {
-    document.cookie = 'authToken=; Max-Age=0; path=/';
-    };
-  
+    Cookies.remove('authToken', { path: '/' });
+    
+    // For thoroughness, also clear from document.cookie
+    document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  }
 };

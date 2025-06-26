@@ -12,6 +12,7 @@ import { FiMenu, FiX } from "react-icons/fi";
 import { getToken, removeToken } from "@/src/utils/localStorageManagement";
 import { GrLogin } from "react-icons/gr";
 import { useRouter } from "next/navigation";
+import Cookies from 'js-cookie';
 
 const Navbar = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -32,13 +33,13 @@ const Navbar = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  // Close dropdown/nav when clicking outside
-  useEffect(() => {
-  const authToken=getToken()
-  if(authToken){
-    setToken(authToken)
-  }
 
+
+useEffect(() => {
+  const authToken =getToken();
+  if (authToken) {
+    setToken(authToken);
+  }
 
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {

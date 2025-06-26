@@ -99,6 +99,7 @@ const handleBookingMutation=async(productId:string)=>{
     }
     try {
         const res=await bookingMutation(payload).unwrap()
+        console.log(res)
         if(res.success){
             toast.success('Saved the product on you cart',{
                 position:"top-center"

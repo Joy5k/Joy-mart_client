@@ -9,7 +9,6 @@ import Loader from '@/src/hooks/loader'
 function NewArrivals() {
       const {data,isLoading,isError}=useGetProductsQuery({})
       const products: IProduct[] = data ? data?.data?.result || [] : []
-      console.log(products)
       if(isLoading) {return <Loader></Loader>}
   return (
     <div>
@@ -21,7 +20,8 @@ function NewArrivals() {
                 <ProductCard key={product._id} product={product} />
               ))}
             </div>
-          </section></div>
+          </section>
+          </div>
   )
 }
 

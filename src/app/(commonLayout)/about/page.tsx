@@ -60,7 +60,7 @@ const AboutPage = () => {
         >
           <div className="md:w-1/3">
             <Image
-              src="/img/about/mehedi-hasan.jpg"
+              src="https://i.ibb.co/k05htkr/Mehedi-Hasan.png"
               alt="Mehedi Hasan"
               width={400}
               height={500}
@@ -184,9 +184,9 @@ const AboutPage = () => {
         >
           What I Can Deliver
         </motion.h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="flex flex-col md:flex-row lg:flex-row justify-center items-center align-middle  text-center">
           {features.map((feature) => (
-            <motion.div
+         <motion.div
               key={feature.id}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -194,9 +194,18 @@ const AboutPage = () => {
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%', 
+                maxWidth: '700px',
+                margin: '0 auto',
+                textAlign: 'center' 
+              }}
             >
-              <FeatureBox image={feature.image} title={feature.title} />
-            </motion.div>
+  <FeatureBox image={feature.image} title={feature.title} />
+</motion.div>
           ))}
         </div>
       </section>

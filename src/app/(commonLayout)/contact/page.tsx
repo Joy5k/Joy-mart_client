@@ -63,7 +63,7 @@ function Contact() {
                   <Link href="#" className="p-3 bg-gray-100 hover:bg-green-100 rounded-full transition-colors">
                     <BsLinkedin className="text-xl text-[#088178]" />
                   </Link>
-                  <Link href="#" className="p-3 bg-gray-100 hover:bg-green-100 rounded-full transition-colors">
+                  <Link href="https://github.com/Joy5k" target="_blank" className="p-3 bg-gray-100 hover:bg-green-100 rounded-full transition-colors">
                     <BsGithub className="text-xl text-[#088178]" />
                   </Link>
                 </div>

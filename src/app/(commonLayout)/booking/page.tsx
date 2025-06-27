@@ -26,7 +26,7 @@ const BookingPage = () => {
 const [customerInfo, setCustomerInfo] = useState({
   name: '',
   email: '',
-  phone: '',
+  phone: '0160000000000',
   address: '',
   city: 'Dhaka',
   state: 'Dhaka',
@@ -60,7 +60,7 @@ const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     if (bookingsData?.data) {
       setQuantityMap(prev => {
         const newQuantities = {...prev};
-        bookingsData.data.forEach(booking => {
+        bookingsData.data.forEach((booking:any) => {
           if (!(booking._id in newQuantities)) {
             newQuantities[booking._id] = booking.bookingQuantity;
           }
@@ -70,24 +70,7 @@ const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     }
   }, [bookingsData?.data]);
 
-  const handleCreateBooking = async () => {
-    try {
-      await Promise.all(
-        selectedProducts.map(product => 
-          createBooking({
-            productId: product._id,
-            bookingQuantity: quantityMap[product._id] || 1,
-            priceAtBooking: product.price
-          }).unwrap()
-        )
-      );
-      setBookingSuccess(true);
-      refetch();
-      setSelectedProducts([]);
-    } catch (error) {
-      toast.error('Booking failed. Please try again.');
-    }
-  };
+
 
   const handleDeleteBooking = async (id: string) => {
     try {
@@ -129,7 +112,7 @@ const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 const handlePayment = async () => {
   try {
     // Validate customer info
-    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
+    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address || !customerInfo.phone) {
       toast.error('Please fill in all required customer information');
       return;
     }
@@ -152,9 +135,11 @@ const handlePayment = async () => {
     const response = await initiatePayment({
       bookingIds,
       total_amount,
+      currency:'BDT',
       customer: customerInfo
     }).unwrap();
 
+    console.log(response)
     if (response.paymentUrl) {
       // Redirect to SSLCommerz payment page
       window.location.href = response.paymentUrl;

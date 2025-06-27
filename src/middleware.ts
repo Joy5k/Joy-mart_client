@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  const protectedRoutes = ['/dashboard', '/profile', '/settings','/booking']
+  const protectedRoutes = ['/dashboard', '/profile', '/settings','/booking','/payment']
   const authRoutes = ['/login', '/register'] // Separate auth-specific routes
   const currentPath = request.nextUrl.pathname
   const token = request.cookies.get('authToken')?.value

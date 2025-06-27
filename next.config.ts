@@ -13,12 +13,22 @@ const nextConfig: NextConfig = {
           reactRemoveProperties: process.env.NODE_ENV === 'production'
 
     },
-    experimental: {
-    },
+  
     reactStrictMode: true, 
   eslint: {
     ignoreDuringBuilds: false
   },
+   experimental: {
+    taint: true,
+  },
+  // For Turbopack issues
+  webpack: (config) => {
+    config.resolve.fallback = { 
+      ...config.resolve.fallback,
+      url: false 
+    }
+    return config
+  }
   
 };
 

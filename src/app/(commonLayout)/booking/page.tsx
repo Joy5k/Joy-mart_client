@@ -9,43 +9,42 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { 
   useGetAllBookingsQuery, 
-  useCreateBookingMutation,
   useDeleteBookingMutation
 } from '@/src/redux/features/booking/bookingApi';
 import { Booking, Product } from '@/src/types';
 import { toast } from 'react-toastify';
 import { useInitiatePaymentMutation } from '@/src/redux/features/payment/paymentApi';
+import { useRouter } from 'next/navigation';
 
 const BookingPage = () => {
+  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [activeTab, setActiveTab] = useState('manage');
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [showNoSelectionWarning, setShowNoSelectionWarning] = useState(false);
-    const { items: wishlistItems } = useSelector((state: RootState) => state.wishlist);
-const [customerInfo, setCustomerInfo] = useState({
-  name: '',
-  email: '',
-  phone: '0160000000000',
-  address: '',
-  city: 'Dhaka',
-  state: 'Dhaka',
-  postcode: '1000',
-  country: 'Bangladesh'
-});
-const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const { items: wishlistItems } = useSelector((state: RootState) => state.wishlist);
+  
+  const [customerInfo, setCustomerInfo] = useState({
+    name: '',
+    email: '',
+    phone: '01600000000',
+    address: '',
+    city: 'Dhaka',
+    state: 'Dhaka',
+    postcode: '1000',
+    country: 'Bangladesh'
+  });
+
 
   const { data: bookingsData, refetch } = useGetAllBookingsQuery({});
-  const [createBooking] = useCreateBookingMutation();
   const [deleteBooking] = useDeleteBookingMutation();
-  const [initiatePayment, { isLoading }] = useInitiatePaymentMutation();
+  const [initiatePayment, { isLoading:isProcessingPayment }] = useInitiatePaymentMutation();
   const bookings: Booking[] = bookingsData?.data || [];
 
-
-  // Initialize quantity map in state
   const [quantityMap, setQuantityMap] = useState<Record<string, number>>(() => {
     const initialQuantities: Record<string, number> = {};
-    bookingsData?.data?.forEach((booking:any) => {
+    bookingsData?.data?.forEach((booking: any) => {
       initialQuantities[booking._id] = booking.bookingQuantity;
     });
     return initialQuantities;
@@ -55,12 +54,11 @@ const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     setIsClient(true);
   }, []);
 
-  // Update quantity map when bookings change
   useEffect(() => {
     if (bookingsData?.data) {
       setQuantityMap(prev => {
         const newQuantities = {...prev};
-        bookingsData.data.forEach((booking:any) => {
+        bookingsData.data.forEach((booking: any) => {
           if (!(booking._id in newQuantities)) {
             newQuantities[booking._id] = booking.bookingQuantity;
           }
@@ -69,8 +67,6 @@ const [isProcessingPayment, setIsProcessingPayment] = useState(false);
       });
     }
   }, [bookingsData?.data]);
-
-
 
   const handleDeleteBooking = async (id: string) => {
     try {
@@ -90,7 +86,6 @@ const [isProcessingPayment, setIsProcessingPayment] = useState(false);
         return [...prev, product];
       }
     });
-    // Hide warning when selecting a product
     setShowNoSelectionWarning(false);
   };
 
@@ -109,52 +104,42 @@ const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     }
   };
 
-const handlePayment = async () => {
-  try {
-    // Validate customer info
-    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address || !customerInfo.phone) {
-      toast.error('Please fill in all required customer information');
-      return;
+  const handlePayment = async () => {
+    try {
+      if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address) {
+        toast.error('Please fill in all required customer information');
+        return;
+      }
+
+      const total_amount = selectedProducts.reduce(
+        (total, product) => 
+          total + (product.price * (quantityMap[product._id] || 1)),
+        0
+      );
+
+      const bookingIds = bookings
+        .filter(booking => selectedProducts.some(p => p._id === booking.productId._id))
+        .map(booking => booking._id);
+
+      const paymentData = {
+        bookingIds,
+        total_amount,
+        currency: 'BDT',
+        customer: customerInfo,
+        paymentMethod: 'online'
+      };
+
+      const response = await initiatePayment(paymentData).unwrap();
+
+      if (response?.data?.paymentUrl) {
+        router.push(response.data?.paymentUrl);
+      }
+
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast.error(error?.data?.message || 'Payment failed');
     }
-
-    setIsProcessingPayment(true);
-
-    // Calculate total amount
-    const total_amount = selectedProducts.reduce(
-      (total, product) => 
-        total + (product.price * (quantityMap[product._id] || 1)),
-      0
-    );
-
-    // Get booking IDs for the selected products
-    const bookingIds = bookings
-      .filter(booking => selectedProducts.some(p => p._id === booking.productId._id))
-      .map(booking => booking._id);
-
-    // Call backend to initiate payment using Redux mutation
-    const response = await initiatePayment({
-      bookingIds,
-      total_amount,
-      currency:'BDT',
-      customer: customerInfo
-    }).unwrap();
-
-    console.log(response)
-    if (response.paymentUrl) {
-      // Redirect to SSLCommerz payment page
-      window.location.href = response.paymentUrl;
-    } else {
-      throw new Error('Failed to initiate payment');
-    }
-  } catch (error) {
-    console.error('Payment error:', error);
-
-    setIsProcessingPayment(false);
-  }
-};
-
-
-
+  };
 
   if (!isClient) {
     return (
@@ -222,7 +207,6 @@ const handlePayment = async () => {
         </motion.div>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* Tabs */}
           <div className="flex border-b">
             <button
               onClick={() => setActiveTab('manage')}
@@ -231,7 +215,7 @@ const handlePayment = async () => {
               Manage Bookings
             </button>
             <button
-              onClick={() => handleProceedToCheckout()}
+              onClick={handleProceedToCheckout}
               className={`flex-1 py-4 px-6 cursor-pointer font-medium ${activeTab === 'checkout' ? 'text-[#088178] border-b-2 border-[#088178]' : 'text-gray-500'}`}
               disabled={selectedProducts.length === 0}
             >
@@ -252,7 +236,6 @@ const handlePayment = async () => {
                   </h2>
                 </div>
 
-                {/* Warning message when no products are selected */}
                 {showNoSelectionWarning && selectedProducts.length === 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -376,137 +359,163 @@ const handlePayment = async () => {
               </motion.div>
             )}
 
-          {/* // Replace your checkout section with this updated version */}
-{activeTab === 'checkout' && selectedProducts.length > 0 && (
-  <motion.div
-    initial={{ x: 10, opacity: 0 }}
-    animate={{ x: 0, opacity: 1 }}
-    className="space-y-8"
-  >
-    <h2 className="text-xl font-semibold text-gray-800">Checkout</h2>
-    
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="space-y-4">
-        <div className="p-6 bg-gray-50 rounded-lg">
-          <h3 className="font-medium mb-4">Customer Information</h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Full Name</label>
-              <input 
-                type="text" 
-                placeholder="John Doe" 
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                value={customerInfo.name}
-                onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Email</label>
-              <input 
-                type="email" 
-                placeholder="john@example.com" 
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                value={customerInfo.email}
-                onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Phone Number</label>
-              <input 
-                type="tel" 
-                placeholder="01XXXXXXXXX" 
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                value={customerInfo.phone}
-                onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Address</label>
-              <textarea 
-                placeholder="Your address" 
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                value={customerInfo.address}
-                onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+            {activeTab === 'checkout' && selectedProducts.length > 0 && (
+              <motion.div
+                initial={{ x: 10, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                className="space-y-8"
+              >
+                <h2 className="text-xl font-semibold text-gray-800">Checkout</h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="p-6 bg-gray-50 rounded-lg">
+                      <h3 className="font-medium mb-4">Customer Information</h3>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Full Name*</label>
+                          <input 
+                            type="text" 
+                            placeholder="John Doe" 
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                            value={customerInfo.name}
+                            onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Email*</label>
+                          <input 
+                            type="email" 
+                            placeholder="john@example.com" 
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                            value={customerInfo.email}
+                            onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Phone Number*</label>
+                          <input 
+                            type="tel" 
+                            placeholder="01XXXXXXXXX" 
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                            value={customerInfo.phone}
+                            onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Address*</label>
+                          <textarea 
+                            placeholder="Your address" 
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                            value={customerInfo.address}
+                            onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
+                            required
+                          />
+                        </div>
 
-      <div className="space-y-4">
-        <div className="p-6 bg-gray-50 rounded-lg">
-          <h3 className="font-medium mb-4">Order Summary</h3>
-          
-          <div className="space-y-3">
-            {selectedProducts.map(product => (
-              <div key={product._id} className="flex justify-between items-center">
-                <div>
-                  <p className="text-gray-600">{product.title}</p>
-                  <p className="text-xs text-gray-500">
-                    Qty: {quantityMap[product._id] || 1}
-                  </p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm text-gray-600 mb-1">City</label>
+                            <input 
+                              type="text" 
+                              placeholder="City" 
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                              value={customerInfo.city}
+                              onChange={(e) => setCustomerInfo({...customerInfo, city: e.target.value})}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm text-gray-600 mb-1">Postal Code</label>
+                            <input 
+                              type="text" 
+                              placeholder="Postal Code" 
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                              value={customerInfo.postcode}
+                              onChange={(e) => setCustomerInfo({...customerInfo, postcode: e.target.value})}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="p-6 bg-gray-50 rounded-lg">
+                      <h3 className="font-medium mb-4">Order Summary</h3>
+                      
+                      <div className="space-y-3">
+                        {selectedProducts.map(product => (
+                          <div key={product._id} className="flex justify-between items-center">
+                            <div>
+                              <p className="text-gray-600">{product.title}</p>
+                              <p className="text-xs text-gray-500">
+                                Qty: {quantityMap[product._id] || 1}
+                              </p>
+                            </div>
+                            <span>
+                              ${(product.price * (quantityMap[product._id] || 1)).toFixed(2)}
+                            </span>
+                          </div>
+                        ))}
+                        
+                        <div className="border-t pt-3 mt-3">
+                          <div className="flex justify-between font-medium">
+                            <span>Total</span>
+                            <span className="text-[#088178]">
+                              ${
+                                selectedProducts.reduce(
+                                  (total, product) => 
+                                    total + (product.price * (quantityMap[product._id] || 1)),
+                                  0
+                                ).toFixed(2)
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-4">
+                      <button
+                        onClick={() => setActiveTab('manage')}
+                        className="flex-1 py-3 border border-gray-300 rounded-lg font-medium"
+                      >
+                        Back
+                      </button>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handlePayment}
+                        className="flex-1 py-3 bg-[#088178] text-white rounded-lg font-medium flex items-center justify-center"
+                        disabled={isProcessingPayment}
+                      >
+                        {isProcessingPayment ? (
+                          <div className="flex items-center">
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Processing...
+                          </div>
+                        ) : (
+                          <>
+                            <FaShoppingCart className="mr-2" />
+                            Pay with SSLCommerz
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
+                  </div>
                 </div>
-                <span>
-                  ${(product.price * (quantityMap[product._id] || 1)).toFixed(2)}
-                </span>
-              </div>
-            ))}
-            
-            <div className="border-t pt-3 mt-3">
-              <div className="flex justify-between font-medium">
-                <span>Total</span>
-                <span className="text-[#088178]">
-                  ${
-                    selectedProducts.reduce(
-                      (total, product) => 
-                        total + (product.price * (quantityMap[product._id] || 1)),
-                      0
-                    ).toFixed(2)
-                  }
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setActiveTab('manage')}
-            className="flex-1 py-3 border border-gray-300 rounded-lg font-medium"
-          >
-            Back
-          </button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handlePayment}
-            className="flex-1 py-3 bg-[#088178] text-white rounded-lg font-medium flex items-center justify-center"
-            disabled={isProcessingPayment}
-          >
-            {isProcessingPayment ? (
-              <div className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Processing...
-              </div>
-            ) : (
-              <>
-                <FaShoppingCart className="mr-2" />
-                Pay with SSLCommerz
-              </>
+              </motion.div>
             )}
-          </motion.button>
-        </div>
-      </div>
-    </div>
-  </motion.div>
-)}
           </div>
         </div>
       </div>

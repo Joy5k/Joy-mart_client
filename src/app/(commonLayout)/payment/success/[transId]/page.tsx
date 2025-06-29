@@ -10,28 +10,45 @@ function SuccessPage() {
   const searchParams = useSearchParams();
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // Try to get transaction ID from multiple sources
-    const idFromParams = params?.transId;
-    const idFromQuery = searchParams?.get('transId');
-    
-    // Use whichever is available
-    const finalTransId = idFromParams || idFromQuery;
-    
-    if (finalTransId) {
-      setTransactionId(finalTransId.toString());
-    } else {
-      // Fallback to check URL if params aren't available yet
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlTransId = urlParams.get('transId');
-      if (urlTransId) setTransactionId(urlTransId);
-    }
-    
+    setIsClient(true);
+    const getTransactionId = () => {
+      try {
+        // First try from route params
+        if (params?.transId) {
+          return params.transId.toString();
+        }
+        
+        // Then try from query params
+        const queryTransId = searchParams?.get('transId');
+        if (queryTransId) {
+          return queryTransId;
+        }
+        
+        // Fallback to URL parsing if needed
+        if (typeof window !== 'undefined') {
+          const pathParts = window.location.pathname.split('/');
+          const possibleId = pathParts[pathParts.length - 1];
+          if (possibleId && possibleId !== 'success') {
+            return possibleId;
+          }
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('Error getting transaction ID:', error);
+        return null;
+      }
+    };
+
+    const id = getTransactionId();
+    setTransactionId(id);
     setIsLoading(false);
   }, [params, searchParams]);
 
-  if (isLoading) {
+  if (!isClient || isLoading) {
     return (
       <div className="w-full min-h-screen bg-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#088178]"></div>

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { BiLogOut } from "react-icons/bi";
-import { FaBlog, FaEnvelope, FaHome, FaInfoCircle, FaUser, FaShoppingBag } from "react-icons/fa";
+import { FaBlog, FaEnvelope, FaHome, FaInfoCircle, FaUser, FaShoppingBag, FaTruck } from "react-icons/fa";
 import { FaShop } from "react-icons/fa6";
 import { RiDashboard3Line } from "react-icons/ri";
 import { CiHeart } from "react-icons/ci";
@@ -12,7 +12,7 @@ import { FiMenu, FiX } from "react-icons/fi";
 import { getToken, removeToken } from "@/src/utils/localStorageManagement";
 import { GrLogin } from "react-icons/gr";
 import { useRouter } from "next/navigation";
-import Cookies from 'js-cookie';
+import TrackOrderModal from "../OrderTrackModal";
 
 const Navbar = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -20,7 +20,8 @@ const Navbar = () => {
   const [token,setToken]=useState<string>("")
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
-  
+  const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
+
   const navigate=useRouter()
 
 
@@ -41,15 +42,23 @@ useEffect(() => {
     setToken(authToken);
   }
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-      if (navRef.current && !navRef.current.contains(event.target as Node) && 
-          !(event.target as HTMLElement).closest('#mobile-toggle')) {
-        setIsNavOpen(false);
-      }
-    };
+  const handleClickOutside = (event: MouseEvent) => {
+  // Close dropdown if clicking outside
+  if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    setIsDropdownOpen(false);
+  }
+  
+  // Close mobile nav if clicking outside
+  if (navRef.current && !navRef.current.contains(event.target as Node) && 
+      !(event.target as HTMLElement).closest('#mobile-toggle')) {
+    setIsNavOpen(false);
+  }
+  
+  // Don't handle clicks if they're on modal triggers
+  if ((event.target as HTMLElement).closest('[data-modal-trigger]')) {
+    return;
+  }
+};
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -232,7 +241,8 @@ const handleLogout=()=>{
           <button 
             onClick={toggleDropdown}
             className="p-2 text-[#1a1a1a] hover:text-[#088178] focus:outline-none transition-colors duration-300 cursor-pointer"
-          >
+          data-modal-trigger 
+         >
             <FaUser className="text-xl" />
           </button>
           
@@ -258,6 +268,20 @@ const handleLogout=()=>{
                   <span>Dashboard</span>
                 </Link>
               </li>
+<li>
+  <button
+    className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300 w-full text-left"
+    onClick={(e) => {
+      e.stopPropagation(); // Crucial: prevent event bubbling
+      setIsDropdownOpen(false);
+      setIsTrackModalOpen(true);
+    }}
+  >
+    <FaTruck />
+    <span>Track Order</span>
+  </button>
+</li>
+
               <li className="border-t border-gray-200">
                 <Link 
                   href="/login" 
@@ -271,6 +295,12 @@ const handleLogout=()=>{
             </ul>
           )}
         </div>
+        {isTrackModalOpen && (
+  <TrackOrderModal 
+    isOpen={isTrackModalOpen}
+    onClose={() => setIsTrackModalOpen(false)}
+  />
+)}
       </div>}
     </section>
   );

@@ -39,13 +39,22 @@ const authApi = baseApi.injectEndpoints({
                 method:'POST',
                 body:data
             })
+        }),
+        genareteAuthTokenUsingRefreshToken: builder.mutation({
+            // Add your query implementation here
+            query: () => ({
+                url: "/auth/refresh-token",
+                method: "POST",
+            })
         })
     })
-})
+});
+
 export const {
     useLoginMutation,
     useRegisterMutation,
     useAuth2Mutation,
-    useVerifyAuth2Mutation ,
-    useChangePasswordMutation
-} = authApi
+    useVerifyAuth2Mutation,
+    useChangePasswordMutation,
+    useGenareteAuthTokenUsingRefreshTokenMutation
+} = authApi;

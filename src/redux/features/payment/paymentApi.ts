@@ -48,6 +48,13 @@ const paymentApi = baseApi.injectEndpoints({
         method: 'GET'
       }),
       providesTags: [tagTypes.payment]
+    }),
+    trackOrder: builder.query({
+      query: ({transId}) => ({
+        url: `/payment/track/${transId}`,
+        method: 'GET'
+      }),
+      providesTags: [tagTypes.payment]
     })
   })
 });
@@ -57,5 +64,6 @@ export const {
   useValidatePaymentMutation,
   useHandleIPNMutation,
   useGetPaymentHistoryQuery,
-  useGetPaymentDetailsQuery
+  useGetPaymentDetailsQuery,
+  useTrackOrderQuery
 } = paymentApi;

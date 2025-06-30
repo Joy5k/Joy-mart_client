@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter,useSearchParams } from 'next/navigation';
 import { FaGoogle, FaFacebook, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Image from 'next/image';
 import { useLoginMutation } from '@/src/redux/features/Auth/authApi';
@@ -22,6 +22,11 @@ const LoginPage = () => {
   const [LoginMutation]=useLoginMutation();
   const userToken=getToken()
   const dispatch=useAppDispatch()
+  const searchParams = useSearchParams()
+
+  const redirect = searchParams.get('redirect') || '/'
+
+
 
  const getCookie = (name:string) => {
     const value = `; ${document.cookie}`;
@@ -53,7 +58,8 @@ const LoginPage = () => {
       }));
    
         setToken(res.data.accessToken);
-          router.push('/');
+          const decodedRedirect = decodeURIComponent(redirect)
+      router.push(decodedRedirect)
       }
     } catch (err:any) {
       setError('Invalid email or password');

@@ -11,11 +11,11 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { removeToken } from '@/src/utils/localStorageManagement';
 import uploadImage from '@/src/hooks/imageUploader';
-import { IProfile } from '@/src/types';
+import { IOrder, IProfile } from '@/src/types';
 import { useGetProfileQuery, useUpdateProfileMutation } from '@/src/redux/features/profile/profileApi';
 import { useChangePasswordMutation } from '@/src/redux/features/Auth/authApi';
 
-const ProfileClient = ({ orders, wishlist, addresses }: any) => {
+const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlist:any,addresses:any}) => {
   const router = useRouter();
   const { data, refetch } = useGetProfileQuery({});
   const user = data?.data;
@@ -60,6 +60,27 @@ const ProfileClient = ({ orders, wishlist, addresses }: any) => {
   const [passwordError,setPasswordError]=useState<string>("")
   const [updateProfile] = useUpdateProfileMutation();
   const [changePasswordMutation]=useChangePasswordMutation()
+
+  // Sample order data based on the provided information
+  const sampleOrder = {
+    orderId: "JMART_TXN1751512023885432",
+    orderStatus: "pending",
+    paymentDetails: { currency: 'BDT' },
+    paymentMethod: "online",
+    paymentStatus: "pending",
+    productIds: [],
+    totalAmount: 599,
+    createdAt: "2025-07-03T03:07:04.154Z",
+    contactInfo: {
+      phone: '01600000000', 
+      email: 'mmehedihasanjoyv@gmail.com'
+    },
+    userId: {
+      _id: '683750a6a7ea0e1f03b3c9ba', 
+      email: 'mmehedihasanjoyv@gmail.com'
+    }
+  };
+
   // Initialize user data when component mounts or user changes
   useEffect(() => {
     if (user) {
@@ -82,9 +103,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: any) => {
     }
   }, [user]);
 
-
   const handleImageChangeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-   
     const files = event.target.files;
     if (!files || files.length === 0) {
       return;
@@ -101,24 +120,18 @@ const ProfileClient = ({ orders, wishlist, addresses }: any) => {
       }
     };
     reader.readAsDataURL(file);
- try {
-   
+    try {
       const response = await uploadImage(file);
       if (response) {
         console.log(response.imageUrl)
         setUpdatedData(prev=>({...prev,image:response?.imageUrl}))
         setImagePreview(response?.imageUrl);
       }
-     
-    
-    
- 
-    
-  } catch (error) {
-    console.error(error);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
-}
   // Animation variants
   const tabContentVariants = {
     hidden: { opacity: 0, y: 10 },
@@ -126,15 +139,10 @@ const ProfileClient = ({ orders, wishlist, addresses }: any) => {
     exit: { opacity: 0, y: -10 }
   };
 
-
-
   const handleSaveProfile = async () => {
     setIsLoading(true);
     try {
-  
-
       const res = await updateProfile({ updatedData }).unwrap();
-      console.log(res,'res')
       if (res) {
         toast.success('Profile updated successfully');
         setUserData(res.data); // Update local user data with response
@@ -194,33 +202,31 @@ const ProfileClient = ({ orders, wishlist, addresses }: any) => {
     setUpdatedData(prev => ({ ...prev, image: '' }));
   };
 
-
-const handlePasswordChange=async()=>{
-  let payload={
-    oldPassword:'',
-    newPassword:""
-  }
-  if(changePassword.confirmPassword===changePassword.newPassword&&changePassword.currentPassword){
-    payload={
-      oldPassword:changePassword.currentPassword,
-      newPassword:changePassword.newPassword,
-
+  const handlePasswordChange=async()=>{
+    let payload={
+      oldPassword:'',
+      newPassword:""
     }
-  }
-  try {
-    const res=await changePasswordMutation(payload).unwrap()
-    console.log(res)
-    if(res.success){
-      toast.success('Password Changeed successfully,Please Login again')
-      handleLogout()
+    if(changePassword.confirmPassword===changePassword.newPassword&&changePassword.currentPassword){
+      payload={
+        oldPassword:changePassword.currentPassword,
+        newPassword:changePassword.newPassword,
+      }
     }
-  } catch (err:any) {
-  console.log(err,"Something went wrong, while changing passowrd")
-  setPasswordError(err?.data?.message)
-  } finally {
-    
-  }
-} 
+    try {
+      const res=await changePasswordMutation(payload).unwrap()
+      console.log(res)
+      if(res.success){
+        toast.success('Password Changed successfully, Please Login again')
+        handleLogout()
+      }
+    } catch (err:any) {
+      console.log(err,"Something went wrong, while changing password")
+      setPasswordError(err?.data?.message)
+    } finally {
+      
+    }
+  } 
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -249,7 +255,6 @@ const handlePasswordChange=async()=>{
                     <img
                       src={imagePreview || "https://i.ibb.co/1zh2txz/men.jpg"}
                       alt="Profile"
-                      
                       className="object-cover"
                       sizes="(max-width: 640px) 100vw, 640px"
                     />
@@ -437,9 +442,6 @@ const handlePasswordChange=async()=>{
                         Address: {userData.address}, {userData.city}, {userData.state} {userData.zipCode}, {userData.country}
                       </p>
                     )}
-                    {/* {userData?.joinDate && (
-                      <p className="text-gray-500 mt-2">Member since {new Date(userData.joinDate).toLocaleDateString()}</p>
-                    )} */}
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -454,11 +456,6 @@ const handlePasswordChange=async()=>{
             </div>
           </div>
         </motion.div>
-      
-    
-
-
-
 
         {/* Main profile content */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -468,7 +465,7 @@ const handlePasswordChange=async()=>{
               <nav className="space-y-1 p-4">
                 {[
                   { id: 'overview', icon: FaUser, label: 'Overview', count: null },
-                  { id: 'orders', icon: FaShoppingBag, label: 'My Orders', count: orders.length },
+                  { id: 'orders', icon: FaShoppingBag, label: 'My Orders', count: orders?.length || 1 }, // Updated to show at least 1 order
                   { id: 'wishlist', icon: FaHeart, label: 'Wishlist', count: wishlist.length },
                   { id: 'addresses', icon: FaMapMarkerAlt, label: 'Addresses', count: addresses.length },
                   { id: 'settings', icon: FaCog, label: 'Settings', count: null },
@@ -477,9 +474,9 @@ const handlePasswordChange=async()=>{
                     key={item.id}
                     whileHover={{ x: 5 }}
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 text-left rounded-lg transition-colors ${activeTab === item.id ? 'bg-[#088178] text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                    className={`w-full cursor-pointer flex items-center justify-between px-4 py-3 text-left rounded-lg transition-colors ${activeTab === item.id ? 'bg-[#088178] text-white' : 'text-gray-700 hover:bg-gray-100'}`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 ">
                       <item.icon className="text-lg" />
                       <span>{item.label}</span>
                     </div>
@@ -523,7 +520,7 @@ const handlePasswordChange=async()=>{
                         className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200"
                       >
                         <h3 className="text-lg font-medium text-blue-800 mb-2">Total Orders</h3>
-                        <p className="text-3xl font-bold text-blue-600">{orders.length}</p>
+                        <p className="text-3xl font-bold text-blue-600">{orders?.length || 0}</p>
                         <p className="text-sm text-blue-500 mt-2">View all orders</p>
                       </motion.div>
                       
@@ -549,26 +546,27 @@ const handlePasswordChange=async()=>{
                     <div>
                       <h3 className="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h3>
                       <div className="space-y-4">
-                        {orders?.slice(0, 3)?.map((order:any) => (
-                          <motion.div 
-                            key={order?.id}
-                            whileHover={{ x: 5 }}
-                            className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg cursor-pointer"
-                            onClick={() => setActiveTab('orders')}
-                          >
-                            <div className="bg-[#088178] bg-opacity-10 p-3 rounded-lg">
-                              <FaShoppingBag className="text-[#088178] text-xl" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-medium">Order #{order?.orderNumber}</h4>
-                              <p className="text-sm text-gray-500">{new Date(order?.date).toLocaleDateString()} • {order?.status}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold">${order?.total.toFixed(2)}</p>
-                              <p className="text-sm text-gray-500">{order?.items.length} items</p>
-                            </div>
-                          </motion.div>
-                        ))}
+                       {
+                        orders?.slice(0, 3).map((sampleOrder:IOrder) => (
+                           <motion.div 
+                          whileHover={{ x: 5 }}
+                          className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg cursor-pointer"
+                          onClick={() => setActiveTab('orders')}
+                        >
+                          <div className="bg-[#088178] bg-opacity-10 p-3 rounded-lg">
+                            <FaShoppingBag className="text-[#fff] text-xl" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium">Order #{sampleOrder.orderId}</h4>
+                            <p className="text-sm text-gray-500">{new Date(sampleOrder.createdAt).toLocaleDateString()} • {sampleOrder.orderStatus}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold">{sampleOrder.paymentDetails.currency} {sampleOrder.totalAmount.toFixed(2)}</p>
+                            <p className="text-sm text-gray-500">{sampleOrder.productIds.length} items</p>
+                          </div>
+                        </motion.div>
+                        ))
+                       }
                       </div>
                     </div>
                   </div>
@@ -578,45 +576,31 @@ const handlePasswordChange=async()=>{
                   <div className="p-6">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">My Orders</h2>
                     
-                    {orders.length === 0 ? (
-                      <div className="text-center py-12">
-                        <div className="mx-auto bg-gray-100 p-6 rounded-full w-24 h-24 flex items-center justify-center mb-4">
-                          <FaShoppingBag className="text-4xl text-gray-400" />
-                        </div>
-                        <h3 className="text-xl font-medium text-gray-700">No orders yet</h3>
-                        <p className="text-gray-500 mt-2">Your order history will appear here</p>
-                        <button 
-                          onClick={() => router.push('/products')}
-                          className="mt-6 px-6 py-2 bg-[#088178] text-white rounded-lg"
-                        >
-                          Start Shopping
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {orders?.map((order:any) => (
-                          <div key={order?.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                    {
+                      orders?.map((sampleOrder: IOrder) => (
+                        <div className="space-y-4" key={sampleOrder.orderId}>
+                          <div className="border border-gray-200 rounded-xl overflow-hidden">
                             <div 
                               className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer"
-                              onClick={() => toggleOrderExpand(order?.id)}
+                              onClick={() => toggleOrderExpand(sampleOrder.orderId)}
                             >
                               <div>
-                                <h3 className="font-medium">Order #{order?.orderNumber}</h3>
-                                <p className="text-sm text-gray-500">{new Date(order?.date).toLocaleDateString()}</p>
+                                <h3 className="font-medium">Order #{sampleOrder.orderId}</h3>
+                                <p className="text-sm text-gray-500">{new Date(sampleOrder.createdAt).toLocaleDateString()}</p>
                               </div>
                               <div className="flex items-center gap-4">
                                 <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                  order?.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                  order?.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
-                                  order?.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' :
+                                  sampleOrder.orderStatus === 'completed' ? 'bg-green-100 text-green-800' :
+                                  sampleOrder.orderStatus === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                                  sampleOrder.orderStatus === 'processing' ? 'bg-yellow-100 text-yellow-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
-                                  {order?.status}
+                                  {sampleOrder.orderStatus}
                                 </div>
                                 <div className="text-right">
-                                  <p className="font-bold">${order?.total.toFixed(2)}</p>
+                                  <p className="font-bold">{sampleOrder.paymentDetails.currency} {sampleOrder.totalAmount.toFixed(2)}</p>
                                 </div>
-                                {expandedOrder === order?.id ? (
+                                {expandedOrder === sampleOrder.orderId ? (
                                   <FiChevronUp className="text-gray-500" />
                                 ) : (
                                   <FiChevronDown className="text-gray-500" />
@@ -625,7 +609,7 @@ const handlePasswordChange=async()=>{
                             </div>
                             
                             <AnimatePresence>
-                              {expandedOrder === order?.id && (
+                              {expandedOrder === sampleOrder.orderId && (
                                 <motion.div
                                   initial={{ opacity: 0, height: 0 }}
                                   animate={{ opacity: 1, height: 'auto' }}
@@ -634,74 +618,51 @@ const handlePasswordChange=async()=>{
                                   className="overflow-hidden"
                                 >
                                   <div className="p-4 border-t">
-                                    <h4 className="font-medium mb-3">Order Items</h4>
-                                    <div className="space-y-3">
-                                    {order?.items?.map((item: any) => (
-                                        <div key={item.id} className="flex items-center gap-4">
-                                            <div className="relative w-16 h-16 rounded-lg overflow-hidden">
-                                                <Image
-                                                    src={item.image}
-                                                    alt={item.name}
-                                                    fill
-                                                    className="object-cover"
-                                                    sizes="64px"
-                                                />
+                                    <h4 className="font-medium mb-3">Order Details</h4>
+                                    <div className="space-y-4">
+                                      <div>
+                                        <h5 className="font-medium mb-2">Contact Information</h5>
+                                        <p>Email: {sampleOrder.contactInfo.email}</p>
+                                        <p>Phone: {sampleOrder.contactInfo.phone}</p>
+                                      </div>
+                                      
+                                      <div>
+                                        <h5 className="font-medium mb-2">Payment Information</h5>
+                                        <p>Method: {sampleOrder.paymentMethod}</p>
+                                        <p>Status: {sampleOrder.paymentStatus}</p>
+                                        <p>Amount: {sampleOrder.paymentDetails.currency} {sampleOrder.totalAmount.toFixed(2)}</p>
+                                      </div>
+                                      
+                                      {sampleOrder.productIds.length > 0 ? (
+                                        <div>
+                                          <h5 className="font-medium mb-2">Order Items</h5>
+                                          {sampleOrder.productIds.map((product: any) => (
+                                            <div key={product.id} className="flex items-center gap-4 py-2 border-b">
+                                              <div className="w-16 h-16 bg-gray-100 rounded-lg"></div>
+                                              <div className="flex-1">
+                                                <p className="font-medium">{product.name}</p>
+                                                <p className="text-sm text-gray-500">Quantity: {product.quantity}</p>
+                                              </div>
+                                              <div className="text-right">
+                                                <p className="font-medium">{sampleOrder.paymentDetails.currency} {product.price.toFixed(2)}</p>
+                                              </div>
                                             </div>
-                                            <div className="flex-1">
-                                                <h5 className="font-medium">{item.name}</h5>
-                                                <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-medium">${item.price.toFixed(2)}</p>
-                                                {item.discountedPrice && (
-                                                    <p className="text-sm text-gray-500 line-through">${item.originalPrice?.toFixed(2)}</p>
-                                                )}
-                                            </div>
+                                          ))}
                                         </div>
-                                    ))}
+                                      ) : (
+                                        <div className="text-center py-4">
+                                          <p>No products in this order</p>
+                                        </div>
+                                      )}
                                     </div>
                                     
                                     <div className="mt-6 pt-6 border-t">
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                          <h4 className="font-medium mb-3">Shipping Address</h4>
-                                          <address className="not-italic text-gray-600">
-                                            {order?.shippingAddress.street}<br />
-                                            {order?.shippingAddress.city}, {order?.shippingAddress.state}<br />
-                                            {order?.shippingAddress.zip}, {order?.shippingAddress.country}
-                                          </address>
-                                        </div>
-                                        <div>
-                                          <h4 className="font-medium mb-3">Payment Method</h4>
-                                          <p className="text-gray-600">{order?.paymentMethod}</p>
-                                          <h4 className="font-medium mt-4 mb-3">Order Summary</h4>
-                                          <div className="space-y-2">
-                                            <div className="flex justify-between">
-                                              <span>Subtotal</span>
-                                              <span>${order?.subtotal.toFixed(2)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span>Shipping</span>
-                                              <span>${order?.shippingCost.toFixed(2)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span>Tax</span>
-                                              <span>${order?.tax.toFixed(2)}</span>
-                                            </div>
-                                            <div className="flex justify-between font-bold pt-2 border-t">
-                                              <span>Total</span>
-                                              <span>${order?.total.toFixed(2)}</span>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      
-                                      <div className="mt-6 flex justify-end gap-3">
+                                      <div className="flex justify-end gap-3">
                                         <button className="px-4 py-2 border border-gray-300 rounded-lg">
-                                          Track Order
+                                          Contact Support
                                         </button>
                                         <button className="px-4 py-2 bg-[#088178] text-white rounded-lg">
-                                          Buy Again
+                                          Track Order
                                         </button>
                                       </div>
                                     </div>
@@ -710,9 +671,9 @@ const handlePasswordChange=async()=>{
                               )}
                             </AnimatePresence>
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        </div>
+                      ))
+                    }
                   </div>
                 )}
 
@@ -835,52 +796,6 @@ const handlePasswordChange=async()=>{
                   </div>
                 )}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 {activeTab === 'settings' && (
                   <div className="p-6">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Account Settings</h2>
@@ -891,98 +806,98 @@ const handlePasswordChange=async()=>{
                         <div className="max-w-md space-y-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                        
-                               <div className="relative">
-                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none " >
-                                              <FaLock className="text-gray-400" />
-                                            </div>
-                                            <input
-                                              id="password"
-                                              type={showPassword ? "text" : "password"}
-                                             onChange={(e) =>
-                              (  setChangePassword((prev) => ({
-                                  ...prev,
-                                  currentPassword: e.target.value
-                                })),
-                                setPasswordError('')
-                              )
-                              }
-                                              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
-                                              placeholder="••••••••"
-                                              required
-                                            />
-                                            <button
-                                              type="button"
-                                              onClick={() => setShowPassword(!showPassword)}
-                                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
-                                            >
-                                              {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                            </button>
-                                          </div>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FaLock className="text-gray-400" />
+                              </div>
+                              <input
+                                type={showPassword ? "text" : "password"}
+                                onChange={(e) => (
+                                  setChangePassword((prev) => ({
+                                    ...prev,
+                                    currentPassword: e.target.value
+                                  })),
+                                  setPasswordError('')
+                                )}
+                                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
+                                placeholder="••••••••"
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                              >
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                              </button>
+                            </div>
                             {passwordError && <p className="text-orange-600 font-semibold">{passwordError}</p>}
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                         
-                         <div className="relative">
-                                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none " >
-                                        <FaLock className="text-gray-400" />
-                                      </div>
-                                      <input
-                                        id="password"
-                                        type={showPassword ? "text" : "password"}
-                                       onChange={(e) =>
-                                setChangePassword((prev) => ({
-                                  ...prev,
-                                  newPassword: e.target.value
-                                }))
-                              }
-                                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
-                                        required
-                                      />
-                                      <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
-                                      >
-                                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                      </button>
-                                    </div>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FaLock className="text-gray-400" />
+                              </div>
+                              <input
+                                type={showPassword ? "text" : "password"}
+                                onChange={(e) =>
+                                  setChangePassword((prev) => ({
+                                    ...prev,
+                                    newPassword: e.target.value
+                                  }))
+                                }
+                                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                              >
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                              </button>
+                            </div>
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                          
-                               <div className="relative">
-                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none " >
-                                              <FaLock className="text-gray-400" />
-                                            </div>
-                                            <input
-                                              id="password"
-                                              type={showPassword ? "text" : "password"}
-                                            onChange={(e) =>
-                                setChangePassword((prev) => ({
-                                  ...prev,
-                                  confirmPassword: e.target.value
-                                }))
-                              }
-                                              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
-                                              required
-                                            />
-                                            <button
-                                              type="button"
-                                              onClick={() => setShowPassword(!showPassword)}
-                                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
-                                            >
-                                              {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                            </button>
-                                          </div>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FaLock className="text-gray-400" />
+                              </div>
+                              <input
+                                type={showPassword ? "text" : "password"}
+                                onChange={(e) =>
+                                  setChangePassword((prev) => ({
+                                    ...prev,
+                                    confirmPassword: e.target.value
+                                  }))
+                                }
+                                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                              >
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                              </button>
+                            </div>
                             {
-                              changePassword?.newPassword !==changePassword?.confirmPassword && <p className="text-orange-600 font-semibold"> Your password is miss match</p>
+                              changePassword?.newPassword !== changePassword?.confirmPassword && 
+                              <p className="text-orange-600 font-semibold">Your password is miss match</p>
                             }
                           </div>
-                          <button onClick={handlePasswordChange} 
-                          disabled={changePassword?.newPassword !==changePassword?.confirmPassword}
-                          className={`mt-2 px-6 py-2 ${ changePassword?.newPassword !==changePassword?.confirmPassword ? 'bg-gray-500 cursor-not-allowed' : 'bg-[#088178] cursor-pointer'}  text-white rounded-lg `}>
+                          <button 
+                            onClick={handlePasswordChange} 
+                            disabled={changePassword?.newPassword !== changePassword?.confirmPassword}
+                            className={`mt-2 px-6 py-2 ${
+                              changePassword?.newPassword !== changePassword?.confirmPassword ? 
+                              'bg-gray-500 cursor-not-allowed' : 
+                              'bg-[#088178] cursor-pointer'
+                            } text-white rounded-lg`}
+                          >
                             Update Password
                           </button>
                         </div>
@@ -1092,7 +1007,7 @@ const handlePasswordChange=async()=>{
                   <option value="US">United States</option>
                   <option value="CA">Canada</option>
                   <option value="UK">United Kingdom</option>
-                  {/* Add more countries as needed */}
+                  <option value="BD">Bangladesh</option>
                 </select>
               </div>
               <div className="md:col-span-2">

@@ -6,6 +6,7 @@ import { GiMoneyStack } from "react-icons/gi";
 import { JSX } from "react";
 import { useParams } from "next/navigation";
 import { useTrackOrderQuery } from "@/src/redux/features/payment/paymentApi";
+import Link from "next/link";
 
 type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
 type PaymentStatus = "pending" | "completed" | "failed";
@@ -216,7 +217,7 @@ console.log(order)
                     </button>
                   )}
                   <button className="w-full  cursor-pointer border border-gray-300 text-gray-700 py-2 px-4 rounded-md flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
-                    Contact Support
+                    <Link href="/contact">Contact Support</Link>
                   </button>
                   <button className="w-full cursor-pointer border border-red-300 text-red-600 py-2 px-4 rounded-md flex items-center justify-center gap-2 hover:bg-red-50 transition-colors">
                     <FaTimes />

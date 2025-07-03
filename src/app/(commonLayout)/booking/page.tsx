@@ -3,7 +3,7 @@
 
 import { useSelector } from 'react-redux';
 import { RootState } from '@/src/redux/store';
-import { FaCheckCircle, FaTrash, FaShoppingCart, FaExclamationTriangle } from 'react-icons/fa';
+import { FaCheckCircle, FaTrash, FaShoppingCart, FaExclamationTriangle, FaMoneyBillWave } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
@@ -15,6 +15,7 @@ import { Booking, Product } from '@/src/types';
 import { toast } from 'react-toastify';
 import { useInitiatePaymentMutation } from '@/src/redux/features/payment/paymentApi';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const BookingPage = () => {
   const router = useRouter();
@@ -23,6 +24,7 @@ const BookingPage = () => {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [showNoSelectionWarning, setShowNoSelectionWarning] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('online');
   const { items: wishlistItems } = useSelector((state: RootState) => state.wishlist);
   
   const [customerInfo, setCustomerInfo] = useState({
@@ -35,7 +37,6 @@ const BookingPage = () => {
     postcode: '1000',
     country: 'Bangladesh'
   });
-
 
   const { data: bookingsData, refetch } = useGetAllBookingsQuery({});
   const [deleteBooking] = useDeleteBookingMutation();
@@ -126,11 +127,22 @@ const BookingPage = () => {
         total_amount,
         currency: 'BDT',
         customer: customerInfo,
-        paymentMethod: 'online'
+        paymentMethod: paymentMethod,
+        productIds: selectedProducts.map(p => p._id),
+        quantities: selectedProducts.map(p => quantityMap[p._id] || 1)
       };
+      console.log(paymentData)
+      if (paymentMethod === 'cod') {
+        const response = await initiatePayment(paymentData).unwrap();
+        if (response?.success) {
+          toast.success('Order placed successfully with COD');
+          setBookingSuccess(true);
+        }
+        return;
+      }
 
+      // Online payment flow
       const response = await initiatePayment(paymentData).unwrap();
-
       if (response?.data?.paymentUrl) {
         router.push(response.data?.paymentUrl);
       }
@@ -164,20 +176,25 @@ const BookingPage = () => {
           >
             <FaCheckCircle className="text-6xl text-green-500 mx-auto mb-6" />
           </motion.div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">Booking Confirmed!</h2>
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">Order Confirmed!</h2>
           <p className="text-gray-600 mb-6">
-            Your booking has been successfully processed.
+            {paymentMethod === 'cod' 
+              ? 'Your cash on delivary order has been placed successfully.' 
+              : 'Your payment was successful.'}
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-[#088178] text-white px-6 py-3 rounded-lg font-medium"
+            className="bg-[#088178] text-white rounded-lg font-medium"
             onClick={() => {
               setBookingSuccess(false);
               setActiveTab('manage');
+              setSelectedProducts([]);
             }}
           >
-            View Bookings
+        <Link href="/bookings">
+         <p className="bg-[#088178] text-white px-6 py-3 rounded-lg font-medium">View Your Bookings</p>
+       </Link>
           </motion.button>
         </div>
       </motion.div>
@@ -292,7 +309,9 @@ const BookingPage = () => {
                             />
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-medium text-gray-800">{booking.productId.title}</h3>
+                            <Link href={`/productDetails/${booking.productId._id}`}>
+                              <h3 className="font-medium text-gray-800 hover:text-[#088178]">{booking.productId.title}</h3>
+                            </Link>
                             <div className="flex items-center mt-2">
                               <span className="text-sm text-gray-600 mr-4">
                                 ${booking.productId.price} each
@@ -321,23 +340,11 @@ const BookingPage = () => {
                                 </button>
                               </div>
                             </div>
-                            <div className="mt-2 flex items-center justify-between">
-                              <span className={`text-sm font-medium ${
-                                booking.orderStatus === 'pending' ? 'text-yellow-600' :
-                                booking.orderStatus === 'confirmed' ? 'text-green-600' :
-                                'text-red-600'
-                              }`}>
-                                {booking.orderStatus.toUpperCase()}
-                              </span>
-                              <span className="font-medium text-[#088178]">
-                                ${(booking.productId.price * booking.bookingQuantity).toFixed(2)}
-                              </span>
-                            </div>
                           </div>
                         </div>
                         <button
                           onClick={() => handleDeleteBooking(booking._id)}
-                          className="p-2 text-red-500 hover:text-red-700"
+                          className="p-2 text-red-500 hover:text-red-700 cursor-pointer"
                         >
                           <FaTrash />
                         </button>
@@ -444,6 +451,39 @@ const BookingPage = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Payment Method Selection */}
+                    <div className="p-6 bg-gray-50 rounded-lg">
+                      <h3 className="font-medium mb-4">Payment Method</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center">
+                          <input
+                            type="radio"
+                            id="online-payment"
+                            name="paymentMethod"
+                            checked={paymentMethod === 'online'}
+                            onChange={() => setPaymentMethod('online')}
+                            className="h-4 w-4 text-[#088178] focus:ring-[#088178]"
+                          />
+                          <label htmlFor="online-payment" className="ml-3 block text-sm font-medium text-gray-700">
+                            Pay Online (SSLCommerz)
+                          </label>
+                        </div>
+                        <div className="flex items-center">
+                          <input
+                            type="radio"
+                            id="cod-payment"
+                            name="paymentMethod"
+                            checked={paymentMethod === 'cod'}
+                            onChange={() => setPaymentMethod('cod')}
+                            className="h-4 w-4 text-[#088178] focus:ring-[#088178]"
+                          />
+                          <label htmlFor="cod-payment" className="ml-3 block text-sm font-medium text-gray-700">
+                            Cash on Delivery (COD)
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-4">
@@ -493,7 +533,11 @@ const BookingPage = () => {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handlePayment}
-                        className="flex-1 py-3 bg-[#088178] text-white rounded-lg font-medium flex items-center justify-center"
+                        className={`flex-1 py-3 rounded-lg font-medium flex items-center justify-center ${
+                          paymentMethod === 'cod' 
+                            ? 'bg-green-600 text-white' 
+                            : 'bg-[#088178] text-white'
+                        }`}
                         disabled={isProcessingPayment}
                       >
                         {isProcessingPayment ? (
@@ -506,8 +550,17 @@ const BookingPage = () => {
                           </div>
                         ) : (
                           <>
-                            <FaShoppingCart className="mr-2" />
-                            Pay with SSLCommerz
+                            {paymentMethod === 'cod' ? (
+                              <>
+                                <FaMoneyBillWave className="mr-2" />
+                                Place Order
+                              </>
+                            ) : (
+                              <>
+                                <FaShoppingCart className="mr-2" />
+                                Pay with SSLCommerz
+                              </>
+                            )}
                           </>
                         )}
                       </motion.button>

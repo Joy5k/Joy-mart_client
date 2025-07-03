@@ -1,26 +1,14 @@
+'use client'
 
+import Loader from '@/src/hooks/loader';
+import { useGetPaymentHistoryQuery } from '@/src/redux/features/payment/paymentApi';
 import dynamic from 'next/dynamic';
 
 const ProfileClient = dynamic(
   () => import('@/src/components/ProfileClient/ProfileClient'),
 );
 
- const recentOrders= [
-    {
-      id: "ORD-1001",
-      date: "Jan 1, 2022",
-      total: 100.00,
-      status: "Delivered",
-      items: 1
-    },
-    {
-      id: "ORD-1002",
-      date: "Feb 1, 2022",
-      total: 50.00,
-      status: "Shipped",
-      items: 2
-    }
-  ]
+
  const wishlist=[
     {
       name: "Smart Watch",
@@ -49,7 +37,12 @@ const ProfileClient = dynamic(
   ]
 
 export default function ProfilePage() {
-    
+      const {data,isLoading}=useGetPaymentHistoryQuery({})
+      const recentOrders=data?.data ? data.data : [];
+      console.log(recentOrders)
+  if (isLoading) {
+    return <Loader></Loader>
+  }
   return (
     <ProfileClient 
       orders={recentOrders}

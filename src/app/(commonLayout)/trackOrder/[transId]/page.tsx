@@ -37,7 +37,6 @@ const TrackOrderPage = () => {
 
   const { data, isLoading, isError } = useTrackOrderQuery({ transId: transId as string });
   const order = data?.data || null;
-console.log(transId,order)
   useEffect(() => {
     if (transId) {
       setLocalOrderId(transId as string);

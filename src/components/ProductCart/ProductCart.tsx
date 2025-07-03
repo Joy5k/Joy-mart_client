@@ -7,6 +7,8 @@ import { faShoppingCart, faStar, faHeart } from '@fortawesome/free-solid-svg-ico
 import { useAppDispatch } from '@/src/redux/hooks'
 import { addItem } from '@/src/redux/features/localstorage/wishlistSlice'
 import { IProduct } from '@/src/types'
+import { useCreateBookingMutation } from '@/src/redux/features/booking/bookingApi'
+import { toast } from 'react-toastify'
 
 interface ProductCardProps {
   product: IProduct
@@ -16,6 +18,27 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const dispatch = useAppDispatch()
   const handleAddToWishlist = (product: any) => {
     dispatch(addItem(product))
+  }
+      const [bookingMutation,{isLoading:bookingLoading}]=useCreateBookingMutation()
+  
+  const handleBookingMutation=async(productId:string)=>{
+      const payload= {
+          bookingQuantity:1,
+          productId
+      }
+      try {
+          const res=await bookingMutation(payload).unwrap()
+          console.log(res)
+          if(res.success){
+              toast.success('Saved the product on you cart',{
+                  position:"top-center"
+              })
+          }
+      } catch (err) {
+          
+      } finally {
+          
+      }
   }
   return (
     <div className="pro group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
@@ -56,26 +79,26 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <h4 className="font-bold text-green-700">${product.price}</h4>
           
           {/* Add to cart button with bounce animation */}
-          <Link 
-            href="#" 
+          <div 
+           
             className="relative overflow-hidden"
           
           >
-            <div className="w-5 h-5 bg-green-100 rounded-full flex items-start justify-start shadow-md hover:bg-green-200 transition-all duration-300 ">
+            <button  className="w-5 h-5 bg-green-100 rounded-full flex items-start justify-start shadow-md hover:bg-green-200 transition-all duration-300 ">
               <FontAwesomeIcon 
                 icon={faShoppingCart} 
                 className="text-green-700 hover:text-green-800 transition-colors"
               />
-            </div>
-            <span className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-xs font-medium text-green-700 opacity-0 ">
+            </button>
+            <span onClick={() => handleBookingMutation(product._id)} className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-xs font-medium text-green-700 opacity-0 ">
               Add to Cart
             </span>
-          </Link>
+          </div>
         </div>
       </div>
 
       {/* Sale badge (example) */}
-      {product._id  && (
+      {product._id && product.featured  && (
         <div className="absolute top-5 left-4 bg-red-500 text-white text-xs font-bold rounded-full animate-pulse w-10">
           HOT
         </div>

@@ -149,3 +149,23 @@ export interface Booking {
   createdAt: string;
   totalPrice: number;
 }
+
+
+export interface IOrder  {
+    orderId:string,
+    orderStatus: string;
+    paymentDetails: { currency: string },
+    paymentMethod: string,
+    paymentStatus: string,
+    productIds: string[],
+    totalAmount: number,
+    createdAt: string,
+    contactInfo: {
+      phone: string,
+      email: string
+    },
+    userId: {
+      _id: string,
+      email: string
+    }
+  };

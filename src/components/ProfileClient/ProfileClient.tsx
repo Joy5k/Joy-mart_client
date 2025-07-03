@@ -16,6 +16,7 @@ import { useGetProfileQuery, useUpdateProfileMutation } from '@/src/redux/featur
 import { useChangePasswordMutation } from '@/src/redux/features/Auth/authApi';
 
 const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlist:any,addresses:any}) => {
+ 
   const router = useRouter();
   const { data, refetch } = useGetProfileQuery({});
   const user = data?.data;
@@ -705,7 +706,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                           >
                             <div className="relative aspect-square">
                               <Image
-                                src={item.image}
+                                src={item.images[0]}
                                 alt={item.name}
                                 fill
                                 className="object-cover"

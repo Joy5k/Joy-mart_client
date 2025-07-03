@@ -2,27 +2,16 @@
 
 import Loader from '@/src/hooks/loader';
 import { useGetPaymentHistoryQuery } from '@/src/redux/features/payment/paymentApi';
+import { useAppDispatch, useAppSelector } from '@/src/redux/hooks';
+import { RootState } from '@/src/redux/store';
 import dynamic from 'next/dynamic';
+import { useSelector } from 'react-redux';
 
 const ProfileClient = dynamic(
   () => import('@/src/components/ProfileClient/ProfileClient'),
 );
 
 
- const wishlist=[
-    {
-      name: "Smart Watch",
-      price: 199.99
-    },
-    {
-      name: "Bluetooth Speaker",
-      price: 79.99
-    },
-    {
-      name: "Laptop Backpack",
-      price: 49.99
-    }
-  ]
   const addresses= [
     {
       type: "Home",
@@ -37,6 +26,8 @@ const ProfileClient = dynamic(
   ]
 
 export default function ProfilePage() {
+    const dispatch = useAppDispatch();
+      const { items } = useAppSelector((state: RootState) => state.wishlist);
       const {data,isLoading}=useGetPaymentHistoryQuery({})
       const recentOrders=data?.data ? data.data : [];
       console.log(recentOrders)
@@ -46,7 +37,7 @@ export default function ProfilePage() {
   return (
     <ProfileClient 
       orders={recentOrders}
-      wishlist={wishlist}
+      wishlist={items}
       addresses={addresses}
     />
   );

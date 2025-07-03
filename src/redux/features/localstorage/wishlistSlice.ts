@@ -5,7 +5,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 
 interface Product {
-  id: string;
+  _id: string;
   name: string;
   price: number;
 }
@@ -32,7 +32,7 @@ const wishlistSlice = createSlice({
   reducers: {
     addItem: (state, action: PayloadAction<Product>) => {
       // Check if the item already exists in the wishlist
-      const exists = state.items.some(item => item.id === action.payload.id);
+      const exists = state.items.some(item => item._id === action.payload._id);
       if (exists) {
         console.log(exists)
         toast.error("Product already in wishlist",{
@@ -65,7 +65,7 @@ const wishlistSlice = createSlice({
 
     },
     removeItem: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter(item => item.id !== action.payload);
+      state.items = state.items.filter(item => item._id !== action.payload);
       localStorage.setItem('wishlist', JSON.stringify(state.items));
     },
   },

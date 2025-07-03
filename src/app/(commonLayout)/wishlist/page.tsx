@@ -9,15 +9,18 @@ import Link from 'next/link';
 import { removeItem } from '@/src/redux/features/localstorage/wishlistSlice';
 import { RootState } from '@/src/redux/store';
 import { useEffect, useState } from 'react';
+import { useCreateBookingMutation } from '@/src/redux/features/booking/bookingApi';
+import Loader from '@/src/hooks/loader';
 
 const WishlistPage = () => {
   const dispatch = useDispatch();
   const { items } = useSelector((state: RootState) => state.wishlist);
-  const [isClient, setIsClient] = useState(false);
+    const [bookingMutation]=useCreateBookingMutation()
+  const [isHydrated, setIsHydrated] = useState(true);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    setIsHydrated(false);
+  });
 
   const handleRemoveFromWishlist = (productId: string) => {
     dispatch(removeItem(productId));
@@ -33,12 +36,33 @@ const WishlistPage = () => {
     });
   };
 
-  // Create unique keys by combining product ID with index as fallback
-  const getUniqueKey = (item: any, index: number) => {
-    return item.id ? `${item.id}-${index}` : `item-${index}`;
-  };
+const handleBookingMutation=async(productId:string)=>{
+    const payload= {
+        bookingQuantity:1,
+        productId
+    }
+    try {
+        const res=await bookingMutation(payload).unwrap()
+        console.log(res)
+        if(res.success){
+            toast.success('Saved the product on you cart',{
+                position:"top-center",
+                autoClose:2000,
+                hideProgressBar:false,
+                closeOnClick:true,
+                pauseOnHover:true,
+                draggable:true,
+                progress:undefined,
+                theme:"colored"
+            })
+            dispatch(removeItem(productId)); 
+        }
+    } catch (err) {
+        
+    } 
+}
 
-  if (!isClient) {
+  if (isHydrated) {
     return (
       <section className="section-p1 py-12 min-h-screen bg-[#E3E6F3]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -93,15 +117,15 @@ const WishlistPage = () => {
               <div className="space-y-6">
                 {items.map((item: any, index: number) => (
                   <div
-                    key={getUniqueKey(item, index)}
+                    key={index}
                     className="flex flex-col sm:flex-row border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
                   >
                     <div className="flex-shrink-0 mb-4 sm:mb-0 sm:mr-6">
                       <Image
-                        src={item.image || '/img/placeholder-product.png'}
+                        src={item.images[0] || '/img/placeholder-product.png'}
                         width={120}
                         height={120}
-                        alt={item.name}
+                        alt="Product image"
                         className="rounded-lg object-cover"
                       />
                     </div>
@@ -109,7 +133,7 @@ const WishlistPage = () => {
                       <div className="flex justify-between">
                         <h3 className="text-lg font-medium text-gray-800">{item.name}</h3>
                         <button
-                          onClick={() => handleRemoveFromWishlist(item.id)}
+                          onClick={() => handleRemoveFromWishlist(item._id)}
                           className="text-gray-400 hover:text-red-500 transition-colors"
                           aria-label="Remove from wishlist"
                         >
@@ -128,14 +152,14 @@ const WishlistPage = () => {
                         )}
                       </div>
                       <div className="mt-4 flex  space-x-3 ">
-                        <button
+                        <button onClick={()=>handleBookingMutation(item._id)}
                           className="flex items-center px-4 py-2 bg-[#088178] text-white rounded-md hover:bg-[#0abab5] transition-colors"
                         >
                           <FaShoppingCart className="mr-2" />
                           Add to Cart
                         </button>
                         <Link
-                          href={`/products/${item.slug || item.id}`}
+                          href={`/products/${item.slug || item._id}`}
                           className="px-4 py-2 border border-[#088178] text-[#088178] rounded-md hover:bg-gray-50 transition-colors"
                         >
                            Details

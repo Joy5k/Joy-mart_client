@@ -5,48 +5,50 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiUser, FiEdit2, FiTrash2, FiPlus, FiSearch, FiFilter, FiRefreshCw } from 'react-icons/fi';
 import { User, Role } from '@/src/types';
+import { useGetAllUsersQuery } from '@/src/redux/features/userManagement/usersApi';
+
+type UserStatus = 'in-progress' | 'active' | 'blocked';
+
+interface ApiUser {
+  _id: string;
+  email: string;
+  needsPasswordChange: boolean;
+  role: Role;
+  status: UserStatus;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  passwordChangedAt?: string;
+}
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: apiResponse, isLoading } = useGetAllUsersQuery();
+  const [users, setUsers] = useState<ApiUser[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<ApiUser[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<Role | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<UserStatus | 'all'>('all');
   
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<ApiUser | null>(null);
 
   // Form states
   const [newUser, setNewUser] = useState({
-    name: '',
     email: '',
     role: 'user' as Role,
-    status: 'active' as 'active' | 'inactive'
+    status: 'in-progress' as UserStatus
   });
 
-  // Fetch users from API
+  // Set users from API response
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        // Replace with your actual API call
-        const response = await fetch('/api/users');
-        const data = await response.json();
-        setUsers(data);
-        setFilteredUsers(data);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
+    if (apiResponse?.success && apiResponse.data?.result) {
+      setUsers(apiResponse.data.result);
+      setFilteredUsers(apiResponse.data.result);
+    }
+  }, [apiResponse]);
 
   // Apply filters
   useEffect(() => {
@@ -54,7 +56,6 @@ export default function UserManagementPage() {
     
     if (searchTerm) {
       result = result.filter(user => 
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -75,34 +76,32 @@ export default function UserManagementPage() {
     switch(role) {
       case 'superAdmin': return 'bg-purple-100 text-purple-800';
       case 'admin': return 'bg-red-100 text-red-800';
-      case 'seller': return 'bg-blue-100 text-blue-800';
       case 'user': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Status color mapping
+  const getStatusColor = (status: UserStatus) => {
+    switch(status) {
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'in-progress': return 'bg-yellow-100 text-yellow-800';
+      case 'blocked': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   // CRUD Operations
   const handleAddUser = async () => {
+    // Implement your add user logic here
+    // You'll need to use the appropriate mutation from usersApi
     try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newUser),
+      setIsAddModalOpen(false);
+      setNewUser({
+        email: '',
+        role: 'user',
+        status: 'in-progress'
       });
-      
-      if (response.ok) {
-        const addedUser = await response.json();
-        setUsers([...users, addedUser]);
-        setIsAddModalOpen(false);
-        setNewUser({
-          name: '',
-          email: '',
-          role: 'user',
-          status: 'active'
-        });
-      }
     } catch (error) {
       console.error('Error adding user:', error);
     }
@@ -112,19 +111,9 @@ export default function UserManagementPage() {
     if (!currentUser) return;
     
     try {
-      const response = await fetch(`/api/users/${currentUser.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(currentUser),
-      });
-      
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
-        setIsEditModalOpen(false);
-      }
+      // Implement your edit user logic here
+      // You'll need to use the appropriate mutation from usersApi
+      setIsEditModalOpen(false);
     } catch (error) {
       console.error('Error updating user:', error);
     }
@@ -134,14 +123,8 @@ export default function UserManagementPage() {
     if (!currentUser) return;
     
     try {
-      const response = await fetch(`/api/users/${currentUser.id}`, {
-        method: 'DELETE',
-      });
-      
-      if (response.ok) {
-        setUsers(users.filter(u => u.id !== currentUser.id));
-        setIsDeleteModalOpen(false);
-      }
+      // Implement your delete user logic here
+      setIsDeleteModalOpen(false);
     } catch (error) {
       console.error('Error deleting user:', error);
     }
@@ -149,15 +132,19 @@ export default function UserManagementPage() {
 
   const handleResetPassword = async (userId: string) => {
     try {
-      const response = await fetch(`/api/users/${userId}/reset-password`, {
-        method: 'POST',
-      });
-      
-      if (response.ok) {
-        alert('Password reset email sent successfully');
-      }
+      // Implement your reset password logic here
+      alert('Password reset functionality would be implemented here');
     } catch (error) {
       console.error('Error resetting password:', error);
+    }
+  };
+
+  const handleChangeStatus = async (userId: string, newStatus: UserStatus) => {
+    try {
+      // Implement your change status logic here
+      alert(`Status change to ${newStatus} would be implemented here`);
+    } catch (error) {
+      console.error('Error changing status:', error);
     }
   };
 
@@ -205,7 +192,7 @@ export default function UserManagementPage() {
                 type="text"
                 id="search"
                 className="focus:ring-[#088178] focus:border-[#088178] block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                placeholder="Name or email"
+                placeholder="Email"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -225,7 +212,6 @@ export default function UserManagementPage() {
               <option value="all">All Roles</option>
               <option value="superAdmin">Super Admin</option>
               <option value="admin">Admin</option>
-              <option value="seller">Seller</option>
               <option value="user">User</option>
             </select>
           </div>
@@ -238,11 +224,12 @@ export default function UserManagementPage() {
               id="status"
               className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as 'active' | 'inactive' | 'all')}
+              onChange={(e) => setStatusFilter(e.target.value as UserStatus | 'all')}
             >
               <option value="all">All Statuses</option>
               <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="in-progress">In Progress</option>
+              <option value="blocked">Blocked</option>
             </select>
           </div>
         </div>
@@ -256,7 +243,7 @@ export default function UserManagementPage() {
         className="mt-8 overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg"
       >
         <div className="bg-white">
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center items-center p-8">
               <FiRefreshCw className="animate-spin h-8 w-8 text-[#088178]" />
             </div>
@@ -278,7 +265,7 @@ export default function UserManagementPage() {
                       Status
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Last Active
+                      Created At
                     </th>
                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                       <span className="sr-only">Actions</span>
@@ -287,7 +274,7 @@ export default function UserManagementPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {filteredUsers.map((user) => (
-                    <tr key={user.id}>
+                    <tr key={user._id}>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
@@ -296,7 +283,7 @@ export default function UserManagementPage() {
                             </div>
                           </div>
                           <div className="ml-4">
-                            <div className="font-medium text-gray-900">{user.name}</div>
+                            <div className="font-medium text-gray-900">{user.email.split('@')[0]}</div>
                           </div>
                         </div>
                       </td>
@@ -307,14 +294,12 @@ export default function UserManagementPage() {
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
                           {user.status}
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {new Date(user.lastActive).toLocaleDateString()}
+                        {new Date(user.createdAt).toLocaleDateString()}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                         <div className="flex space-x-2">
@@ -336,12 +321,16 @@ export default function UserManagementPage() {
                           >
                             <FiTrash2 className="h-5 w-5" />
                           </button>
-                          <button
-                            onClick={() => handleResetPassword(user.id)}
-                            className="text-gray-600 hover:text-gray-900 text-xs font-medium"
+                      
+                          <select
+                            value={user.status}
+                            onChange={(e) => handleChangeStatus(user._id, e.target.value as UserStatus)}
+                            className={`text-xs rounded-md border-0 py-1.5 pl-2 pr-8 ${getStatusColor(user.status)} focus:ring-2 focus:ring-[#088178]`}
                           >
-                            Reset PW
-                          </button>
+                            <option value="active">Active</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="blocked">Blocked</option>
+                          </select>
                         </div>
                       </td>
                     </tr>
@@ -367,18 +356,6 @@ export default function UserManagementPage() {
                   <h3 className="text-lg leading-6 font-medium text-gray-900">Add New User</h3>
                   <div className="mt-2 space-y-4">
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 text-left">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#088178] focus:ring-[#088178] sm:text-sm"
-                        value={newUser.name}
-                        onChange={(e) => setNewUser({...newUser, name: e.target.value})}
-                      />
-                    </div>
-                    <div>
                       <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left">
                         Email
                       </label>
@@ -403,7 +380,6 @@ export default function UserManagementPage() {
                         >
                           <option value="superAdmin">Super Admin</option>
                           <option value="admin">Admin</option>
-                          <option value="seller">Seller</option>
                           <option value="user">User</option>
                         </select>
                       </div>
@@ -415,10 +391,11 @@ export default function UserManagementPage() {
                           id="status"
                           className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
                           value={newUser.status}
-                          onChange={(e) => setNewUser({...newUser, status: e.target.value as 'active' | 'inactive'})}
+                          onChange={(e) => setNewUser({...newUser, status: e.target.value as UserStatus})}
                         >
                           <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
+                          <option value="in-progress">In Progress</option>
+                          <option value="blocked">Blocked</option>
                         </select>
                       </div>
                     </div>
@@ -460,18 +437,6 @@ export default function UserManagementPage() {
                   <h3 className="text-lg leading-6 font-medium text-gray-900">Edit User</h3>
                   <div className="mt-2 space-y-4">
                     <div>
-                      <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700 text-left">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        id="edit-name"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#088178] focus:ring-[#088178] sm:text-sm"
-                        value={currentUser.name}
-                        onChange={(e) => setCurrentUser({...currentUser, name: e.target.value})}
-                      />
-                    </div>
-                    <div>
                       <label htmlFor="edit-email" className="block text-sm font-medium text-gray-700 text-left">
                         Email
                       </label>
@@ -496,7 +461,6 @@ export default function UserManagementPage() {
                         >
                           <option value="superAdmin">Super Admin</option>
                           <option value="admin">Admin</option>
-                          <option value="seller">Seller</option>
                           <option value="user">User</option>
                         </select>
                       </div>
@@ -508,10 +472,11 @@ export default function UserManagementPage() {
                           id="edit-status"
                           className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
                           value={currentUser.status}
-                          onChange={(e) => setCurrentUser({...currentUser, status: e.target.value as 'active' | 'inactive'})}
+                          onChange={(e) => setCurrentUser({...currentUser, status: e.target.value as UserStatus})}
                         >
                           <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
+                          <option value="in-progress">In Progress</option>
+                          <option value="blocked">Blocked</option>
                         </select>
                       </div>
                     </div>
@@ -556,7 +521,7 @@ export default function UserManagementPage() {
                   <h3 className="text-lg leading-6 font-medium text-gray-900">Delete User</h3>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">
-                      Are you sure you want to delete {currentUser.name}? This action cannot be undone.
+                      Are you sure you want to delete {currentUser.email}? This action cannot be undone.
                     </p>
                   </div>
                 </div>

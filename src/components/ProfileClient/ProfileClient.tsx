@@ -550,6 +550,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                        {
                         orders?.slice(0, 3).map((sampleOrder:IOrder) => (
                            <motion.div 
+                           key={sampleOrder.createdAt}
                           whileHover={{ x: 5 }}
                           className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg cursor-pointer"
                           onClick={() => setActiveTab('orders')}

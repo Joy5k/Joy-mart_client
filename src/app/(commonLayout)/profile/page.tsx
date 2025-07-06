@@ -5,7 +5,6 @@ import { useGetPaymentHistoryQuery } from '@/src/redux/features/payment/paymentA
 import { useAppDispatch, useAppSelector } from '@/src/redux/hooks';
 import { RootState } from '@/src/redux/store';
 import dynamic from 'next/dynamic';
-import { useSelector } from 'react-redux';
 
 const ProfileClient = dynamic(
   () => import('@/src/components/ProfileClient/ProfileClient'),

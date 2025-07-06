@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { FiChevronDown, FiUser, FiLogOut } from 'react-icons/fi';
+import Cookies from 'js-cookie';
 
 export default function UserDropdown() {
     const navigate=useRouter()
@@ -18,8 +19,12 @@ export default function UserDropdown() {
       token: '',
     }))
     removeToken()
-    //delete auth token from cookie
-          document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    Cookies.remove('authToken', { path: '/' });
+    document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+    Cookies.remove('refreshToken', { path: '/' });
+
 
     navigate.push('/login')
   }
@@ -67,15 +72,14 @@ export default function UserDropdown() {
             <button
             className='w-full text-left'
             onClick={handleLogout}>
-              <Link
-            
-              href="#"
-              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              role="menuitem"
-            >
-              <FiLogOut className="mr-2 h-4 w-4" />
-              Sign out
-            </Link>
+              <div
+                role="menuitem"
+              >
+              <div className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <FiLogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </div>  
+            </div>
             </button>
           </motion.div>
         )}

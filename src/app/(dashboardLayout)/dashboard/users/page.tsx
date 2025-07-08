@@ -1,13 +1,20 @@
-// app/(dashboardLayout)/dashboard/users/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiUser, FiEdit2, FiTrash2, FiPlus, FiSearch, FiFilter, FiRefreshCw } from 'react-icons/fi';
-import { User, Role } from '@/src/types';
-import { useGetAllUsersQuery } from '@/src/redux/features/userManagement/usersApi';
+import { FiUser, FiEdit2, FiTrash2, FiPlus, FiSearch, FiRefreshCw } from 'react-icons/fi';
+import { Role as ImportedRole, Role } from '@/src/types';
 
-type UserStatus = 'in-progress' | 'active' | 'blocked';
+import {  useGetAllUsersQuery, useUpdateUserMutation } from '@/src/redux/features/userManagement/usersApi';
+import { toast } from 'react-toastify';
+
+export type UserStatus = 'in-progress' | 'active' | 'blocked';
+
+export type TUserUpdate = {
+  id: string;
+  role: Role;
+  status: UserStatus;
+}
 
 interface ApiUser {
   _id: string;
@@ -22,18 +29,25 @@ interface ApiUser {
 }
 
 export default function UserManagementPage() {
-  const { data: apiResponse, isLoading } = useGetAllUsersQuery();
+  const { data: apiResponse, isLoading, refetch } = useGetAllUsersQuery();
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<ApiUser[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<Role | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<UserStatus | 'all'>('all');
-  
+  const [userUpdatedInfo, setUserUpdateInfo] = useState<TUserUpdate>({
+    id: '',
+    role: 'user',
+    status: 'in-progress'
+  });
+
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<ApiUser | null>(null);
+
+  const [updateUser] = useUpdateUserMutation();
 
   // Form states
   const [newUser, setNewUser] = useState({
@@ -93,8 +107,6 @@ export default function UserManagementPage() {
 
   // CRUD Operations
   const handleAddUser = async () => {
-    // Implement your add user logic here
-    // You'll need to use the appropriate mutation from usersApi
     try {
       setIsAddModalOpen(false);
       setNewUser({
@@ -107,44 +119,49 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleEditUser = async () => {
-    if (!currentUser) return;
-    
-    try {
-      // Implement your edit user logic here
-      // You'll need to use the appropriate mutation from usersApi
-      setIsEditModalOpen(false);
-    } catch (error) {
-      console.error('Error updating user:', error);
-    }
-  };
-
   const handleDeleteUser = async () => {
     if (!currentUser) return;
     
     try {
-      // Implement your delete user logic here
       setIsDeleteModalOpen(false);
     } catch (error) {
       console.error('Error deleting user:', error);
     }
   };
 
-  const handleResetPassword = async (userId: string) => {
-    try {
-      // Implement your reset password logic here
-      alert('Password reset functionality would be implemented here');
-    } catch (error) {
-      console.error('Error resetting password:', error);
-    }
+  const handleEditUser = (user: ApiUser) => {
+    setCurrentUser(user);
+    setUserUpdateInfo({
+      id: user._id,
+      role: user.role as Role,
+      status: user.status
+    });
+    setIsEditModalOpen(true);
   };
 
-  const handleChangeStatus = async (userId: string, newStatus: UserStatus) => {
+  const handleUpdateUser = async () => {
+    if (!currentUser) return;
+    
     try {
-      // Implement your change status logic here
-      alert(`Status change to ${newStatus} would be implemented here`);
-    } catch (error) {
-      console.error('Error changing status:', error);
+      const res = await updateUser({ 
+        data: {
+          role: userUpdatedInfo.role,
+          status: userUpdatedInfo.status
+        }
+      }).unwrap();
+      
+      if (res.success) {
+        toast.success('User updated successfully', {
+          position: 'bottom-center'
+        });
+        refetch();
+        setIsEditModalOpen(false);
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || 'Failed to update user', {
+        position: 'bottom-center'
+      });
+      console.error('Error updating user:', error);
     }
   };
 
@@ -302,13 +319,10 @@ export default function UserManagementPage() {
                         {new Date(user.createdAt).toLocaleDateString()}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2 justify-end">
                           <button
-                            onClick={() => {
-                              setCurrentUser(user);
-                              setIsEditModalOpen(true);
-                            }}
-                            className="text-[#088178] hover:text-[#07756e]"
+                            onClick={() => handleEditUser(user)}
+                            className="text-[#088178] hover:text-[#07756e] cursor-pointer"
                           >
                             <FiEdit2 className="h-5 w-5" />
                           </button>
@@ -317,20 +331,10 @@ export default function UserManagementPage() {
                               setCurrentUser(user);
                               setIsDeleteModalOpen(true);
                             }}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-red-600 hover:text-red-900 cursor-pointer"
                           >
                             <FiTrash2 className="h-5 w-5" />
                           </button>
-                      
-                          <select
-                            value={user.status}
-                            onChange={(e) => handleChangeStatus(user._id, e.target.value as UserStatus)}
-                            className={`text-xs rounded-md border-0 py-1.5 pl-2 pr-8 ${getStatusColor(user.status)} focus:ring-2 focus:ring-[#088178]`}
-                          >
-                            <option value="active">Active</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="blocked">Blocked</option>
-                          </select>
                         </div>
                       </td>
                     </tr>
@@ -425,14 +429,14 @@ export default function UserManagementPage() {
 
       {/* Edit User Modal */}
       {isEditModalOpen && currentUser && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div className="fixed z-100 overflow-y-auto inset-0 bg-gray-900/10 backdrop-blur-sm">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0 ">
+          
             <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
               <div>
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+                  <FiEdit2 className="h-6 w-6 text-blue-600" />
+                </div>
                 <div className="mt-3 text-center sm:mt-5">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">Edit User</h3>
                   <div className="mt-2 space-y-4">
@@ -445,7 +449,7 @@ export default function UserManagementPage() {
                         id="edit-email"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#088178] focus:ring-[#088178] sm:text-sm"
                         value={currentUser.email}
-                        onChange={(e) => setCurrentUser({...currentUser, email: e.target.value})}
+                        disabled
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -453,16 +457,22 @@ export default function UserManagementPage() {
                         <label htmlFor="edit-role" className="block text-sm font-medium text-gray-700 text-left">
                           Role
                         </label>
-                        <select
+                       {currentUser.role==='superAdmin' ? <p className="text-[#088178]">Super Admin</p>:(
+                         <select
                           id="edit-role"
                           className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
-                          value={currentUser.role}
-                          onChange={(e) => setCurrentUser({...currentUser, role: e.target.value as Role})}
+                          value={userUpdatedInfo.role}
+                          onChange={(e) => setUserUpdateInfo({
+                            ...userUpdatedInfo,
+                            role: e.target.value as Role
+                          })}
                         >
-                          <option value="superAdmin">Super Admin</option>
-                          <option value="admin">Admin</option>
                           <option value="user">User</option>
+                          <option value="seller">Seller</option>
+                          <option value="admin">Admin</option>
+                          <option value="superAdmin">Super Admin</option>
                         </select>
+                       )}
                       </div>
                       <div>
                         <label htmlFor="edit-status" className="block text-sm font-medium text-gray-700 text-left">
@@ -471,8 +481,11 @@ export default function UserManagementPage() {
                         <select
                           id="edit-status"
                           className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
-                          value={currentUser.status}
-                          onChange={(e) => setCurrentUser({...currentUser, status: e.target.value as UserStatus})}
+                          value={userUpdatedInfo.status}
+                          onChange={(e) => setUserUpdateInfo({
+                            ...userUpdatedInfo,
+                            status: e.target.value as UserStatus
+                          })}
                         >
                           <option value="active">Active</option>
                           <option value="in-progress">In Progress</option>
@@ -487,9 +500,9 @@ export default function UserManagementPage() {
                 <button
                   type="button"
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[#088178] text-base font-medium text-white hover:bg-[#07756e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178] sm:col-start-2 sm:text-sm"
-                  onClick={handleEditUser}
+                  onClick={handleUpdateUser}
                 >
-                  Save Changes
+                  Update User
                 </button>
                 <button
                   type="button"

@@ -14,7 +14,7 @@ export const setToken = (token: string): void => {
 
 export const getToken = (): string | null => {
   if (typeof window !== 'undefined') {
-    return Cookies.get('authToken') ?? null;
+    return document.cookie.split('; ').find(row => row.startsWith('authToken='))?.split('=')[1] ?? null;
   } else if( typeof document !== 'undefined') {
     return localStorage.getItem('authToken') ?? null;
   }

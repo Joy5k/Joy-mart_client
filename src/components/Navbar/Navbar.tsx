@@ -221,7 +221,7 @@ const handleLogout=()=>{
         </div>
       </div>
 
-      { !token ? <Link href="/login" className="text-[#1a1a1a] text-[#088178] transition-colors duration-300 mt-3 mx-5 flex justify-center items-center align-bottom gap-1">
+      { !token ? <Link href="/login" className=" text-[#088178] transition-colors duration-300 mt-3 mx-5 flex justify-center items-center align-bottom gap-1">
           <GrLogin  className="text-2xl"/> <span className="font-bold">Login</span>
         </Link>:
          

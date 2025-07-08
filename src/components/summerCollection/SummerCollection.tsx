@@ -16,7 +16,7 @@ function SummerCollection() {
         <h2 className="text-2xl font-bold text-gray-800">New Arrivals</h2>
         <p className="text-xl font-bold text-gray-700">Summer Collection New Modern Design</p>
         <div className="pro-container">
-          {products.slice(8).map((product:IProduct) => (
+          {products.slice(6).map((product:IProduct) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>

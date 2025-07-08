@@ -169,3 +169,18 @@ export interface IOrder  {
       email: string
     }
   };
+
+  export interface TUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  needsPasswordChange: boolean;
+  passwordChangedAt?: Date;
+  role: "superAdmin" | "admin" | "user" | "seller";
+  status: "in-progress" | "blocked";
+  isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}

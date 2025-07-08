@@ -40,7 +40,15 @@ export const usersApi = baseApi.injectEndpoints({
             }),
             providesTags: [tagTypes.user],
         }),
+           updateUser:builder.mutation<any, {  data: any }>({
+            query: ({ data }) => ({
+                url: `/users/updateByAdmin`,
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: [tagTypes.user],
     }),
+    })
 })
 
 
@@ -50,4 +58,5 @@ export const {
     useGetMeQuery,
     useChangeStatusMutation,
     useGetAllUsersQuery,
+    useUpdateUserMutation
 } = usersApi;

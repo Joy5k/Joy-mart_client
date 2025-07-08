@@ -22,7 +22,7 @@
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
-    "next": "15.3.2",
+    "next": "^15.3.5",
     "next-auth": "^4.24.11",
     "nextjs-progressbar": "^0.0.16",
     "postcss": "^8.5.3",

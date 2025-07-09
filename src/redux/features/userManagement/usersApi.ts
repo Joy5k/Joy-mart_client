@@ -19,6 +19,14 @@ export const usersApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: [tagTypes.user],
         }),
+          createUserByAdmin: builder.mutation<any, any>({
+            query: (data) => ({
+                url: '/users/createUserByAdmin',
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: [tagTypes.user],
+        }),
         getMe: builder.query({
             query: () => ({
                 url: '/me',
@@ -40,9 +48,9 @@ export const usersApi = baseApi.injectEndpoints({
             }),
             providesTags: [tagTypes.user],
         }),
-           updateUser:builder.mutation<any, {  data: any }>({
-            query: ({ data }) => ({
-                url: `/users/updateByAdmin`,
+           updateUser:builder.mutation<any, {  email: string; data: any }>({
+            query: ({ email,data }) => ({
+                url: `/users/updateByAdmin/${email}`,
                 method: 'PUT',
                 body: data,
             }),
@@ -55,6 +63,7 @@ export const usersApi = baseApi.injectEndpoints({
 export const {
     useCreateUserMutation,
     useCreateAdminMutation,
+    useCreateUserByAdminMutation,
     useGetMeQuery,
     useChangeStatusMutation,
     useGetAllUsersQuery,

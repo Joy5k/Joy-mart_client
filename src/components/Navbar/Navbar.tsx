@@ -9,10 +9,12 @@ import { FaShop } from "react-icons/fa6";
 import { RiDashboard3Line } from "react-icons/ri";
 import { CiHeart } from "react-icons/ci";
 import { FiMenu, FiX } from "react-icons/fi";
-import { getToken, removeToken } from "@/src/utils/localStorageManagement";
+import { getToken } from "@/src/utils/localStorageManagement";
 import { GrLogin } from "react-icons/gr";
-import { useRouter } from "next/navigation";
 import TrackOrderModal from "../OrderTrackModal";
+import { verifyToken } from "@/src/utils/jwt";
+import { FaRegHeart } from "react-icons/fa";
+import { useLogoutMutation } from "@/src/redux/features/Auth/authApi";
 
 const Navbar = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -21,11 +23,10 @@ const Navbar = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
+  const [userRole,setUserRole]=useState<string>('user')
 
-  const navigate=useRouter()
-
-
-
+  const [logoutUser]=useLogoutMutation()
+  const authToken = getToken();
 
   const toggleNav = () => {
     setIsNavOpen(!isNavOpen);
@@ -37,8 +38,10 @@ const Navbar = () => {
 
 
 useEffect(() => {
-  const authToken =getToken();
   if (authToken) {
+    console.log(authToken)
+    const {role}=verifyToken(authToken) as { role: string };
+    setUserRole(role);
     setToken(authToken);
   }
 
@@ -60,19 +63,26 @@ useEffect(() => {
   }
 };
 
-    document.addEventListener("mousedown", handleClickOutside);
+ document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+ }, []);
 
-const handleLogout=()=>{
-  document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  removeToken()
-
-  setIsDropdownOpen(false)
-  setIsNavOpen(false)
-  navigate.push('/login')
-}
-
+const handleLogout = async () => {
+  try {
+    const res=await logoutUser({}).unwrap()
+    if (!res.success) {
+      throw new Error('Logout failed');
+    }
+    // Client-side cleanup
+    localStorage.removeItem('authToken');
+    setToken('');
+    setIsDropdownOpen(false);
+    setIsNavOpen(false);
+    
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
+};
 
   return (
     <section className="flex items-center justify-between bg-white shadow-md sticky top-0 z-50">
@@ -221,9 +231,19 @@ const handleLogout=()=>{
         </div>
       </div>
 
-      { !token ? <Link href="/login" className=" text-[#088178] transition-colors duration-300 mt-3 mx-5 flex justify-center items-center align-bottom gap-1">
+      { !token ? 
+        <div className="md:flex items-center gap-4 pr-10  justify-center align-middle">
+        {/* Wishlist */}
+        <Link href="/wishlist" className="text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300 ">
+          <FaRegHeart className="text-xl   font-extrabold" />
+        </Link>
+        <Link href="/login" className=" hover:text-[#088178] transition-colors duration-300 flex justify-center items-center align-bottom gap-1">
+        
           <GrLogin  className="text-2xl"/> <span className="font-bold">Login</span>
-        </Link>:
+        </Link>
+        </div>
+        
+        :
          
       <div className="hidden md:flex items-center gap-4 pr-10">
         {/* Wishlist */}
@@ -258,7 +278,8 @@ const handleLogout=()=>{
                   <span>Profile</span>
                 </Link>
               </li>
-              <li>
+              {(userRole === 'admin'|| userRole==='suparAdmin'|| userRole==='seller') && (
+                <li>
                 <Link 
                   href="/dashboard" 
                   className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300"
@@ -268,6 +289,7 @@ const handleLogout=()=>{
                   <span>Dashboard</span>
                 </Link>
               </li>
+              )}
 <li>
   <button
     className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300 w-full text-left"

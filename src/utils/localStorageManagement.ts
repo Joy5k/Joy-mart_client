@@ -14,19 +14,19 @@ export const setToken = (token: string): void => {
 
 export const getToken = (): string | null => {
   if (typeof window !== 'undefined') {
-    return document.cookie.split('; ').find(row => row.startsWith('authToken='))?.split('=')[1] ?? null;
-  } else if( typeof document !== 'undefined') {
-    return localStorage.getItem('authToken') ?? null;
-  }
+    // First check cookies
+    const tokenFromCookies = document.cookie.split('; ').find(row => row.startsWith('authToken='))?.split('=')[1] || Cookies.get('authToken');
+    if (tokenFromCookies) {
+      return tokenFromCookies;
+    }
+     
+  } 
   return null;
 };
 
 export const removeToken = (): void => {
   if (typeof window !== 'undefined') {
-    Cookies.remove('authToken', { path: '/' });
     localStorage.removeItem('authToken');
-    // For thoroughness, also clear from document.cookie
-    Cookies.remove('authToken', { path: '/' });
-    document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-  }
+    document.cookie= "authToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict";
+    }
 };

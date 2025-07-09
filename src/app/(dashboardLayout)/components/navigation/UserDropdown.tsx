@@ -1,5 +1,6 @@
 'use client';
 
+import { useLogoutMutation } from '@/src/redux/features/Auth/authApi';
 import { setUser } from '@/src/redux/features/Auth/authSlice';
 import { useAppDispatch } from '@/src/redux/hooks';
 import { removeToken } from '@/src/utils/localStorageManagement';
@@ -8,26 +9,30 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { FiChevronDown, FiUser, FiLogOut } from 'react-icons/fi';
-import Cookies from 'js-cookie';
 
 export default function UserDropdown() {
     const navigate=useRouter()
     const dispatch=useAppDispatch()
   const [isOpen, setIsOpen] = useState(false);
-  const handleLogout=()=>{
+    const [logoutUser]=useLogoutMutation()
+
+  const handleLogout=async()=>{
+
+    try {
+      const res=await logoutUser({}).unwrap()
+      if (!res.success) {
+        throw new Error('Logout failed');
+      }
     dispatch(setUser({
       token: '',
     }))
     removeToken()
-    Cookies.remove('authToken', { path: '/' });
-    document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-    Cookies.remove('refreshToken', { path: '/' });
-
 
     navigate.push('/login')
   }
+    catch (error) {
+      console.error('Logout failed:', error);
+    }}
   return (
     <div className="relative ml-3">
       <div>

@@ -1,4 +1,5 @@
 import { baseApi } from "../../api/baseApi";
+import { tagTypes } from "../../tagTypes";
 
 const authApi = baseApi.injectEndpoints({
     endpoints: (builder) =>( {
@@ -40,12 +41,18 @@ const authApi = baseApi.injectEndpoints({
                 body:data
             })
         }),
-        genareteAuthTokenUsingRefreshToken: builder.mutation({
+     genareteAuthTokenUsingRefreshToken: builder.mutation({
             // Add your query implementation here
             query: () => ({
                 url: "/auth/refresh-token",
                 method: "POST",
             })
+        }),
+    logout: builder.mutation({
+            query: () => ({
+                url: "/auth/logout",
+                method: "POST",
+            }),
         })
     })
 });
@@ -56,5 +63,6 @@ export const {
     useAuth2Mutation,
     useVerifyAuth2Mutation,
     useChangePasswordMutation,
-    useGenareteAuthTokenUsingRefreshTokenMutation
+    useGenareteAuthTokenUsingRefreshTokenMutation,
+    useLogoutMutation
 } = authApi;

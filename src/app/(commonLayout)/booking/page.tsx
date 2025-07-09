@@ -39,6 +39,7 @@ const BookingPage = () => {
   });
 
   const { data: bookingsData, refetch } = useGetAllBookingsQuery({});
+  console.log(bookingsData)
   const [deleteBooking] = useDeleteBookingMutation();
   const [initiatePayment, { isLoading:isProcessingPayment }] = useInitiatePaymentMutation();
   const bookings: Booking[] = bookingsData?.data || [];
@@ -275,12 +276,14 @@ const BookingPage = () => {
                 {bookings.length === 0 ? (
                   <div className="bg-gray-50 rounded-lg p-6 text-center">
                     <p className="text-gray-500">You have no booked products yet</p>
+                    <Link href='/wishlist'>
                     <button
                       onClick={() => setSelectedProducts(wishlistItems as Product[])}
-                      className="mt-4 px-4 py-2 bg-[#088178] text-white rounded-lg text-sm font-medium"
+                      className="mt-4 px-4 py-2 bg-[#088178] text-white rounded-lg text-sm font-medium cursor-pointer"
                     >
                       Book from Wishlist
                     </button>
+                    </Link>
                   </div>
                 ) : (
                   <div className="space-y-4">

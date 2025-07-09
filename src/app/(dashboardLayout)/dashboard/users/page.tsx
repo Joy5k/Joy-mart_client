@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiUser, FiEdit2, FiTrash2, FiPlus, FiSearch, FiRefreshCw } from 'react-icons/fi';
-import { Role as ImportedRole, Role } from '@/src/types';
+import { IFormData, Role } from '@/src/types';
 
-import {  useGetAllUsersQuery, useUpdateUserMutation } from '@/src/redux/features/userManagement/usersApi';
+import {  useCreateUserByAdminMutation, useGetAllUsersQuery, useUpdateUserMutation } from '@/src/redux/features/userManagement/usersApi';
 import { toast } from 'react-toastify';
+import { useRegisterMutation } from '@/src/redux/features/Auth/authApi';
+import { FaEnvelope, FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
 
 export type UserStatus = 'in-progress' | 'active' | 'blocked';
 
@@ -46,23 +48,43 @@ export default function UserManagementPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<ApiUser | null>(null);
+ const [formData, setFormData] = useState<IFormData>({
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: ''
+});
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
 
+
+  const [createUserByAdminMutation] = useCreateUserByAdminMutation();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+
+    setError('');
+    
+    try {
+      const res = await createUserByAdminMutation(formData).unwrap();
+      localStorage.setItem('token', res.data.accessToken);
+        console.log(res)
+      if(res.success){
+        toast.success("Created User successfully",{
+          position:"bottom-center",
+          autoClose: 2000,
+        })
+              document.cookie= `authToken=${res.data.accessToken}`;
+
+      }
+    } catch (err:any) {
+        console.log(err.data.errorSources[0].message)
+      setError(err?.data?.errorSources[0]?.message||err.data?.message || 'Registration failed. Please try again.');
+    } 
+  };
   const [updateUser] = useUpdateUserMutation();
 
-  // Form states
-  const [newUser, setNewUser] = useState({
-    email: '',
-    role: 'user' as Role,
-    status: 'in-progress' as UserStatus
-  });
-
-  // Set users from API response
-  useEffect(() => {
-    if (apiResponse?.success && apiResponse.data?.result) {
-      setUsers(apiResponse.data.result);
-      setFilteredUsers(apiResponse.data.result);
-    }
-  }, [apiResponse]);
 
   // Apply filters
   useEffect(() => {
@@ -105,19 +127,6 @@ export default function UserManagementPage() {
     }
   };
 
-  // CRUD Operations
-  const handleAddUser = async () => {
-    try {
-      setIsAddModalOpen(false);
-      setNewUser({
-        email: '',
-        role: 'user',
-        status: 'in-progress'
-      });
-    } catch (error) {
-      console.error('Error adding user:', error);
-    }
-  };
 
   const handleDeleteUser = async () => {
     if (!currentUser) return;
@@ -144,6 +153,7 @@ export default function UserManagementPage() {
     
     try {
       const res = await updateUser({ 
+        email:currentUser.email,
         data: {
           role: userUpdatedInfo.role,
           status: userUpdatedInfo.status
@@ -348,74 +358,116 @@ export default function UserManagementPage() {
 
       {/* Add User Modal */}
       {isAddModalOpen && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
+        <div className="fixed z-10 inset-0 overflow-y-auto  bg-gray-900/10 backdrop-blur-sm">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
             <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
               <div>
-                <div className="mt-3 text-center sm:mt-5">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">Add New User</h3>
-                  <div className="mt-2 space-y-4">
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#088178] focus:ring-[#088178] sm:text-sm"
-                        value={newUser.email}
-                        onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="role" className="block text-sm font-medium text-gray-700 text-left">
-                          Role
-                        </label>
-                        <select
-                          id="role"
-                          className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
-                          value={newUser.role}
-                          onChange={(e) => setNewUser({...newUser, role: e.target.value as Role})}
-                        >
-                          <option value="superAdmin">Super Admin</option>
-                          <option value="admin">Admin</option>
-                          <option value="user">User</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label htmlFor="status" className="block text-sm font-medium text-gray-700 text-left">
-                          Status
-                        </label>
-                        <select
-                          id="status"
-                          className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
-                          value={newUser.status}
-                          onChange={(e) => setNewUser({...newUser, status: e.target.value as UserStatus})}
-                        >
-                          <option value="active">Active</option>
-                          <option value="in-progress">In Progress</option>
-                          <option value="blocked">Blocked</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
+                <div className="mt-3 text-start sm:mt-5">
+                  <h3 className=" leading-6 text-xl font-bold text-center text-[#088178]">Add New User</h3>
+                   <form onSubmit={handleSubmit}>
+                              {error && (
+                                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                                  {error}
+                                </div>
+                              )}
+                  
+                              <div className="mb-4">
+                                <label htmlFor="name" className="block text-gray-700 mb-2">First Name</label>
+                                <div className="relative">
+                                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <FaUser className="text-gray-400" />
+                                  </div>
+                                  <input
+                                    id="firstName"
+                                    type="text"
+                                    value={formData.firstName}
+                                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
+                                    placeholder="John Doe"
+                                    required
+                                  />
+                                </div>
+                              </div>
+                  
+                              <div className="mb-4">
+                                <label htmlFor="lastName" className="block text-gray-700 mb-2">Last Name</label>
+                                <div className="relative">
+                                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <FaUser className="text-gray-400" />
+                                  </div>
+                                  <input
+                                    id="lastName"
+                                    type="text"
+                                    value={formData.lastName}
+                                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
+                                    placeholder="John Doe"
+                                    required
+                                  />
+                                </div>
+                              </div>
+                  
+                              <div className="mb-4">
+                                <label htmlFor="email" className="block text-gray-700 mb-2">Email</label>
+                                <div className="relative">
+                                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <FaEnvelope className="text-gray-400" />
+                                  </div>
+                                  <input
+                                    id="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
+                                    placeholder="your@email.com"
+                                    required
+                                  />
+                                </div>
+                              </div>
+                  
+                              <div className="mb-4">
+                                <label htmlFor="password" className="block text-gray-700 mb-2">Password</label>
+                                <div className="relative">
+                                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <FaLock className="text-gray-400" />
+                                  </div>
+                                  <input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none transition"
+                                    placeholder="••••••••"
+                                    required
+                                    minLength={6}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                                  >
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                  </button>
+                                </div>
+                              </div>
+                  
+                           
+                  
+                            
+                            </form>
                 </div>
               </div>
               <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
                 <button
-                  type="button"
+                  type="submit"
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[#088178] text-base font-medium text-white hover:bg-[#07756e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178] sm:col-start-2 sm:text-sm"
-                  onClick={handleAddUser}
+                  onClick={handleSubmit}
                 >
                   Add User
                 </button>
                 <button
-                  type="button"
+                  type="submit"
                   className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178] sm:mt-0 sm:col-start-1 sm:text-sm"
                   onClick={() => setIsAddModalOpen(false)}
                 >

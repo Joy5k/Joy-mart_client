@@ -184,3 +184,29 @@ export interface IOrder  {
   createdAt: Date;
   updatedAt: Date;
 }
+
+
+export interface IReportProductInfo{
+    reason: string;
+    image?: File[];
+}
+
+export interface IReportedProduct {
+  _id: string;
+  product: {
+    _id: string;
+    name: string;
+    images: { url: string }[];
+    price: number;
+  };
+  reason: string;
+  description?: string;
+  reportedBy: {
+    _id: string;
+    name?: string;
+    email?: string;
+  };
+  resolved: boolean;
+  reply?: string;
+  createdAt: string;
+}

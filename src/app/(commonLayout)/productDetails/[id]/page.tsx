@@ -11,6 +11,11 @@ import { useAppDispatch } from "@/src/redux/hooks"
 import { addItem } from "@/src/redux/features/localstorage/wishlistSlice"
 import { toast } from "react-toastify"
 import { useCreateBookingMutation } from "@/src/redux/features/booking/bookingApi"
+import { useReportProductMutation } from "@/src/redux/features/reportProduct/reportProductApi"
+import { IReportProductInfo } from "@/src/types"
+
+
+
 
 function ProductDetails() {
     const dispatch = useAppDispatch()
@@ -25,8 +30,9 @@ function ProductDetails() {
     const [reported, setReported] = useState(false)
     const [quantity, setQuantity] = useState(1)
     const [isWishlisted, setIsWishlisted] = useState(false)
-
+    const [reportProductInfo,setReportProductInfo]=useState<IReportProductInfo>({reason:'',image:[]})
     const [bookingMutation,{isLoading:bookingLoading}]=useCreateBookingMutation()
+    const [ReportProduct]=useReportProductMutation()
     const handleAddToWishlist = (product: any) => {
         dispatch(addItem(product))
     }
@@ -65,9 +71,24 @@ function ProductDetails() {
         }
     }
 
-    const handleReport = () => {
-        setReported(true)
-        toast.info("Thank you for reporting. We'll review this product.")
+
+    const handleReport =async () => {
+        console.log(reportProductInfo)
+        try {
+         const res=   await ReportProduct({ ...reportProductInfo, productId: product._id, }).unwrap()
+
+         if(res.success){
+            toast.success("Product reported successfully!")
+            setReported(false)
+         }
+            
+
+        } catch (error) {
+            toast.error("Failed to report product. Please try again later.")
+                    setReported(false)
+
+        }
+
     }
 
     const handleQuantityChange = (value: number) => {
@@ -99,7 +120,6 @@ const handleBookingMutation=async(productId:string)=>{
     }
     try {
         const res=await bookingMutation(payload).unwrap()
-        console.log(res)
         if(res.success){
             toast.success('Saved the product on you cart',{
                 position:"top-center"
@@ -349,18 +369,138 @@ const handleBookingMutation=async(productId:string)=>{
             {/* Report Product Section */}
             <div className="border-t pt-6">
                 <button
-                    onClick={handleReport}
+                    onClick={()=>setReported(true)}
                     disabled={reported}
                     className={`flex items-center text-sm ${reported ? 'text-gray-400' : 'text-red-500 hover:text-red-700'}`}
                 >
                     <FontAwesomeIcon icon={faFlag} className="mr-2" />
                     {reported ? 'Thank you for your report' : 'Report this Product'}
                 </button>
-                {reported && (
-                    <p className="text-sm text-gray-500 mt-2">
-                        We appreciate you helping us maintain quality standards. Our team will review this product.
-                    </p>
-                )}
+            {reported && (
+    <div className="p-6 border-2 border-red-200 rounded-xl bg-red-50 shadow-sm">
+        <div className="space-y-5">
+            <h3 className="text-xl font-semibold text-red-800">Report Product Issue</h3>
+            
+            <div>
+                <label htmlFor="issue-description" className="block text-sm font-medium text-gray-700 mb-1">
+                    What's the issue? <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                    id="issue-description"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                    rows={4}
+                    required
+                    minLength={20}
+                    maxLength={500}
+                    placeholder="Please provide specific details about the issue with this product..."
+                    value={reportProductInfo.reason}
+                    onChange={(e) => setReportProductInfo({ ...reportProductInfo, reason: e.target.value })}
+                ></textarea>
+                <p className="mt-1 text-xs text-gray-500">Please describe the issue in detail (20-500 characters)</p>
+            </div>
+            
+            <div>
+                <label className=" text-sm font-medium text-gray-700 mb-1">
+                    Upload Images (Optional)
+                </label>
+                
+                <label 
+                    htmlFor="file-upload"
+                    className="mt-1 flex flex-col justify-center items-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-red-300 transition-all cursor-pointer"
+                >
+                    <div className="space-y-3 text-center ">
+                        <svg
+                            className="mx-auto h-12 w-12 text-gray-400"
+                            stroke="currentColor"
+                            fill="none"
+                            viewBox="0 0 48 48"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </svg>
+                        <div className=" text-sm text-gray-600 hidden md:block lg:block">
+                            <span className="relative inline bg-white rounded-md font-medium text-red-600 hover:text-red-500">
+                                Click to upload
+                            </span>
+                            <span className="pl-1 inline">or drag and drop</span>
+                        </div>
+                        <p className="text-xs text-gray-500 hidden md:block lg:block">
+                            PNG, JPG, GIF up to 5MB
+                        </p>
+                    </div>
+                    <input 
+                        id="file-upload" 
+                        name="file-upload" 
+                        type="file" 
+                        className="sr-only" 
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => {
+                            const files = e.target.files ? Array.from(e.target.files) : [];
+                            setReportProductInfo({ ...reportProductInfo, image: files });
+                        }}
+                    />
+                </label>
+                
+                    {/* Image preview container */}
+            <div id="image-preview" className="mt-3 grid grid-cols-3 gap-3">
+    {reportProductInfo.image && reportProductInfo.image.length > 0 ? (
+        reportProductInfo.image.map((file, index) => (
+            <div key={index} className="relative aspect-square">
+                <Image
+                    src={URL.createObjectURL(file)}
+                    alt={`Uploaded image ${index + 1}`}
+                    width={100}  // Reduced from 50 to make images smaller
+                    height={100} // Added fixed height
+                    className="w-full h-full object-cover rounded-lg"
+                />
+                <button
+                    type="button"
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none"
+                    onClick={() => {
+                        const newImages = [...(reportProductInfo.image || [])];
+                        newImages.splice(index, 1);
+                        setReportProductInfo({ ...reportProductInfo, image: newImages });
+                    }}
+                >
+                    ×
+                </button>
+            </div>
+        ))
+    ) : (
+        <p className="text-gray-500">No images uploaded</p>
+    )}
+</div>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-3 pt-2">
+                <button
+                    type="button"
+                    className="px-5 py-2.5 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-lg shadow-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                    onClick={() => setReported(false)}
+                >
+                    Cancel
+                </button>
+                <button
+                onClick={handleReport}
+                    type="submit"
+                    className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                >
+                    Submit Report
+                </button>
+            </div>
+            
+            <p className="text-xs text-gray-500 text-center">
+                Your feedback helps us improve product quality for everyone.
+            </p>
+        </div>
+    </div>
+)}
             </div>
         </div>
     )

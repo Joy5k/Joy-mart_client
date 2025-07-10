@@ -39,8 +39,8 @@ const Navbar = () => {
 
 useEffect(() => {
   if (authToken) {
-    console.log(authToken)
     const {role}=verifyToken(authToken) as { role: string };
+    console.log(role)
     setUserRole(role);
     setToken(authToken);
   }
@@ -278,7 +278,7 @@ const handleLogout = async () => {
                   <span>Profile</span>
                 </Link>
               </li>
-              {(userRole === 'admin'|| userRole==='suparAdmin'|| userRole==='seller') && (
+              {(userRole === 'admin'|| userRole==='superAdmin'|| userRole==='seller') && (
                 <li>
                 <Link 
                   href="/dashboard" 

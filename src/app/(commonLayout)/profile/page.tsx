@@ -2,7 +2,8 @@
 
 import Loader from '@/src/hooks/loader';
 import { useGetPaymentHistoryQuery } from '@/src/redux/features/payment/paymentApi';
-import { useAppDispatch, useAppSelector } from '@/src/redux/hooks';
+import { useGetMyReportedProductsQuery } from '@/src/redux/features/reportProduct/reportProductApi';
+import { useAppSelector } from '@/src/redux/hooks';
 import { RootState } from '@/src/redux/store';
 import dynamic from 'next/dynamic';
 
@@ -25,11 +26,10 @@ const ProfileClient = dynamic(
   ]
 
 export default function ProfilePage() {
-    const dispatch = useAppDispatch();
-      const { items } = useAppSelector((state: RootState) => state.wishlist);
+      const { items } = useAppSelector((state: RootState) => state.wishlist as { items: any[] });
       const {data,isLoading}=useGetPaymentHistoryQuery({})
       const recentOrders=data?.data ? data.data : [];
-      console.log(recentOrders)
+    
   if (isLoading) {
     return <Loader></Loader>
   }

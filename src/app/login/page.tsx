@@ -11,6 +11,7 @@ import { getToken, setToken } from '@/src/utils/localStorageManagement';
 import { useAppDispatch } from '@/src/redux/hooks';
 import { setUser } from '@/src/redux/features/Auth/authSlice';
 import { signIn } from 'next-auth/react';
+import { toast } from 'react-toastify';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -69,18 +70,19 @@ const LoginPage = () => {
   };
 
  const handleSocialLogin = async (provider: 'google' | 'facebook') => {
-    try {
-      setIsLoading(true);
-      const result = await signIn(provider, { callbackUrl: '/' });
+  toast.success(`clicked ${provider} social auth`)
+    // try {
+    //   setIsLoading(true);
+    //   const result = await signIn(provider, { callbackUrl: '/' });
       
-      if (result?.error) {
-        setError(result.error);
-      }
-    } catch (err) {
-      setError('Failed to initiate login');
-    } finally {
-      setIsLoading(false);
-    }
+    //   if (result?.error) {
+    //     setError(result.error);
+    //   }
+    // } catch (err) {
+    //   setError('Failed to initiate login');
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
 
 

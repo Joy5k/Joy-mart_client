@@ -29,7 +29,7 @@ const profileApi=baseApi.injectEndpoints({
             query: ({reportId, reply}) => ({
                 url: `/report/reply/${reportId}`,
                 method: 'PUT',
-                body: { reply }
+                body: reply
             }),
             invalidatesTags: [tagTypes.reportedProduct]
         }),

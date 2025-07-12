@@ -4,7 +4,7 @@ import Loader from "@/src/hooks/loader"
 import { useGetProductByIdQuery } from "@/src/redux/features/productManagement/productApi"
 import { useParams } from "next/navigation"
 import Image from 'next/image'
-import { faStar, faHeart, faShoppingCart, faFlag } from '@fortawesome/free-solid-svg-icons'
+import { faStar, faHeart, faShoppingCart, faFlag, faEllipsisV } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useState } from 'react'
 import { useAppDispatch } from "@/src/redux/hooks"
@@ -12,8 +12,9 @@ import { addItem } from "@/src/redux/features/localstorage/wishlistSlice"
 import { toast } from "react-toastify"
 import { useCreateBookingMutation } from "@/src/redux/features/booking/bookingApi"
 import { useReportProductMutation } from "@/src/redux/features/reportProduct/reportProductApi"
-import { IReportProductInfo } from "@/src/types"
-
+import { ReportedProduct } from "@/src/types"
+import { useCreateProductCommentMutation, useDeleteProductCommentMutation, useGetProductCommentsQuery, useUpdateProductCommentMutation } from "@/src/redux/features/productComments/productCommentApi"
+import { FaEllipsisV, FaTimes } from "react-icons/fa"
 
 
 
@@ -30,50 +31,82 @@ function ProductDetails() {
     const [reported, setReported] = useState(false)
     const [quantity, setQuantity] = useState(1)
     const [isWishlisted, setIsWishlisted] = useState(false)
-    const [reportProductInfo,setReportProductInfo]=useState<IReportProductInfo>({reason:'',image:[]})
+    const [reportProductInfo, setReportProductInfo] = useState<ReportedProduct>({
+        _id: '',
+        productId: {
+            _id: typeof id === 'string' ? id : '',
+            title: '',
+            images: [],
+            price: 0,
+        },
+        reportedBy: {
+            _id: '',
+            email: '',
+            name: ''
+        },
+        status: 'pending' as 'pending'|'rejected'|'resolved',
+        reason: '',
+        reportImages: [],
+        createdAt: '',
+        updatedAt: ''
+    })
+    const [selectedComment, setSelectedComment] = useState<any>(null);
+    const [editingComment, setEditingComment] = useState<any>(null);
     const [bookingMutation,{isLoading:bookingLoading}]=useCreateBookingMutation()
     const [ReportProduct]=useReportProductMutation()
+    const [createComment,{isLoading:createCommentLoading}]=useCreateProductCommentMutation()
+    const {data:comments}=useGetProductCommentsQuery({productId:id})
+    const [deleteComment] = useDeleteProductCommentMutation();
+    const [updateComment] = useUpdateProductCommentMutation();
     const handleAddToWishlist = (product: any) => {
         dispatch(addItem(product))
     }
 
-    // Sample reviews data
-    const [reviews, setReviews] = useState([
-        {
-            id: 1,
-            user: 'Sarah J.',
-            rating: 4,
-            comment: 'The fabric is so comfortable and the fit is perfect! Exactly as shown in the pictures.',
-            date: '2 days ago'
-        },
-        {
-            id: 2,
-            user: 'Michael T.',
-            rating: 5,
-            comment: 'Great quality for the price. I get compliments every time I wear this!',
-            date: '1 week ago'
-        }
-    ])
 
-    const handleAddReview = () => {
-        if (review && rating > 0) {
-            const newReview = {
-                id: reviews.length + 1,
-                user: 'You',
-                rating,
-                comment: review,
-                date: 'Just now'
-            }
-            setReviews([...reviews, newReview])
-            setReview('')
-            setRating(0)
-            toast.success("Thank you for your review!")
-        }
+const handleDeleteComment = async (commentId: string) => {
+    try {
+        await deleteComment(commentId).unwrap();
+        // Refetch comments or update local state
+        setSelectedComment(null);
+    } catch (error) {
+        console.error('Failed to delete comment:', error);
     }
+};
+
+const handleUpdateReview = async () => {
+    if (!editingComment) return;
+    
+    try {
+      const res=  await updateComment({
+            commentId: editingComment._id,
+            commentData: {
+                rating,
+                comment: review
+            }
+        }).unwrap();
+        console.log(res,'update review',rating)
+    if(res.success){
+        toast.info("Updated your comment",{
+            position:"top-center",
+            autoClose:1000
+        })
+        setEditingComment(null);
+        setReview('');
+        setRating(0);
+    }
+        
+    } catch (error) {
+         setEditingComment(null);
+        toast.error("something went wrong",{
+            position:"top-center",
+            autoClose:1000
+        })
+        console.error('Failed to update comment:', error);
+    }
+};
 
 
     const handleReport =async () => {
-        console.log(reportProductInfo)
         try {
          const res=   await ReportProduct({ ...reportProductInfo, productId: product._id, }).unwrap()
 
@@ -132,6 +165,9 @@ const handleBookingMutation=async(productId:string)=>{
     }
 }
 
+const handleAddReview=async()=>{
+    alert("clicked")
+}
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -187,7 +223,7 @@ const handleBookingMutation=async(productId:string)=>{
                             <div className="flex items-center">
                                 <span className="text-2xl font-bold text-green-700 mr-3">${product.price}</span>
                                 <span className="text-lg text-gray-500 line-through">${product.originalPrice}</span>
-                                <span className="ml-2 text-sm text-red-500">(You save ${(product.originalPrice - product.price).toFixed(2)})</span>
+                                <span className="ml-2 text-sm text-red-500">(You save ${((Number(product.originalPrice) || 0) - (Number(product.price) || 0)).toFixed(2)})</span>
                             </div>
                         ) : (
                             <span className="text-2xl font-bold text-green-700">${product.price}</span>
@@ -269,7 +305,7 @@ const handleBookingMutation=async(productId:string)=>{
                             onClick={() => setActiveTab('reviews')}
                             className={`py-4 px-1 font-medium text-sm ${activeTab === 'reviews' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
                         >
-                            Customer Reviews ({reviews.length})
+                            Customer Reviews ({comments?.data?.meta?.total})
                         </button>
                     </nav>
                 </div>
@@ -292,77 +328,177 @@ const handleBookingMutation=async(productId:string)=>{
                             <p className="text-gray-700">Machine wash cold with like colors. Tumble dry low. Do not bleach. Iron on low heat if needed.</p>
                         </div>
                     )}
-
-                    {activeTab === 'reviews' && (
-                        <div>
-                            <div className="mb-8">
-                                <h3 className="text-lg font-semibold mb-4">What Customers Are Saying</h3>
-                                {reviews.length > 0 ? (
-                                    <div className="space-y-6">
-                                        {reviews.map((review) => (
-                                            <div key={review.id} className="border-b pb-4">
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <h4 className="font-medium">{review.user}</h4>
-                                                        <div className="flex text-yellow-400 my-1">
-                                                            {[...Array(5)].map((_, i) => (
-                                                                <FontAwesomeIcon 
-                                                                    key={i} 
-                                                                    icon={faStar} 
-                                                                    className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`} 
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <span className="text-gray-500 text-sm">{review.date}</span>
-                                                </div>
-                                                <p className="text-gray-700 mt-2">{review.comment}</p>
+{activeTab === 'reviews' && (
+    <div>
+        <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-4">What Customers Are Saying</h3>
+            {comments?.data?.meta.total > 0 ? (
+                <div className="space-y-6">
+                    {comments?.data?.result.map((review: any) => (
+                        <div key={review._id} className="border-b pb-4 relative">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h4 className="font-medium">{review?.userName || "Guest"}</h4>
+                                <div className="flex text-yellow-400 my-1">
+                                         {[...Array(5)].map((_, i) => (
+                                           <FontAwesomeIcon
+                                             key={i}
+                                             icon={faStar}
+                                             className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                                           />
+                                         ))}
+                                </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-500 text-sm">
+                                        {new Date(review.createdAt).toLocaleDateString()}
+                                    </span>
+                                    <div className="relative">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedComment(selectedComment?._id === review._id ? null : review);
+                                            }}
+                                            className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
+                                        >
+                                            <FaEllipsisV className="w-4 h-4" />
+                                        </button>
+                                        
+                                        {selectedComment?._id === review._id && (
+                                            <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingComment(review);
+                                                        setSelectedComment(null);
+                                                    }}
+                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteComment(review._id)}
+                                                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                                                >
+                                                    Delete
+                                                </button>
                                             </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-500">Be the first to review this product!</p>
-                                )}
-                            </div>
-
-                            <div className="mt-8">
-                                <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
-                                <div className="mb-4">
-                                    <label className="block text-gray-700 mb-2">Your Rating</label>
-                                    <div className="flex">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                onClick={() => setRating(star)}
-                                                className="text-2xl mr-1 focus:outline-none"
-                                            >
-                                                <FontAwesomeIcon 
-                                                    icon={faStar} 
-                                                    className={star <= rating ? 'text-yellow-400' : 'text-gray-300'} 
-                                                />
-                                            </button>
-                                        ))}
+                                        )}
                                     </div>
                                 </div>
-                                <div className="mb-4">
-                                    <label className="block text-gray-700 mb-2">Your Review</label>
-                                    <textarea
-                                        value={review}
-                                        onChange={(e) => setReview(e.target.value)}
-                                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                        rows={4}
-                                        placeholder="What do you think about this product? Share your experience..."
-                                    ></textarea>
-                                </div>
-                                <button
-                                    onClick={handleAddReview}
-                                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors"
-                                >
-                                    Submit Review
-                                </button>
                             </div>
+                            <p className="text-gray-700 mt-2">{review.comment}</p>
                         </div>
-                    )}
+                    ))}
+                </div>
+            ) : (
+                <p className="text-gray-500">Be the first to review this product!</p>
+            )}
+        </div>
+
+        {/* Review Form */}
+        <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
+            <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Your Rating</label>
+                <div className="flex">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                            key={star}
+                            onClick={() => setRating(star)}
+                            className="text-2xl mr-1 focus:outline-none"
+                        >
+                            <FontAwesomeIcon
+                                icon={faStar}
+                                className={star <= rating ? 'text-yellow-400' : 'text-gray-300'}
+                            />
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Your Review</label>
+                <textarea
+                    value={review}
+                    onChange={(e) => setReview(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    rows={4}
+                    placeholder="What do you think about this product? Share your experience..."
+                ></textarea>
+            </div>
+            <button
+                onClick={handleAddReview}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors"
+            >
+                Submit Review
+            </button>
+        </div>
+
+        {/* Edit Comment Modal */}
+        {editingComment && (
+            <div className="fixed inset-0 bg-gray-900/10 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold">Edit Your Review</h3>
+                        <button
+                            onClick={() => {
+                                setEditingComment(null);
+                                setReview('');
+                                setRating(0);
+                            }}
+                            className="text-gray-500 hover:text-gray-700"
+                        >
+                            <FaTimes />
+                        </button>
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 mb-2">Your Rating</label>
+                        <div className="flex">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                    key={star}
+                                    onClick={() => setRating(star)}
+                                    className="text-2xl mr-1 focus:outline-none"
+                                >
+                                    <FontAwesomeIcon
+                                        icon={faStar}
+                                        className={star <= rating ? 'text-yellow-400' : 'text-gray-300'}
+                                    />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 mb-2">Your Review</label>
+                        <textarea
+                            value={review}
+                            onChange={(e) => setReview(e.target.value)}
+                            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                            rows={4}
+                        ></textarea>
+                    </div>
+                    <div className="flex justify-end space-x-3">
+                        <button
+                            onClick={() => {
+                                setEditingComment(null);
+                                setReview('');
+                                setRating(0);
+                            }}
+                            className="px-4 py-2 border rounded-md hover:bg-gray-100"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleUpdateReview}
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+                        >
+                            Update Review
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+    </div>
+)}
                 </div>
             </div>
 
@@ -442,18 +578,18 @@ const handleBookingMutation=async(productId:string)=>{
                         multiple
                         onChange={(e) => {
                             const files = e.target.files ? Array.from(e.target.files) : [];
-                            setReportProductInfo({ ...reportProductInfo, image: files });
+                            setReportProductInfo({ ...reportProductInfo, reportImages: files as any });
                         }}
                     />
                 </label>
                 
                     {/* Image preview container */}
             <div id="image-preview" className="mt-3 grid grid-cols-3 gap-3">
-    {reportProductInfo.image && reportProductInfo.image.length > 0 ? (
-        reportProductInfo.image.map((file, index) => (
+    {reportProductInfo.reportImages && reportProductInfo.reportImages.length > 0 ? (
+        reportProductInfo.reportImages.map((file, index) => (
             <div key={index} className="relative aspect-square">
                 <Image
-                    src={URL.createObjectURL(file)}
+                    src={URL.createObjectURL(file as any)}
                     alt={`Uploaded image ${index + 1}`}
                     width={100}  // Reduced from 50 to make images smaller
                     height={100} // Added fixed height
@@ -463,9 +599,9 @@ const handleBookingMutation=async(productId:string)=>{
                     type="button"
                     className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none"
                     onClick={() => {
-                        const newImages = [...(reportProductInfo.image || [])];
+                        const newImages = [...(reportProductInfo.reportImages || [])];
                         newImages.splice(index, 1);
-                        setReportProductInfo({ ...reportProductInfo, image: newImages });
+                        setReportProductInfo({ ...reportProductInfo, reportImages: newImages });
                     }}
                 >
                     ×

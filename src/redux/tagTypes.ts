@@ -7,7 +7,8 @@ export enum tagTypes {
    category = 'category',
    subscrible='subscribe',
    payment='payment',
-   reportedProduct='reportedProduct'
+   reportedProduct='reportedProduct',
+   productComment = 'productComment',
 
  
 }
@@ -21,5 +22,6 @@ export const tagTypesList = [
    tagTypes.category,
    tagTypes.subscrible,
    tagTypes.payment,
-   tagTypes.reportedProduct
+   tagTypes.reportedProduct,
+   tagTypes.productComment
 ];

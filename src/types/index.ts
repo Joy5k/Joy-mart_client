@@ -186,27 +186,27 @@ export interface IOrder  {
 }
 
 
-export interface IReportProductInfo{
-    reason: string;
-    image?: File[];
-}
-
-export interface IReportedProduct {
+export  interface ReportedProduct {
   _id: string;
-  product: {
+  productId: {
     _id: string;
-    name: string;
-    images: { url: string }[];
+    title: string;
     price: number;
+    images: string[];
   };
   reason: string;
   description?: string;
+  reportImages?: string[];
   reportedBy: {
     _id: string;
     name?: string;
-    email?: string;
+    email: string;
   };
-  resolved: boolean;
-  reply?: string;
+  status: 'pending' | 'resolved' | 'rejected';
+  adminReply?: {
+    message?: string;
+    repliedAt?: string;
+  };
   createdAt: string;
+  updatedAt: string;
 }

@@ -210,3 +210,9 @@ export  interface ReportedProduct {
   createdAt: string;
   updatedAt: string;
 }
+
+
+export interface IMessage{
+  title:string,
+  body:string
+}

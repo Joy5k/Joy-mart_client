@@ -1,45 +1,15 @@
+'use client'
+
 import Banner from "@/src/components/Banner/Banner"
 import Hero from "@/src/components/Hero/Hero"
 import FeatureBox from "@/src/components/FeatureBox/FeatureBox"
-import ProductCard from "@/src/components/ProductCart/ProductCart"
 import { NextPage } from "next"
-import { useGetProductsQuery } from "@/src/redux/features/productManagement/productApi"
-import { IProduct } from "@/src/types"
 import SummerCollection from "@/src/components/summerCollection/SummerCollection"
 import NewArrivals from "@/src/components/newArrivalsCollections/NewArrivals"
 import Subscribe from "@/src/components/userSubscribe/Subscribe"
+import { usePushNotification } from "@/src/hooks/sendNotification"
 
-interface Product {
-  _id: string
-  image: string
-  category: {categoryName:string}
-  title: string
-  price: number
-  description: string
-  stock: number
-  images: string[]
-}
-//  export const featuredProducts: Product[] = [
-//     { _id: '1', image: '/img/products/f1.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 10, images: ['/img/products/f1.jpg'] },
-//     { _id: '2', image: '/img/products/f2.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 12, images: ['/img/products/f2.jpg'] },
-//     { _id: '3', image: '/img/products/f3.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 8, images: ['/img/products/f3.jpg'] },
-//     { _id: '4', image: '/img/products/f4.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 15, images: ['/img/products/f4.jpg'] },
-//     { _id: '5', image: '/img/products/f5.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 20, images: ['/img/products/f5.jpg'] },
-//     { _id: '6', image: '/img/products/f6.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 7, images: ['/img/products/f6.jpg'] },
-//     { _id: '7', image: '/img/products/f7.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Ladies paint', price: 78, description: 'A stylish ladies paint.', stock: 9, images: ['/img/products/f7.jpg'] },
-//     { _id: '8', image: '/img/products/f8.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut Dress', price: 78, description: 'A trendy astronaut dress.', stock: 11, images: ['/img/products/f8.jpg'] },
-//   ]
-//  export const newArrivals: Product[] = [
-//     { _id: '9', image: '/img/products/n1.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 10, images: ['/img/products/n1.jpg'] },
-//     { _id: '10', image: '/img/products/n2.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 12, images: ['/img/products/n2.jpg'] },
-//     { _id: '11', image: '/img/products/n3.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 8, images: ['/img/products/n3.jpg'] },
-//     { _id: '12', image: '/img/products/n4.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 15, images: ['/img/products/n4.jpg'] },
-//     { _id: '13', image: '/img/products/n5.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 20, images: ['/img/products/n5.jpg'] },
-//     { _id: '14', image: '/img/products/n6.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut Paint', price: 78, description: 'A stylish astronaut paint.', stock: 7, images: ['/img/products/n6.jpg'] },
-//     { _id: '15', image: '/img/products/n7.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut Shirts', price: 78, description: 'A cool astronaut shirt.', stock: 9, images: ['/img/products/n7.jpg'] },
-//     { _id: '16', image: '/img/products/n8.jpg', category: {categoryName:'adidas'}, title: 'Cartoon Astronaut T-Shirts', price: 78, description: 'A cool astronaut t-shirt.', stock: 11, images: ['/img/products/n8.jpg'] },
 
-//   ]
 
   const features = [
     { id:1, image: '/img/features/f1.png', title: 'Free Shipping' },
@@ -51,13 +21,24 @@ interface Product {
   ]
 
 const HomePage: NextPage = () => {
+  const { sendPush } = usePushNotification();
 
-
-
+  const message={
+      title:'Test',
+      body:"checking the notification method"
+  }
+const sendNotification=async()=>{
+  const success = await sendPush(message);
+    
+    if (success) {
+      console.log("Notification sent successfully");
+    }
+  };
   return (
     <>
  
         <div>
+          <button onClick={sendNotification}>Test</button>
           <Hero></Hero>
         </div>
       <section id="feature" className=" py-10 md:py-20 lg:py-20 flex justify-center align-middle items-center flex-wrap">

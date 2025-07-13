@@ -5,6 +5,7 @@ import { fadeIn, staggerContainer } from "@/src/utils/motion";
 import Image from "next/image";
 import FeatureBox from "@/src/components/FeatureBox/FeatureBox";
 import Banner from "@/src/components/Banner/Banner";
+import { useSendNotificationMutation } from "@/src/redux/features/pushNotifications/pushNotificationApi";
 
 const AboutPage = () => {
   const features = [
@@ -23,6 +24,9 @@ const AboutPage = () => {
     { name: 'Docker', level: 60 },
     { name: 'Redux', level: 75 },
   ];
+
+
+
 
   return (
     <div className="bg-gray-50">

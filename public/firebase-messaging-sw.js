@@ -1,21 +1,42 @@
-importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
-firebase.initializeApp({
+const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId:  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId:process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+};
+
+firebase.initializeApp(firebaseConfig);
+ const messaging = firebase.messaging();
+
+// Background message handler
+messaging.onBackgroundMessage((payload) => {
+  console.log('Received background message ', payload);
+  
+  const notificationTitle = payload.notification?.title || 'New Message From Joy-Mart';
+  const notificationOptions = {
+    body: payload.notification?.body || 'You have a new message',
+    icon: '/favico.png',
+    badge: '/favico.png'
+  };
+
+  return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage(function (payload) {
-  const { title, body } = payload.notification;
-  self.registration.showNotification(title, {
-    body,
-    icon: "/icon.png", // Optional
-  });
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then(clients => {
+      if (clients.length) {
+        clients[0].focus();
+      } else {
+        clients.openWindow('/');
+      }
+    })
+  );
 });

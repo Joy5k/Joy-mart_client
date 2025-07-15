@@ -1,19 +1,10 @@
 import { FaBan, FaHome, FaShoppingCart, FaHeadset } from "react-icons/fa";
 import Link from "next/link";
+import type { Metadata } from "next";
 
-function safeParseParam(param: string | string[] | undefined): string {
-  if (!param) return '';
-  if (Array.isArray(param)) return param[0] || '';
-  return param;
-}
 
-export default function PaymentCancelPage({ searchParams }: {
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
-  // Safely extract and validate parameters
-  const transactionId = safeParseParam(searchParams.transactionId);
-  const reason = safeParseParam(searchParams.reason);
-
+export default function PaymentCancelPage({ searchParams }:any) {
+const { transactionId, errorMessage } = searchParams;
   return (
     <div className="w-full min-h-screen bg-white text-gray-800 p-6">
       <div className="max-w-4xl mx-auto">
@@ -27,7 +18,7 @@ export default function PaymentCancelPage({ searchParams }: {
           {/* Main Message */}
           <h1 className="text-3xl font-bold text-amber-600 mb-4">Payment Cancelled</h1>
           <p className="text-lg text-gray-600 mb-6">
-            {reason || "You've cancelled the payment process. Your order was not completed."}
+            {errorMessage || "You've cancelled the payment process. Your order was not completed."}
           </p>
           
           {/* Transaction Details (if available) */}
@@ -53,15 +44,13 @@ export default function PaymentCancelPage({ searchParams }: {
             <Link 
               href="/" 
               className="flex items-center justify-center px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium text-white transition-colors shadow-sm"
-              prefetch={false}
             >
               <FaHome className="mr-2" />
               Return Home
             </Link>
             <Link 
-              href="/cart" 
+              href="/booking" 
               className="flex items-center justify-center px-6 py-3 bg-white border border-amber-600 text-amber-600 hover:bg-amber-50 rounded-lg font-medium transition-colors shadow-sm"
-              prefetch={false}
             >
               <FaShoppingCart className="mr-2" />
               View Cart
@@ -78,7 +67,6 @@ export default function PaymentCancelPage({ searchParams }: {
           <Link 
             href="/contact" 
             className="inline-flex items-center px-6 py-2 border border-amber-600 text-amber-600 hover:bg-amber-50 rounded-lg font-medium transition-colors"
-            prefetch={false}
           >
             <FaHeadset className="mr-2" />
             Contact Support

@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { FiCheck, FiX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
-function CreateCategoryModal({currentCategory}) {
+function CreateCategoryModal({currentCategory}:any) {
       const [error, setError] = useState<string | null>(null);
       const [searchTerm, setSearchTerm] = useState<string>('');
       const [isModalOpen, setIsModalOpen] = useState<boolean>(false);

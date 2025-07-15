@@ -7,7 +7,6 @@ import { NextPage } from "next"
 import SummerCollection from "@/src/components/summerCollection/SummerCollection"
 import NewArrivals from "@/src/components/newArrivalsCollections/NewArrivals"
 import Subscribe from "@/src/components/userSubscribe/Subscribe"
-import { usePushNotification } from "@/src/hooks/sendNotification"
 
 
 
@@ -21,41 +20,12 @@ import { usePushNotification } from "@/src/hooks/sendNotification"
   ]
 
 const HomePage: NextPage = () => {
-  const { sendPush, } = usePushNotification();
-
-  const message = {
-    title: 'Test',
-    body: "checking the notification method"
-  };
-
-  const handleTestNotification = async () => {
-  
-
-    const notificationMessage = {
-      title: 'Test Notification',
-      body: 'This is a test notification from your app!'
-    };
-
-    const success = await sendPush(message);
-
-    if (success) {
-      console.log("Notification sent successfully");
-    } else {
-      console.log("Failed to send notification");
-    }
-  };
-
+ 
   return (
     <>
  
         <div>
-           <button 
-           className="bg-gray-500 p-2 rounded-2xl cursor-pointer"
-        onClick={handleTestNotification}
-     
-      >
-        Test Push Notification
-      </button>
+          
      
           <Hero></Hero>
         </div>

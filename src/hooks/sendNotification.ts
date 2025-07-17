@@ -20,7 +20,7 @@ export const usePushNotification = () => {
           // Show notification based on visibility
           if (document.visibilityState === 'visible') {
             toast.info(payload.notification.body, {
-              position: "top-right",
+              position: "top-center",
               autoClose: 5000,
             });
           } else {

@@ -15,7 +15,6 @@ firebase.initializeApp(firebaseConfig);
 
 // Background message handler
 messaging.onBackgroundMessage((payload) => {
-  console.log('Received background message ', payload);
   
   const notificationTitle = payload.notification?.title || 'New Message From Joy-Mart';
   const notificationOptions = {

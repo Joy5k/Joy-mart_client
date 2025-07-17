@@ -10,7 +10,6 @@ import { useLoginMutation } from '@/src/redux/features/Auth/authApi';
 import { getToken, setToken } from '@/src/utils/localStorageManagement';
 import { useAppDispatch } from '@/src/redux/hooks';
 import { setUser } from '@/src/redux/features/Auth/authSlice';
-import { signIn } from 'next-auth/react';
 import { toast } from 'react-toastify';
 
 const LoginPage = () => {
@@ -23,6 +22,7 @@ const LoginPage = () => {
   const [LoginMutation]=useLoginMutation();
   const userToken=getToken()
   const dispatch=useAppDispatch()
+
   const searchParams = useSearchParams()
 
   const redirect = searchParams.get('redirect') || '/'
@@ -59,7 +59,7 @@ const LoginPage = () => {
       }));
    
         setToken(res.data.accessToken);
-          const decodedRedirect = decodeURIComponent(redirect)
+        const decodedRedirect = decodeURIComponent(redirect)
       router.push(decodedRedirect)
       }
     } catch (err:any) {

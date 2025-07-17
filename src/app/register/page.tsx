@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FaGoogle, FaFacebook, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser } from 'react-icons/fa';
 import Image from 'next/image';
 import { useRegisterMutation } from '@/src/redux/features/Auth/authApi';
@@ -11,7 +11,9 @@ import { setToken } from '@/src/utils/localStorageManagement';
 import { IFormData } from '@/src/types';
 
 const RegisterPage = () => {
+ const searchParams = useSearchParams()
 
+  const redirect = searchParams.get('redirect') || '/'
  const [formData, setFormData] = useState<IFormData>({
   firstName: '',
   lastName: '',
@@ -42,8 +44,9 @@ const RegisterPage = () => {
         console.log(res)
       if(res.success){
         setToken(res.data.accessToken);
-              document.cookie= `authToken=${res.data.accessToken}`;
-
+         document.cookie= `authToken=${res.data.accessToken}`;
+        const decodedRedirect = decodeURIComponent(redirect)
+      router.push(decodedRedirect)
       }
     } catch (err:any) {
         console.log(err.data.errorSources[0].message)

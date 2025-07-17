@@ -44,7 +44,10 @@ const SendNotificationByAdmin = () => {
       const success = await sendPush(notification);
       
       if (success) {
-        toast.success('Notification sent successfully to all users!');
+        toast.success('Notification sent successfully to all users!',{
+          autoClose:1000,
+          
+        });
         setFormData({
           title: '',
           message: ''

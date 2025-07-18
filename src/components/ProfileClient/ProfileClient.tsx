@@ -4,7 +4,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { FaUser, FaShoppingBag, FaHeart, FaMapMarkerAlt, FaCog, FaSignOutAlt, FaEdit, FaTrash, FaPlus, FaEyeSlash, FaEye, FaLock, FaFlag, FaTimes, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaUser, FaShoppingBag, FaHeart, FaMapMarkerAlt, FaCog, FaSignOutAlt, FaEdit, FaTrash, FaPlus, FaEyeSlash, FaEye, FaLock, FaFlag, FaTimes, FaExternalLinkAlt, FaBoxOpen, FaTrashAlt, FaExclamationTriangle } from 'react-icons/fa';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -12,26 +12,24 @@ import { toast } from 'react-toastify';
 import { removeToken } from '@/src/utils/localStorageManagement';
 import uploadImage from '@/src/hooks/imageUploader';
 import { IOrder, IProfile, ReportedProduct } from '@/src/types';
-import { useGetProfileQuery, useUpdateProfileMutation } from '@/src/redux/features/profile/profileApi';
-import { useChangePasswordMutation } from '@/src/redux/features/Auth/authApi';
-import { useGetMyReportedProductsQuery } from '@/src/redux/features/reportProduct/reportProductApi';
+import { useDeleteProfileMutation, useGetProfileQuery, useUpdateProfileMutation } from '@/src/redux/features/profile/profileApi';
+import { useChangePasswordMutation, useLogoutMutation } from '@/src/redux/features/Auth/authApi';
 import { format } from 'date-fns';
 
-const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlist:any,addresses:any}) => {
- 
+const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:any,reports:any}) => {
   const router = useRouter();
   const { data, refetch } = useGetProfileQuery({});
   const user = data?.data;
   const [showPassword, setShowPassword] = useState(false);
   const [selectedReport, setSelectedReport] = useState<ReportedProduct | null>(null);
-
+  const [isOpen, setIsOpen] = useState(false);
+  const [confirmationText, setConfirmationText] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState<IProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
   
   const [updatedData, setUpdatedData] = useState<IProfile>({
     firstName: '',
@@ -48,14 +46,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
     isDeleted: false,
   });
 
-  const [newAddress, setNewAddress] = useState({
-    street: '',
-    city: '',
-    state: '',
-    zip: '',
-    country: '',
-    isDefault: false
-  });
+
   const [changePassword,setChangePassword]=useState({
     currentPassword:"",
     newPassword:"",
@@ -64,9 +55,8 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
   const [passwordError,setPasswordError]=useState<string>("")
   const [updateProfile] = useUpdateProfileMutation();
   const [changePasswordMutation]=useChangePasswordMutation()
-  const {data:reportedDatas}=useGetMyReportedProductsQuery({})
-  const reportProducts=reportedDatas?.data ? reportedDatas.data : [];
-
+  const [deleteProfile,{isLoading:isProfileDeleting}]=useDeleteProfileMutation()
+  const [logout]=useLogoutMutation()
   // Initialize user data when component mounts or user changes
   useEffect(() => {
     if (user) {
@@ -96,7 +86,6 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
     }
 
     const file = files[0];
-    setImageFile(file);
 
     // Create preview URL
     const reader = new FileReader();
@@ -151,27 +140,6 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
     }));
   };
 
-  const handleAddAddress = async () => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      toast.success('Address added successfully');
-      setNewAddress({
-        street: '',
-        city: '',
-        state: '',
-        zip: '',
-        country: '',
-        isDefault: false
-      });
-    } catch (error: any) {
-      toast.error('Failed to add address');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const toggleOrderExpand = (orderId: any) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
@@ -184,7 +152,6 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
 
   const removeImage = () => {
     setImagePreview(null);
-    setImageFile(null);
     setUpdatedData(prev => ({ ...prev, image: '' }));
   };
 
@@ -201,7 +168,6 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
     }
     try {
       const res=await changePasswordMutation(payload).unwrap()
-      console.log(res)
       if(res.success){
         toast.success('Password Changed successfully, Please Login again')
         handleLogout()
@@ -213,7 +179,25 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
       
     }
   } 
-
+const handleProfileDelete = async() => {
+    if (confirmationText !== 'DELETE') return;
+    
+    try {
+      const res= await deleteProfile({id:user._id}).unwrap()
+      if(res.success){
+      localStorage.removeItem('authToken');
+     await logout({});
+        toast.success("profile deleted successfully",{
+          position:'top-center',
+          autoClose:1500,
+        })
+        router.push('/')
+ 
+      }
+    } catch (error) {
+      
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Animated background gradient */}
@@ -299,6 +283,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                         name="firstName"
                         value={updatedData.firstName}
                         onChange={handleInputChange}
+                        placeholder='John'
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                       />
                     </div>
@@ -309,6 +294,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                         name="lastName"
                         value={updatedData.lastName}
                         onChange={handleInputChange}
+                        placeholder='Doe'
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                       />
                     </div>
@@ -320,6 +306,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                       name="email"
                       value={updatedData.email}
                       onChange={handleInputChange}
+                      placeholder='john@gmail.com'
                       className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                     />
                   </div>
@@ -330,6 +317,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                       name="phoneNumber"
                       value={updatedData.phoneNumber}
                       onChange={handleInputChange}
+                      placeholder='+88016*********'
                       className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                     />
                   </div>
@@ -351,6 +339,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                         name="address"
                         value={updatedData.address}
                         onChange={handleInputChange}
+                        placeholder='123 Main St, New York, NY 10001'
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                       />
                     </div>
@@ -363,6 +352,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                         name="city"
                         value={updatedData.city}
                         onChange={handleInputChange}
+                        placeholder='New York'
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                       />
                     </div>
@@ -373,6 +363,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                         name="state"
                         value={updatedData.state}
                         onChange={handleInputChange}
+                        placeholder='New York'
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                       />
                     </div>
@@ -383,6 +374,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                         name="zipCode"
                         value={updatedData.zipCode}
                         onChange={handleInputChange}
+                        placeholder='10001'
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                       />
                     </div>
@@ -394,6 +386,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                       name="country"
                       value={updatedData.country}
                       onChange={handleInputChange}
+                      placeholder='USA'
                       className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
                     />
                   </div>
@@ -402,7 +395,6 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                       onClick={() => {
                         setIsEditing(false);
                         setImagePreview(user?.image || null);
-                        setImageFile(null);
                       }}
                       className="px-4 py-2 border border-gray-300 rounded-lg font-medium"
                     >
@@ -452,10 +444,10 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                 {[
                   { id: 'overview', icon: FaUser, label: 'Overview', count: null },
                   { id: 'orders', icon: FaShoppingBag, label: 'My Orders', count: orders?.length || 1 }, 
-                  { id: 'reports', icon: FaFlag, label: 'My Reports', count: reportProducts?.meta?.total || 0 },
+                  { id: 'reports', icon: FaFlag, label: 'My Reports', count: reports?.meta?.total || 0 },
 
                   { id: 'wishlist', icon: FaHeart, label: 'Wishlist', count: wishlist.length },
-                  { id: 'addresses', icon: FaMapMarkerAlt, label: 'Addresses', count: addresses.length },
+                  // { id: 'addresses', icon: FaMapMarkerAlt, label: 'Addresses', count: addresses.length },
                   { id: 'settings', icon: FaCog, label: 'Settings', count: null },
                 ]?.map((item) => (
                   <motion.button
@@ -526,7 +518,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                         className="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-xl border border-green-200"
                       >
                         <h3 className="text-lg font-medium text-green-800 mb-2">Saved Addresses</h3>
-                        <p className="text-3xl font-bold text-green-600">{addresses.length}</p>
+                        <p className="text-3xl font-bold text-green-600">{1}</p>
                         <p className="text-sm text-green-500 mt-2">Manage addresses</p>
                       </motion.div>
                     </div>
@@ -560,117 +552,130 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                     </div>
                   </div>
                 )}
-
-                {activeTab === 'orders' && (
-                  <div className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">My Orders</h2>
-                    
-                    {
-                      orders?.map((sampleOrder: IOrder) => (
-                        <div className="space-y-4" key={sampleOrder.orderId}>
-                          <div className="border border-gray-200 rounded-xl overflow-hidden">
-                            <div 
-                              className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer"
-                              onClick={() => toggleOrderExpand(sampleOrder.orderId)}
-                            >
-                              <div>
-                                <h3 className="font-medium">Order #{sampleOrder.orderId}</h3>
-                                <p className="text-sm text-gray-500">{new Date(sampleOrder.createdAt).toLocaleDateString()}</p>
+{activeTab === 'orders' && (
+  <div className="p-6">
+    <h2 className="text-2xl font-bold text-gray-900 mb-6">My Orders</h2>
+    
+    {orders?.length > 0 ? (
+      orders.map((sampleOrder: IOrder) => (
+        <div className="space-y-4" key={sampleOrder.orderId}>
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <div 
+              className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer"
+              onClick={() => toggleOrderExpand(sampleOrder.orderId)}
+            >
+              <div>
+                <h3 className="font-medium">Order #{sampleOrder.orderId}</h3>
+                <p className="text-sm text-gray-500">{new Date(sampleOrder.createdAt).toLocaleDateString()}</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  sampleOrder.orderStatus === 'completed' ? 'bg-green-100 text-green-800' :
+                  sampleOrder.orderStatus === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                  sampleOrder.orderStatus === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {sampleOrder.orderStatus}
+                </div>
+                <div className="text-right">
+                  <p className="font-bold">{sampleOrder.paymentDetails.currency} {sampleOrder.totalAmount.toFixed(2)}</p>
+                </div>
+                {expandedOrder === sampleOrder.orderId ? (
+                  <FiChevronUp className="text-gray-500" />
+                ) : (
+                  <FiChevronDown className="text-gray-500" />
+                )}
+              </div>
+            </div>
+            
+            <AnimatePresence>
+              {expandedOrder === sampleOrder.orderId && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 border-t">
+                    <h4 className="font-medium mb-3">Order Details</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <h5 className="font-medium mb-2">Contact Information</h5>
+                        <p>Email: {sampleOrder.contactInfo.email}</p>
+                        <p>Phone: {sampleOrder.contactInfo.phone}</p>
+                      </div>
+                      
+                      <div>
+                        <h5 className="font-medium mb-2">Payment Information</h5>
+                        <p>Method: {sampleOrder.paymentMethod}</p>
+                        <p>Status: {sampleOrder.paymentStatus}</p>
+                        <p>Amount: {sampleOrder.paymentDetails.currency} {sampleOrder.totalAmount.toFixed(2)}</p>
+                      </div>
+                      
+                      {sampleOrder.productIds.length > 0 ? (
+                        <div>
+                          <h5 className="font-medium mb-2">Order Items</h5>
+                          {sampleOrder.productIds.map((product: any) => (
+                            <div key={product.id} className="flex items-center gap-4 py-2 border-b">
+                              <div className="w-16 h-16 bg-gray-100 rounded-lg"></div>
+                              <div className="flex-1">
+                                <p className="font-medium">{product.name}</p>
+                                <p className="text-sm text-gray-500">Quantity: {product.quantity}</p>
                               </div>
-                              <div className="flex items-center gap-4">
-                                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                  sampleOrder.orderStatus === 'completed' ? 'bg-green-100 text-green-800' :
-                                  sampleOrder.orderStatus === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                                  sampleOrder.orderStatus === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {sampleOrder.orderStatus}
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-bold">{sampleOrder.paymentDetails.currency} {sampleOrder.totalAmount.toFixed(2)}</p>
-                                </div>
-                                {expandedOrder === sampleOrder.orderId ? (
-                                  <FiChevronUp className="text-gray-500" />
-                                ) : (
-                                  <FiChevronDown className="text-gray-500" />
-                                )}
+                              <div className="text-right">
+                                <p className="font-medium">{sampleOrder.paymentDetails.currency} {product.price.toFixed(2)}</p>
                               </div>
                             </div>
-                            
-                            <AnimatePresence>
-                              {expandedOrder === sampleOrder.orderId && (
-                                <motion.div
-                                  initial={{ opacity: 0, height: 0 }}
-                                  animate={{ opacity: 1, height: 'auto' }}
-                                  exit={{ opacity: 0, height: 0 }}
-                                  transition={{ duration: 0.3 }}
-                                  className="overflow-hidden"
-                                >
-                                  <div className="p-4 border-t">
-                                    <h4 className="font-medium mb-3">Order Details</h4>
-                                    <div className="space-y-4">
-                                      <div>
-                                        <h5 className="font-medium mb-2">Contact Information</h5>
-                                        <p>Email: {sampleOrder.contactInfo.email}</p>
-                                        <p>Phone: {sampleOrder.contactInfo.phone}</p>
-                                      </div>
-                                      
-                                      <div>
-                                        <h5 className="font-medium mb-2">Payment Information</h5>
-                                        <p>Method: {sampleOrder.paymentMethod}</p>
-                                        <p>Status: {sampleOrder.paymentStatus}</p>
-                                        <p>Amount: {sampleOrder.paymentDetails.currency} {sampleOrder.totalAmount.toFixed(2)}</p>
-                                      </div>
-                                      
-                                      {sampleOrder.productIds.length > 0 ? (
-                                        <div>
-                                          <h5 className="font-medium mb-2">Order Items</h5>
-                                          {sampleOrder.productIds.map((product: any) => (
-                                            <div key={product.id} className="flex items-center gap-4 py-2 border-b">
-                                              <div className="w-16 h-16 bg-gray-100 rounded-lg"></div>
-                                              <div className="flex-1">
-                                                <p className="font-medium">{product.name}</p>
-                                                <p className="text-sm text-gray-500">Quantity: {product.quantity}</p>
-                                              </div>
-                                              <div className="text-right">
-                                                <p className="font-medium">{sampleOrder.paymentDetails.currency} {product.price.toFixed(2)}</p>
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      ) : (
-                                        <div className="text-center py-4">
-                                          <p>No products in this order</p>
-                                        </div>
-                                      )}
-                                    </div>
-                                    
-                                    <div className="mt-6 pt-6 border-t">
-                                      <div className="flex justify-end gap-3">
-                                        <button className="px-4 py-2 border border-gray-300 rounded-lg">
-                                          Contact Support
-                                        </button>
-                                        <button className="px-4 py-2 bg-[#088178] text-white rounded-lg">
-                                          Track Order
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
+                          ))}
                         </div>
-                      ))
-                    }
+                      ) : (
+                        <div className="text-center py-4">
+                          <p>No products in this order</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="mt-6 pt-6 border-t">
+                      <div className="flex justify-end gap-3">
+                        <button className="px-4 py-2 border border-gray-300 rounded-lg">
+                          Contact Support
+                        </button>
+                        <button className="px-4 py-2 bg-[#088178] text-white rounded-lg">
+                          Track Order
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      ))
+    ) : (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <FaBoxOpen className="text-5xl text-gray-300 mb-4" />
+        <h3 className="text-xl font-medium text-gray-700 mb-2">No orders yet</h3>
+        <p className="text-gray-500 max-w-md mb-6">
+          You haven't placed any orders. When you do, they'll appear here.
+        </p>
+        <button 
+          className="px-6 py-2 bg-[#088178] text-white rounded-lg hover:bg-[#077168] transition-colors"
+          onClick={() => {/* Add navigation to shop or products page */}}
+        >
+          Start Shopping
+        </button>
+      </div>
+    )}
+  </div>
+)}
           {
   activeTab === 'reports' && (
     <div className="p-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">My Reports</h2>
       
-      {reportProducts?.meta?.total === 0 ? (
+      {reports?.meta?.total === 0 ? (
         <div className="text-center py-12">
           <div className="mx-auto bg-gray-100 p-6 rounded-full w-24 h-24 flex items-center justify-center mb-4">
             <FaFlag className="text-4xl text-gray-400" />
@@ -680,7 +685,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
         </div>
       ) : (
         <div className="space-y-4">
-          {reportProducts?.result?.map((report: ReportedProduct) => (
+          {reports?.result?.map((report: ReportedProduct) => (
             <motion.div
               key={report._id}
               whileHover={{ y: -5 }}
@@ -928,68 +933,6 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                   </div>
                 )}
 
-                {activeTab === 'addresses' && (
-                  <div className="p-6">
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-2xl font-bold text-gray-900">My Addresses</h2>
-                      <button 
-                        onClick={() => {
-                          const modal = document.getElementById('new_address_modal') as HTMLDialogElement | null;
-                          if (modal) modal.showModal();
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#088178] text-white rounded-lg"
-                      >
-                        <FaPlus /> Add New Address
-                      </button>
-                    </div>
-                    
-                    {addresses.length === 0 ? (
-                      <div className="text-center py-12">
-                        <div className="mx-auto bg-gray-100 p-6 rounded-full w-24 h-24 flex items-center justify-center mb-4">
-                          <FaMapMarkerAlt className="text-4xl text-gray-400" />
-                        </div>
-                        <h3 className="text-xl font-medium text-gray-700">No saved addresses</h3>
-                        <p className="text-gray-500 mt-2">Add your first address to get started</p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {addresses?.map((address: any) => (
-                          <motion.div
-                            key={address.id}
-                            whileHover={{ scale: 1.02 }}
-                            className={`border rounded-xl p-6 relative ${address.isDefault ? 'border-[#088178] ring-1 ring-[#088178]' : 'border-gray-200'}`}
-                          >
-                            {address.isDefault && (
-                              <div className="absolute top-4 right-4 bg-[#088178] text-white text-xs px-2 py-1 rounded">
-                                Default
-                              </div>
-                            )}
-                            <h3 className="font-bold mb-3">{address.name}</h3>
-                            <address className="not-italic text-gray-600 mb-4">
-                              {address.street}<br />
-                              {address.city}, {address.state}<br />
-                              {address.zip}, {address.country}
-                            </address>
-                            <div className="flex gap-3">
-                              <button className="text-sm text-[#088178] font-medium flex items-center gap-1">
-                                <FaEdit /> Edit
-                              </button>
-                              <button className="text-sm text-red-600 font-medium flex items-center gap-1">
-                                <FaTrash /> Remove
-                              </button>
-                              {!address.isDefault && (
-                                <button className="text-sm text-gray-600 font-medium flex items-center gap-1">
-                                  Set as Default
-                                </button>
-                              )}
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {activeTab === 'settings' && (
                   <div className="p-6">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Account Settings</h2>
@@ -1114,14 +1057,79 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
                           </label>
                         </div>
                       </div>
-                      
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Account</h3>
-                        <p className="text-gray-600 mb-4">This will permanently delete your account and all associated data.</p>
-                        <button className="px-6 py-2 bg-red-600 text-white rounded-lg">
-                          Delete My Account
-                        </button>
-                      </div>
+{/* Profile Delete method and Modal  below  */}
+                     <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Account</h3>
+        <p className="text-gray-600 mb-4">This will permanently delete your account and all associated data.</p>
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+        >
+          <FaTrashAlt /> Delete My Account
+        </button>
+      </div>
+
+      {/* Modal */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-gray-900/10 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="mt-1 text-red-500">
+                <FaExclamationTriangle size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Delete Your Account?</h3>
+                <p className="text-gray-600 mt-1">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 mt-6">
+              <p className="text-gray-700">
+                To confirm, please type <span className="font-bold">DELETE</span> in the box below:
+              </p>
+              
+              <input
+                type="text"
+                value={confirmationText}
+                onChange={(e) => setConfirmationText(e.target.value.toUpperCase())}
+                placeholder="Type DELETE to confirm"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                autoFocus
+              />
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    setConfirmationText('');
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={isProfileDeleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleProfileDelete}
+                  disabled={confirmationText !== 'DELETE' || isProfileDeleting}
+                  className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                    confirmationText === 'DELETE'
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-red-300 cursor-not-allowed text-white'
+                  } transition-colors`}
+                >
+                  {isProfileDeleting ? (
+                    'Deleting...'
+                  ) : (
+                    <>
+                      <FaTrashAlt /> Confirm Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
                     </div>
                   </div>
                 )}
@@ -1131,108 +1139,7 @@ const ProfileClient = ({ orders, wishlist, addresses }: {orders:IOrder[],wishlis
         </div>
       </div>
 
-      {/* New Address Modal */}
-      <dialog id="new_address_modal" className="modal">
-        <div className="modal-box max-w-2xl">
-          <form method="dialog">
-            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-          </form>
-          <h3 className="font-bold text-lg mb-6">Add New Address</h3>
-          
-          <form onSubmit={(e) => { e.preventDefault(); handleAddAddress(); }}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address Title (e.g. Home, Office)</label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                  required
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-                <input
-                  type="text"
-                  value={newAddress.street}
-                  onChange={(e) => setNewAddress({...newAddress, street: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                <input
-                  type="text"
-                  value={newAddress.city}
-                  onChange={(e) => setNewAddress({...newAddress, city: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
-                <input
-                  type="text"
-                  value={newAddress.state}
-                  onChange={(e) => setNewAddress({...newAddress, state: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ZIP/Postal Code</label>
-                <input
-                  type="text"
-                  value={newAddress.zip}
-                  onChange={(e) => setNewAddress({...newAddress, zip: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                <select
-                  value={newAddress.country}
-                  onChange={(e) => setNewAddress({...newAddress, country: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                  required
-                >
-                  <option value="">Select Country</option>
-                  <option value="US">United States</option>
-                  <option value="CA">Canada</option>
-                  <option value="UK">United Kingdom</option>
-                  <option value="BD">Bangladesh</option>
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newAddress.isDefault}
-                    onChange={(e) => setNewAddress({...newAddress, isDefault: e.target.checked})}
-                    className="rounded text-[#088178] focus:ring-[#088178]"
-                  />
-                  <span>Set as default shipping address</span>
-                </label>
-              </div>
-            </div>
-            
-            <div className="modal-action">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="px-6 py-2 bg-[#088178] text-white rounded-lg font-medium"
-              >
-                {isLoading ? 'Adding...' : 'Add Address'}
-              </button>
-            </div>
-          </form>
-        </div>
-        
-        <form method="dialog" className="modal-backdrop">
-          <button>close</button>
-        </form>
-      </dialog>
+     
     </div>
   );
 };

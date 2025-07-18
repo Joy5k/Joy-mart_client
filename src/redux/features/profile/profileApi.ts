@@ -26,7 +26,7 @@ const profileApi=baseApi.injectEndpoints({
             invalidatesTags:[tagTypes.profile]
         }),
         deleteProfile: builder.mutation({
-            query: (id) => ({
+            query: ({id}) => ({
                 url: `/profiles/${id}`,
                 method: "DELETE",
             }),

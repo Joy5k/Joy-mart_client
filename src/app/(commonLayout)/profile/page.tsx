@@ -29,6 +29,8 @@ export default function ProfilePage() {
       const { items } = useAppSelector((state: RootState) => state.wishlist as { items: any[] });
       const {data,isLoading}=useGetPaymentHistoryQuery({})
       const recentOrders=data?.data ? data.data : [];
+      const {data:myReports}=useGetMyReportedProductsQuery({})
+      const reports=myReports?.data ? myReports.data : [];
     
   if (isLoading) {
     return <Loader></Loader>
@@ -37,7 +39,7 @@ export default function ProfilePage() {
     <ProfileClient 
       orders={recentOrders}
       wishlist={items}
-      addresses={addresses}
+      reports={reports}
     />
   );
 }

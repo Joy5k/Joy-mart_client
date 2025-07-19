@@ -63,7 +63,8 @@ const LoginPage = () => {
       router.push(decodedRedirect)
       }
     } catch (err:any) {
-      setError('Invalid email or password');
+      const error=err?.data?.message ? err.data.message : 'Login failed';
+      setError(error);
     } finally {
       setIsLoading(false);
     }

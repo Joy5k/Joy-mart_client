@@ -15,6 +15,7 @@ import { IOrder, IProfile, ReportedProduct } from '@/src/types';
 import { useDeleteProfileMutation, useGetProfileQuery, useUpdateProfileMutation } from '@/src/redux/features/profile/profileApi';
 import { useChangePasswordMutation, useLogoutMutation } from '@/src/redux/features/Auth/authApi';
 import { format } from 'date-fns';
+import TransId from '@/src/app/(dashboardLayout)/components/transId/TransId';
 
 const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:any,reports:any}) => {
   const router = useRouter();
@@ -77,6 +78,7 @@ const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:a
       });
       setImagePreview(user.image || null);
     }
+    
   }, [user]);
 
   const handleImageChangeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,6 +186,7 @@ const handleProfileDelete = async() => {
     
     try {
       const res= await deleteProfile({id:user._id}).unwrap()
+      console.log(res,"delete profile response")
       if(res.success){
       localStorage.removeItem('authToken');
      await logout({});
@@ -198,6 +201,10 @@ const handleProfileDelete = async() => {
       
     }
   };
+
+ 
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Animated background gradient */}
@@ -410,9 +417,9 @@ const handleProfileDelete = async() => {
                   </div>
                 </div>
               ) : (
-                <>
+                <div className="flex flex-col md:flex-row lg:flex-row items-center justify-between w-full">
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900">{userData?.firstName} {userData?.lastName}</h1>
+                    <h3 className="text-2xl md:text-3xl lg:text-3xl font-bold text-gray-900">{userData?.firstName} {userData?.lastName}</h3>
                     <p className="text-gray-600">{userData?.email}</p>
                     {userData?.phoneNumber && <p className="text-gray-500 mt-1">Phone: {userData.phoneNumber}</p>}
                     {userData?.address && (
@@ -425,11 +432,11 @@ const handleProfileDelete = async() => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#088178] text-white rounded-lg"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#088178] text-white rounded-lg mt-5 md:mt-0 lg:mt-0"
                   >
                     <FaEdit /> Edit Profile
                   </motion.button>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -492,7 +499,7 @@ const handleProfileDelete = async() => {
               >
                 {activeTab === 'overview' && (
                   <div className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Overview</h2>
+                    <h3 className="text-2xl md:text-3xl lg:text-3xl font-bold text-gray-900 mb-6">Dashboard Overview</h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                       <motion.div 
@@ -528,24 +535,7 @@ const handleProfileDelete = async() => {
                       <div className="space-y-4">
                        {
                         orders?.slice(0, 3).map((sampleOrder:IOrder) => (
-                           <motion.div 
-                           key={sampleOrder.createdAt}
-                          whileHover={{ x: 5 }}
-                          className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg cursor-pointer"
-                          onClick={() => setActiveTab('orders')}
-                        >
-                          <div className="bg-[#088178] bg-opacity-10 p-3 rounded-lg">
-                            <FaShoppingBag className="text-[#fff] text-xl" />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium">Order #{sampleOrder.orderId}</h4>
-                            <p className="text-sm text-gray-500">{new Date(sampleOrder.createdAt).toLocaleDateString()} • {sampleOrder.orderStatus}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold">{sampleOrder.paymentDetails.currency} {sampleOrder.totalAmount.toFixed(2)}</p>
-                            <p className="text-sm text-gray-500">{sampleOrder.productIds.length} items</p>
-                          </div>
-                        </motion.div>
+                          <TransId key={sampleOrder.orderId} sampleOrder={sampleOrder} setActiveTab={setActiveTab} />
                         ))
                        }
                       </div>
@@ -935,7 +925,7 @@ const handleProfileDelete = async() => {
 
                 {activeTab === 'settings' && (
                   <div className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Account Settings</h2>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Account Settings</h3>
                     
                     <div className="space-y-8">
                       <div className="border-b pb-6">
@@ -1040,23 +1030,19 @@ const handleProfileDelete = async() => {
                         </div>
                       </div>
                       
-                      <div className="border-b pb-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h3>
-                        <div className="space-y-3">
-                          <label className="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" className="rounded text-[#088178] focus:ring-[#088178]" defaultChecked />
-                            <span>Email notifications</span>
-                          </label>
-                          <label className="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" className="rounded text-[#088178] focus:ring-[#088178]" defaultChecked />
-                            <span>SMS notifications</span>
-                          </label>
-                          <label className="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" className="rounded text-[#088178] focus:ring-[#088178]" />
-                            <span>Push notifications</span>
-                          </label>
-                        </div>
-                      </div>
+                       <div className="border-b pb-6">
+      <h3 className="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h3>
+      <div className="space-y-3">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input 
+            type="checkbox"
+            className="rounded text-[#088178] focus:ring-[#088178]" 
+          />
+          <span>Email notifications</span>
+        </label>
+
+      </div>
+    </div>
 {/* Profile Delete method and Modal  below  */}
                      <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Account</h3>

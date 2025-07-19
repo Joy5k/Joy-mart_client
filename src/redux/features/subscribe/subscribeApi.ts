@@ -32,6 +32,13 @@ const subscribeApi=baseApi.injectEndpoints({
             }),
             invalidatesTags:[tagTypes.subscrible]
         }),
+        handleSubscribeUser:builder.mutation({
+            query:()=>({
+                url:'/subscribe/unsubscribeUsingToken',
+                method:'DELETE',
+            }),
+            invalidatesTags:[tagTypes.subscrible]
+        }),
     })
 })
 
@@ -39,5 +46,6 @@ export const {
     useGetALlSubscribedUsersQuery,
     useCreateSubscribeMutation,
     useCreateSubscribeUsingTokenMutation,
-    useUnsubscribeMutation
+    useUnsubscribeMutation,
+    useHandleSubscribeUserMutation
 }=subscribeApi

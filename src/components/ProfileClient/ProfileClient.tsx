@@ -16,6 +16,7 @@ import { useDeleteProfileMutation, useGetProfileQuery, useUpdateProfileMutation 
 import { useChangePasswordMutation, useLogoutMutation } from '@/src/redux/features/Auth/authApi';
 import { format } from 'date-fns';
 import TransId from '@/src/app/(dashboardLayout)/components/transId/TransId';
+import SubscribeHandler from '@/src/app/(dashboardLayout)/components/subscribeHandler/SubscribeHandler';
 
 const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:any,reports:any}) => {
   const router = useRouter();
@@ -146,10 +147,20 @@ const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:a
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
-  const handleLogout = () => {
-    document.cookie = "authToken=; expires=Thu, 01 Jan 2025 00:00:00 UTC; path=/;";
+  const handleLogout =async () => {
+    try {
+      const res=await logout({}).unwrap()
+      if(res.success){
+        toast.warn("You logged out",{
+          autoClose:500,
+          position:'bottom-center'
+        })
+      }
+    }catch(err){
+      console.log(err)
+    }
     removeToken();
-    router.push('/login');
+    router.push('/');
   };
 
   const removeImage = () => {
@@ -201,6 +212,7 @@ const handleProfileDelete = async() => {
       
     }
   };
+
 
  
 
@@ -1030,19 +1042,8 @@ const handleProfileDelete = async() => {
                         </div>
                       </div>
                       
-                       <div className="border-b pb-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h3>
-      <div className="space-y-3">
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input 
-            type="checkbox"
-            className="rounded text-[#088178] focus:ring-[#088178]" 
-          />
-          <span>Email notifications</span>
-        </label>
-
-      </div>
-    </div>
+                            {/*  Handle User subscribetion belo */}
+                            <SubscribeHandler></SubscribeHandler>
 {/* Profile Delete method and Modal  below  */}
                      <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Account</h3>

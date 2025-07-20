@@ -72,14 +72,14 @@ export default function ProductManagementPage() {
       >
         <div className="flex items-center justify-between flex-col md:flex-row lg:flex-row mt-3">
           <div>
-            <h2 className="text-lg font-medium leading-6 text-gray-900">Product Management</h2>
+            <h3 className="text-xl font-medium leading-6 text-gray-900">Product Management</h3>
             <p className="mt-1 text-sm text-gray-500">
               Manage your product inventory and listings
             </p>
           </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center rounded-md border border-transparent bg-[#088178] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#07756e] focus:outline-none focus:ring-2 focus:ring-[#088178] focus:ring-offset-2 mt-5"
+            className="inline-flex items-center w-full md:w-fit lg:w-fit rounded-md border border-transparent bg-[#088178] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#07756e] focus:outline-none focus:ring-2 focus:ring-[#088178] focus:ring-offset-2 mt-5"
           >
             <FiPlus className="mr-2 h-4 w-4" />
             Add Product

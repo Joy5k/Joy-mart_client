@@ -106,7 +106,7 @@ const AdminReportedProductsPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Reported Products Management</h1>
+      <h2 className="text-xl font-bold mb-6">Reported Products </h2>
       
       {/* Filters and Search */}
       <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">

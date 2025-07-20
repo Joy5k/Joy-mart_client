@@ -62,7 +62,7 @@ export function MobileSidebar() {
               className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white"
             >
               <div className="flex flex-shrink-0 items-center justify-between px-6 pt-5">
-                <h1 className="text-xl font-bold text-[#088178]">Dashboard</h1>
+                <h1 className="text-xl font-bold text-[#088178] hidden">Dashboard</h1>
                 <button
                   type="button"
                   className="rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#088178]"

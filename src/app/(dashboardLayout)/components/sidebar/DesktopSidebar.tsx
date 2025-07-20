@@ -42,7 +42,7 @@ export function DesktopSidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium ${
+                className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium  ${
                   isActive
                     ? 'bg-[#c8faf7] text-[#088178]'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'

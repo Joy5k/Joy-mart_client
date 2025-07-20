@@ -286,7 +286,7 @@ const handleLogout = async () => {
                   onClick={() => setIsDropdownOpen(false)}
                 >
                   <RiDashboard3Line />
-                  <span>Dashboard</span>
+                  <span className="hidden md:block lg:block">Dashboard</span>
                 </Link>
               </li>
               )}

@@ -2,6 +2,7 @@
 
 import { useLogoutMutation } from '@/src/redux/features/Auth/authApi';
 import { setUser } from '@/src/redux/features/Auth/authSlice';
+import { useGetMeQuery } from '@/src/redux/features/profile/profileApi';
 import { useAppDispatch } from '@/src/redux/hooks';
 import { removeToken } from '@/src/utils/localStorageManagement';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,9 +14,10 @@ import { FiChevronDown, FiUser, FiLogOut } from 'react-icons/fi';
 export default function UserDropdown() {
     const navigate=useRouter()
     const dispatch=useAppDispatch()
-  const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
     const [logoutUser]=useLogoutMutation()
-
+    const {data}=useGetMeQuery({})
+  const {firstName,lastName,email,image}=data?.data ? data.data : {}
   const handleLogout=async()=>{
 
     try {
@@ -44,11 +46,11 @@ export default function UserDropdown() {
           <span className="sr-only">Open user menu</span>
           <img
             className="h-8 w-8 rounded-full"
-            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+            src={image ? image : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
             alt=""
           />
           <span className="ml-2 hidden text-sm font-medium text-gray-700 md:block">
-            John Doe
+           {firstName} {lastName}
           </span>
           <FiChevronDown className="ml-1 h-4 w-4 text-gray-500" />
         </button>

@@ -110,7 +110,7 @@ export interface IProfile {
   firstName?: string;
   lastName?: string;
   image?: string;
-  email?: string;
+  email: string;
   password?: string;
   phoneNumber?: string;
   address?: string;

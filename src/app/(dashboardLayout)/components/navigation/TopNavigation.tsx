@@ -17,7 +17,7 @@ export function TopNavigation() {
       transition={{ type: 'spring', stiffness: 100 }}
     >
       <div className="flex flex-1 justify-between px-4">
-        <div className="flex flex-1 items-center">
+        <div className="flex flex-1 items-center invisible md:visible lg:visible">
           <h1 className="text-2xl font-semibold text-gray-900 capitalize">
             {title}
           </h1>

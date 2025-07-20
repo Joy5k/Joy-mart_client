@@ -27,12 +27,7 @@ export const usersApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: [tagTypes.user],
         }),
-        getMe: builder.query({
-            query: () => ({
-                url: '/me',
-            }),
-            providesTags: [tagTypes.user],
-        }),
+     
         changeStatus: builder.mutation<any, { id: string; data: any }>({
             query: ({ id, data }) => ({
                 url: `/change-status/${id}`,
@@ -41,11 +36,14 @@ export const usersApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: [tagTypes.user],
         }),
-        getAllUsers: builder.query<any, void>({
-            query: () => ({
-                url: '/users',
+        getAllUsers: builder.query<any, {firstName?: string; lastName?: string; email?: string; role?: string}>({
+            query: (query) => {
+                console.log(query,'in redux')
+                return {
+                url: `/users?${query.firstName ? `firstName=${query.firstName}` : ''}${query.lastName ? `&lastName=${query.lastName}` : ''}${query.email ? `&email=${query.email}` : ''}${query.role ? `&role=${query.role}` : ''}`,
                 method: 'GET',
-            }),
+            }
+            },
             providesTags: [tagTypes.user],
         }),
            updateUser:builder.mutation<any, {  email: string; data: any }>({
@@ -56,7 +54,20 @@ export const usersApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: [tagTypes.user],
     }),
+    deleteUserBySuperAdmin:builder.mutation<any,{email:string}>({
+        query:({email})=>{
+           return {
+                 url:`/users/deleteBySuperAdmin`,
+                method:'DELETE',
+                body:{email}
+            }
+        },
+         invalidatesTags: [tagTypes.user],
     })
+
+
+})
+
 })
 
 
@@ -64,8 +75,9 @@ export const {
     useCreateUserMutation,
     useCreateAdminMutation,
     useCreateUserByAdminMutation,
-    useGetMeQuery,
     useChangeStatusMutation,
     useGetAllUsersQuery,
-    useUpdateUserMutation
+    useUpdateUserMutation,
+    useDeleteUserBySuperAdminMutation
+
 } = usersApi;

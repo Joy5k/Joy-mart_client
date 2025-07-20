@@ -42,7 +42,12 @@ const profileApi=baseApi.injectEndpoints({
             invalidatesTags:[tagTypes.profile]
         }),
     
-
+   getMe: builder.query({
+            query: () => ({
+                url: '/profiles/me',
+            }),
+            providesTags: [tagTypes.user],
+        }),
 
 
     }),
@@ -50,8 +55,10 @@ const profileApi=baseApi.injectEndpoints({
 
 export const {
     useGetProfileQuery,
+    useGetAllProfilesQuery,
     useCreateProfileMutation,
     useDeleteProfileMutation,
-    useUpdateProfileMutation
+    useUpdateProfileMutation,
+    useGetMeQuery
 
 } = profileApi;

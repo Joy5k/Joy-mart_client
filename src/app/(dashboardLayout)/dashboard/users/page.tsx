@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiUser, FiEdit2, FiTrash2, FiPlus, FiSearch, FiRefreshCw } from 'react-icons/fi';
-import { IFormData, Role } from '@/src/types';
+import { IFormData, IProfile, Role } from '@/src/types';
 
-import {  useCreateUserByAdminMutation, useGetAllUsersQuery, useUpdateUserMutation } from '@/src/redux/features/userManagement/usersApi';
+import {  useCreateUserByAdminMutation, useGetAllUsersQuery, useUpdateUserMutation,useDeleteUserBySuperAdminMutation } from '@/src/redux/features/userManagement/usersApi';
 import { toast } from 'react-toastify';
-import { useRegisterMutation } from '@/src/redux/features/Auth/authApi';
 import { FaEnvelope, FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
 
 export type UserStatus = 'in-progress' | 'active' | 'blocked';
@@ -31,18 +30,19 @@ interface ApiUser {
 }
 
 export default function UserManagementPage() {
-  const { data: apiResponse, isLoading, refetch } = useGetAllUsersQuery();
-  const [users, setUsers] = useState<ApiUser[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<ApiUser[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState<Role | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<UserStatus | 'all'>('all');
+ 
   const [userUpdatedInfo, setUserUpdateInfo] = useState<TUserUpdate>({
     id: '',
     role: 'user',
     status: 'in-progress'
   });
-
+  const [searchQuery,setSearchQuery]=useState({
+    firstName:'',
+    lastName:'',
+    role:'',
+    email:'',
+    status:''
+  })
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -52,30 +52,30 @@ export default function UserManagementPage() {
   firstName: '',
   lastName: '',
   email: '',
-  password: ''
+  password: '',
+  
 });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const { data: apiResponse, isLoading, refetch } = useGetAllUsersQuery(searchQuery);
 
-
+console.log(searchQuery)
   const [createUserByAdminMutation] = useCreateUserByAdminMutation();
+  const [deleteUserMutation]=useDeleteUserBySuperAdminMutation()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-
     setError('');
-    
     try {
       const res = await createUserByAdminMutation(formData).unwrap();
       localStorage.setItem('token', res.data.accessToken);
-        console.log(res)
       if(res.success){
         toast.success("Created User successfully",{
           position:"bottom-center",
           autoClose: 2000,
         })
-              document.cookie= `authToken=${res.data.accessToken}`;
+        setIsAddModalOpen(true)     
+        document.cookie= `authToken=${res.data.accessToken}`;
 
       }
     } catch (err:any) {
@@ -85,27 +85,6 @@ export default function UserManagementPage() {
   };
   const [updateUser] = useUpdateUserMutation();
 
-
-  // Apply filters
-  useEffect(() => {
-    let result = users;
-    
-    if (searchTerm) {
-      result = result.filter(user => 
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    if (roleFilter !== 'all') {
-      result = result.filter(user => user.role === roleFilter);
-    }
-    
-    if (statusFilter !== 'all') {
-      result = result.filter(user => user.status === statusFilter);
-    }
-    
-    setFilteredUsers(result);
-  }, [searchTerm, roleFilter, statusFilter, users]);
 
   // Role color mapping
   const getRoleColor = (role: Role) => {
@@ -127,12 +106,18 @@ export default function UserManagementPage() {
     }
   };
 
-
-  const handleDeleteUser = async () => {
+  const handleDeleteUser = async (email:string) => {
     if (!currentUser) return;
     
     try {
-      setIsDeleteModalOpen(false);
+      const res = await deleteUserMutation({ email }).unwrap();
+      if(res.success){
+        toast.info(`${email} is deleted successfully`,{
+          autoClose:1000,
+          position:'top-center'
+        })
+        setIsDeleteModalOpen(false);
+      }
     } catch (error) {
       console.error('Error deleting user:', error);
     }
@@ -174,6 +159,8 @@ export default function UserManagementPage() {
       console.error('Error updating user:', error);
     }
   };
+console.log(apiResponse)
+
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -182,7 +169,7 @@ export default function UserManagementPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row lg:flex-row items-center justify-between mt-2">
           <div>
             <h2 className="text-lg font-medium leading-6 text-gray-900">User Management</h2>
             <p className="mt-1 text-sm text-gray-500">
@@ -191,7 +178,7 @@ export default function UserManagementPage() {
           </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center rounded-md border border-transparent bg-[#088178] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#07756e] focus:outline-none focus:ring-2 focus:ring-[#088178] focus:ring-offset-2"
+            className="inline-flex mt-2 items-center rounded-md border border-transparent w-full md:w-fit lg:w-fit bg-[#088178] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#07756e] focus:outline-none focus:ring-2 focus:ring-[#088178] focus:ring-offset-2"
           >
             <FiPlus className="mr-2 h-4 w-4" />
             Add User
@@ -219,11 +206,13 @@ export default function UserManagementPage() {
                 type="text"
                 id="search"
                 className="focus:ring-[#088178] focus:border-[#088178] block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                placeholder="Email"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by user email,first-name or last name "
+                value={searchQuery.email}
+                onChange={(e) => setSearchQuery({ ...searchQuery, email: e.target.value })}
               />
+              
             </div>
+           
           </div>
 
           <div>
@@ -233,10 +222,10 @@ export default function UserManagementPage() {
             <select
               id="role"
               className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value as Role | 'all')}
+              value={searchQuery.role}
+              onChange={(e) => setSearchQuery({ ...searchQuery, role: e.target.value as Role | '' })}
             >
-              <option value="all">All Roles</option>
+              <option value="">All Roles</option>
               <option value="superAdmin">Super Admin</option>
               <option value="admin">Admin</option>
               <option value="user">User</option>
@@ -250,10 +239,10 @@ export default function UserManagementPage() {
             <select
               id="status"
               className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as UserStatus | 'all')}
+              value={searchQuery.status}
+              onChange={(e) => setSearchQuery({ ...searchQuery, status: e.target.value as UserStatus | '' })}
             >
-              <option value="all">All Statuses</option>
+              <option selected value="">All Statuses</option>
               <option value="active">Active</option>
               <option value="in-progress">In Progress</option>
               <option value="blocked">Blocked</option>
@@ -280,7 +269,7 @@ export default function UserManagementPage() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                      User
+                      Name
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Email
@@ -300,11 +289,12 @@ export default function UserManagementPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {filteredUsers.map((user) => (
+                  {apiResponse?.data?.result.map((user:any) => (
                     <tr key={user._id}>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
+                        
                             <div className="flex items-center justify-center h-10 w-10 rounded-full bg-[#c8faf7] text-[#088178]">
                               <FiUser className="h-5 w-5" />
                             </div>
@@ -332,7 +322,7 @@ export default function UserManagementPage() {
                         <div className="flex space-x-2 justify-end">
                           <button
                             onClick={() => handleEditUser(user)}
-                            className="text-[#088178] hover:text-[#07756e] cursor-pointer"
+                            className={`text-[#088178] hover:text-[#07756e] cursor-pointer  ${user.role==='superAdmin' ? 'cursor-not-allowed' : 'cursor-pointer hover:text-[#07756e]  '}`}
                           >
                             <FiEdit2 className="h-5 w-5" />
                           </button>
@@ -341,9 +331,11 @@ export default function UserManagementPage() {
                               setCurrentUser(user);
                               setIsDeleteModalOpen(true);
                             }}
-                            className="text-red-600 hover:text-red-900 cursor-pointer"
+                            className={` text-red-600  ${user.role==='superAdmin' ? 'cursor-not-allowed' : 'cursor-pointer hover:text-red-900 '}`}
+                            disabled={user.role==='superAdmin'}
                           >
                             <FiTrash2 className="h-5 w-5" />
+                            
                           </button>
                         </div>
                       </td>
@@ -571,11 +563,9 @@ export default function UserManagementPage() {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && currentUser && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
+        <div className="fixed z-100 overflow-y-auto inset-0 bg-gray-900/10 backdrop-blur-sm">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
+            
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
               <div>
@@ -594,8 +584,9 @@ export default function UserManagementPage() {
               <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
                 <button
                   type="button"
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:col-start-2 sm:text-sm"
-                  onClick={handleDeleteUser}
+                  className={`${currentUser.role==='superAdmin' ? 'cursor-not-allowed' : 'cursor-pointer'}   w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:col-start-2 sm:text-sm `}
+                  onClick={()=>handleDeleteUser(currentUser.email)}
+                  disabled={currentUser.role==='superAdmin'}
                 >
                   Delete
                 </button>

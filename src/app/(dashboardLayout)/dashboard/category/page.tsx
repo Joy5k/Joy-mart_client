@@ -143,15 +143,15 @@ export default function CategoryManagement() {
         transition={{ duration: 0.5 }}
       >
         {error && <div className="text-center py-5 text-red-500">Error: {error}</div>}
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-medium leading-6 text-gray-900">Category Management</h2>
+        <div className="flex flex-col md:flex-row lg:flex-row justify-between items-center">
+          <h3 className="text-xl font-medium leading-6 text-gray-900">Category Management</h3>
           <button
             onClick={() => {
               setCurrentCategory(null);
               setFormData({ categoryName: '', description: '', isActive: true });
               setIsModalOpen(true);
             }}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#088178] hover:bg-[#076b63] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]"
+            className="inline-flex w-full md:w-fit lg:w-fit mt-1 items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#088178] hover:bg-[#076b63] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]"
           >
             <FiPlus className="mr-2" /> Add Category
           </button>

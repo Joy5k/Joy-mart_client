@@ -4,7 +4,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { FaUser, FaShoppingBag, FaHeart, FaMapMarkerAlt, FaCog, FaSignOutAlt, FaEdit, FaTrash, FaPlus, FaEyeSlash, FaEye, FaLock, FaFlag, FaTimes, FaExternalLinkAlt, FaBoxOpen, FaTrashAlt, FaExclamationTriangle } from 'react-icons/fa';
+import { FaUser, FaHeart,FaEdit, FaTrash, FaPlus, FaEyeSlash, FaEye, FaLock, FaFlag, FaTimes, FaExternalLinkAlt, FaBoxOpen, FaTrashAlt, FaExclamationTriangle } from 'react-icons/fa';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -12,15 +12,17 @@ import { toast } from 'react-toastify';
 import { removeToken } from '@/src/utils/localStorageManagement';
 import uploadImage from '@/src/hooks/imageUploader';
 import { IOrder, IProfile, ReportedProduct } from '@/src/types';
-import { useDeleteProfileMutation, useGetProfileQuery, useUpdateProfileMutation } from '@/src/redux/features/profile/profileApi';
+import { useDeleteProfileMutation, useGetProfileQuery } from '@/src/redux/features/profile/profileApi';
 import { useChangePasswordMutation, useLogoutMutation } from '@/src/redux/features/Auth/authApi';
 import { format } from 'date-fns';
-import TransId from '@/src/app/(dashboardLayout)/components/transId/TransId';
-import SubscribeHandler from '@/src/app/(dashboardLayout)/components/subscribeHandler/SubscribeHandler';
+import TransId from '@/src/components/profileComponents/transId/TransId';
+import SubscribeHandler from '@/src/components/profileComponents/subscribeHandler/SubscribeHandler';
+import ProfileSidebar from '../profileComponents/profileSidebar';
+import ProfileUserInfoUpdate from '../profileComponents/ProfileUserInfoUpdate';
 
 const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:any,reports:any}) => {
   const router = useRouter();
-  const { data, refetch } = useGetProfileQuery({});
+  const { data } = useGetProfileQuery({});
   const user = data?.data;
   const [showPassword, setShowPassword] = useState(false);
   const [selectedReport, setSelectedReport] = useState<ReportedProduct | null>(null);
@@ -29,7 +31,6 @@ const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:a
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState<IProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
@@ -55,7 +56,6 @@ const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:a
     confirmPassword:""
   })
   const [passwordError,setPasswordError]=useState<string>("")
-  const [updateProfile] = useUpdateProfileMutation();
   const [changePasswordMutation]=useChangePasswordMutation()
   const [deleteProfile,{isLoading:isProfileDeleting}]=useDeleteProfileMutation()
   const [logout]=useLogoutMutation()
@@ -101,7 +101,6 @@ const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:a
     try {
       const response = await uploadImage(file);
       if (response) {
-        console.log(response.imageUrl)
         setUpdatedData(prev=>({...prev,image:response?.imageUrl}))
         setImagePreview(response?.imageUrl);
       }
@@ -117,31 +116,6 @@ const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:a
     exit: { opacity: 0, y: -10 }
   };
 
-  const handleSaveProfile = async () => {
-    setIsLoading(true);
-    try {
-      const res = await updateProfile({ updatedData }).unwrap();
-      if (res) {
-        toast.success('Profile updated successfully');
-        setUserData(res.data); // Update local user data with response
-        refetch(); // Refetch the latest data
-        setIsEditing(false);
-      }
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      toast.error(error.data?.message || 'Failed to update profile');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setUpdatedData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
 
   const toggleOrderExpand = (orderId: any) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
@@ -293,141 +267,9 @@ const handleProfileDelete = async() => {
           <div className="pt-20 px-8 pb-8">
             <div className="flex justify-between items-start">
               {isEditing ? (
-                <div className="space-y-4 w-full">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={updatedData.firstName}
-                        onChange={handleInputChange}
-                        placeholder='John'
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={updatedData.lastName}
-                        onChange={handleInputChange}
-                        placeholder='Doe'
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={updatedData.email}
-                      onChange={handleInputChange}
-                      placeholder='john@gmail.com'
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                    <input
-                      type="tel"
-                      name="phoneNumber"
-                      value={updatedData.phoneNumber}
-                      onChange={handleInputChange}
-                      placeholder='+88016*********'
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                      <input
-                        type="date"
-                        name="dateOfBirth"
-                        value={updatedData.dateOfBirth}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                      <input
-                        type="text"
-                        name="address"
-                        value={updatedData.address}
-                        onChange={handleInputChange}
-                        placeholder='123 Main St, New York, NY 10001'
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                      <input
-                        type="text"
-                        name="city"
-                        value={updatedData.city}
-                        onChange={handleInputChange}
-                        placeholder='New York'
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                      <input
-                        type="text"
-                        name="state"
-                        value={updatedData.state}
-                        onChange={handleInputChange}
-                        placeholder='New York'
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
-                      <input
-                        type="text"
-                        name="zipCode"
-                        value={updatedData.zipCode}
-                        onChange={handleInputChange}
-                        placeholder='10001'
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                    <input
-                      type="text"
-                      name="country"
-                      value={updatedData.country}
-                      onChange={handleInputChange}
-                      placeholder='USA'
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <button
-                      onClick={() => {
-                        setIsEditing(false);
-                        setImagePreview(user?.image || null);
-                      }}
-                      className="px-4 py-2 border border-gray-300 rounded-lg font-medium"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleSaveProfile}
-                      disabled={isLoading}
-                      className="px-6 py-2 bg-[#088178] text-white rounded-lg font-medium flex items-center gap-2"
-                    >
-                      {isLoading ? 'Saving...' : 'Save Changes'}
-                    </button>
-                  </div>
-                </div>
+              <div className='min-w-full'>
+                 <ProfileUserInfoUpdate setIsEditing={setIsEditing} setImagePreview={setImagePreview} updatedData={updatedData} setUpdatedData={setUpdatedData}></ProfileUserInfoUpdate>
+              </div>
               ) : (
                 <div className="flex flex-col md:flex-row lg:flex-row items-center justify-between w-full">
                   <div>
@@ -457,46 +299,7 @@ const handleProfileDelete = async() => {
         {/* Main profile content */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar navigation */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden sticky top-8">
-              <nav className="space-y-1 p-4">
-                {[
-                  { id: 'overview', icon: FaUser, label: 'Overview', count: null },
-                  { id: 'orders', icon: FaShoppingBag, label: 'My Orders', count: orders?.length || 1 }, 
-                  { id: 'reports', icon: FaFlag, label: 'My Reports', count: reports?.meta?.total || 0 },
-
-                  { id: 'wishlist', icon: FaHeart, label: 'Wishlist', count: wishlist.length },
-                  // { id: 'addresses', icon: FaMapMarkerAlt, label: 'Addresses', count: addresses.length },
-                  { id: 'settings', icon: FaCog, label: 'Settings', count: null },
-                ]?.map((item) => (
-                  <motion.button
-                    key={item.id}
-                    whileHover={{ x: 5 }}
-                    onClick={() => setActiveTab(item.id)}
-                    className={`w-full cursor-pointer flex items-center justify-between px-4 py-3 text-left rounded-lg transition-colors ${activeTab === item.id ? 'bg-[#088178] text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-                  >
-                    <div className="flex items-center gap-3 ">
-                      <item.icon className="text-lg" />
-                      <span>{item.label}</span>
-                    </div>
-                    {item.count !== null && (
-                      <span className={`px-2 py-1 text-xs rounded-full ${activeTab === item.id ? 'bg-white text-[#088178]' : 'bg-gray-200 text-gray-700'}`}>
-                        {item.count}
-                      </span>
-                    )}
-                  </motion.button>
-                ))}
-                <motion.button
-                  whileHover={{ x: 5 }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 rounded-lg hover:bg-red-50 mt-4"
-                  onClick={handleLogout}
-                >
-                  <FaSignOutAlt />
-                  <span>Sign Out</span>
-                </motion.button>
-              </nav>
-            </div>
-          </div>
+        <ProfileSidebar orders={orders} wishlist={wishlist} reports={reports} activeTab={activeTab} setActiveTab={setActiveTab}></ProfileSidebar>
 
           {/* Main content area */}
           <div className="lg:col-span-3">

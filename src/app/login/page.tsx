@@ -89,8 +89,8 @@ const LoginPage = () => {
 
 
   return (
-    <section className="px-10 py-10 md:py-10 lg:py-20 flex items-center justify-center min-h-screen bg-[#E3E6F3]">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg overflow-hidden">
+    <section className="md:px-10  md:py-10 lg:py-20 flex items-center justify-center min-h-screen bg-[#E3E6F3]">
+      <div className="w-full max-w-md bg-white md:rounded-lg lg:rounded-lg shadow-lg overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#088178] to-[#0abab5] p-6 text-center">
           <div className="flex justify-center mb-4">

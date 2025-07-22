@@ -38,7 +38,7 @@ export default function RootLayout({
         }>
           <Providers>
             {children}
-            <ToastContainer />
+src/app/(commonLayout)/forget-passwordsrc/app/(commonLayout)/forget-password            <ToastContainer />
           </Providers>
         </Suspense>
       </body>

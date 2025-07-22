@@ -86,30 +86,47 @@ const handleLogout = async () => {
 
   return (
     <section className="flex items-center justify-between bg-white shadow-md sticky top-0 z-50">
-      {/* Logo */}
-      <Link href="/" className="">
-        <Image src="/img/logo.png" width={70} height={10} alt="Logo" className="bg-transparent " />
-      </Link>
+     
+    <div className="flex items-center justify-between px-4 py-2">
+  {/* Mobile Menu Toggle */}
+  <button 
+    id="mobile-toggle"
+    onClick={toggleNav}
+    className="md:hidden p-2 text-gray-800 hover:text-[#088178] focus:outline-none z-50 "
+    aria-label="Toggle menu"
+  >
+    {isNavOpen ? <FiX className="text-2xl fixed right-10 top-5" /> : <FiMenu className="text-2xl" />}
+  </button>
 
-      {/* Mobile Menu Toggle */}
-      <button 
-        id="mobile-toggle"
-        onClick={toggleNav}
-        className="md:hidden p-2 text-gray-800 hover:text-[#088178] focus:outline-none z-50"
-        aria-label="Toggle menu"
-      >
-        {isNavOpen ? <FiX className="text-2xl" /> : <FiMenu className="text-2xl" />}
-      </button>
+  {/* Logo with flex-grow to center */}
+  <div className="flex-grow flex justify-center md:flex-grow-0">
+    <Link href="/">
+      <Image 
+        src="/img/logo.png" 
+        width={70} 
+        height={10} 
+        alt="Logo" 
+        className="bg-transparent" 
+      />
+    </Link>
+  </div>
+
+  {/* Spacer to balance the layout */}
+  <div className="md:hidden w-10"></div>
+
+</div>
+
+  
 
       {/* Navbar Links - Scrollable on mobile */}
       <div 
         ref={navRef}
         className={`fixed inset-0 md:relative h-screen md:h-auto w-full md:w-auto bg-[#E3E6F3] md:bg-transparent z-40 transition-all duration-300 ease-in-out
-        ${isNavOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+        ${isNavOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0 m-2  '}
          overflow-y-auto`}
         style={{ maxHeight: '100vh' }}
       >
-        <div className="flex flex-col h-full ">
+        <div className="flex flex-col h-full  ">
           <ul className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 pl-4 mt-5">
             {/* Main Navigation Links */}
             <li>
@@ -164,7 +181,32 @@ const handleLogout = async () => {
             </li>
 
             {/* Mobile-only profile links */}
-            <div className="md:hidden pt-4 border-t border-gray-300 ">
+            {! token ?
+            <div className="md:hidden lg:hidden ">
+              <hr/>
+             <li>
+                <Link 
+                  href="/wishlist" 
+                  className="flex items-center gap-2 py-3 text-[#1a1a1a] hover:text-[#088178] font-semibold transition-colors duration-300"
+                  onClick={() => setIsNavOpen(false)}
+                >
+                  <CiHeart className="text-2xl" />
+                  <span className="text-lg">Wishlist</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/login" 
+                  className="flex items-center gap-3 py-3 text-[#1a1a1a] hover:text-[#088178] font-semibold transition-colors duration-300"
+                  onClick={() => setIsNavOpen(false)}
+                >
+                  <GrLogin className="text-2xl" />
+                  <span className="text-lg">Login</span>
+                </Link>
+              </li>
+            </div>
+
+            :<div className="md:hidden pt-4 border-t border-gray-300 ">
               <li>
                 <Link 
                   href="/profile" 
@@ -215,7 +257,7 @@ const handleLogout = async () => {
                   <span className="text-lg">Logout</span>
                 </Link>
               </li>
-            </div>
+            </div>}
           </ul>
           
           {/* Spacer to push content up */}
@@ -231,8 +273,9 @@ const handleLogout = async () => {
         </div>
       </div>
 
+{/*   profile menu for largest device */}
       { !token ? 
-        <div className="md:flex items-center gap-4 pr-10  justify-center align-middle">
+        <div className=" flex items-center gap-4 pr-10  justify-center align-middle">
         {/* Wishlist */}
         <Link href="/wishlist" className="text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300 ">
           <FaRegHeart className="text-xl   font-extrabold" />

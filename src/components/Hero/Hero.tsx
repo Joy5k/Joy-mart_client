@@ -1,8 +1,8 @@
-import Image from "next/image"
+import Image from "next/image";
 
 const Hero = () => {
   return (
-    <section className="relative w-full h-[90vh]">
+    <section className="relative w-full h-[90vh] md:h-[80vh]">
       {/* Background image */}
       <Image
         src="/img/hero4.webp"
@@ -10,26 +10,37 @@ const Hero = () => {
         fill
         priority
         quality={85}
-        className="object-cover object-[top_25%_right_0]"
+        className="object-cover object-[top_25%_right_0] md:object-center"
         sizes="100vw"
         placeholder="blur"
         blurDataURL="/img/hero4-blur.webp"
       />
       
+      {/* Overlay for better text readability */}
+      <div className="absolute inset-0 bg-black/20 md:bg-transparent"></div>
+      
       {/* Content container */}
-      <div className="relative z-10 h-full flex items-center pl-[10%] w-full max-w-[1400px] mx-auto">
+      <div className="relative z-10 h-full flex items-center pl-[5%] md:pl-[10%] w-full max-w-[1400px] mx-auto">
         {/* Text content container */}
-        <div className="max-w-[750px] p-6 md:p-10 lg:p-20">
-          <h4 className="text-xl font-medium pb-[15px]">Trade-in-offer (update)</h4>
-          <h2 className="text-5xl font-bold mb-4">Super value deals</h2>
-          <h1 className="text-6xl font-extrabold mb-6 text-[#088178]">On all products</h1>
-          <p className="text-xl mb-8">Save more with coupons & up to 70% off!</p>
+        <div className="max-w-[750px] p-4 md:p-6 lg:p-20 bg-white/80 md:bg-transparent rounded-lg md:rounded-none mx-4 md:mx-0">
+          <h4 className="text-base md:text-xl font-medium pb-2 md:pb-[15px]">
+            Trade-in-offer (update)
+          </h4>
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4">
+            Super value deals
+          </h2>
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold mb-4 md:mb-6 text-[#088178]">
+            On all products
+          </h1>
+          <p className="text-sm md:text-xl mb-4 md:mb-8">
+            Save more with coupons & up to 70% off!
+          </p>
           
           {/* Custom button */}
           <button 
             className="relative inline-flex items-center justify-center 
-                      text-[#088178] font-bold text-[15px] 
-                      py-[14px] pl-[65px] pr-[80px]
+                      text-[#088178] font-bold text-sm md:text-[15px] 
+                      py-2 md:py-[14px] pl-12 md:pl-[65px] pr-16 md:pr-[80px]
                       cursor-pointer hover:opacity-90 transition-opacity 
                       overflow-hidden border-0 bg-transparent"
           >

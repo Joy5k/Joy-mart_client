@@ -3,7 +3,7 @@
 
 import { useSelector } from 'react-redux';
 import { RootState } from '@/src/redux/store';
-import { FaCheckCircle, FaTrash, FaShoppingCart, FaExclamationTriangle, FaMoneyBillWave } from 'react-icons/fa';
+import { FaCheckCircle, FaTrash, FaExclamationTriangle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
@@ -16,6 +16,7 @@ import { toast } from 'react-toastify';
 import { useInitiatePaymentMutation } from '@/src/redux/features/payment/paymentApi';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Checkout from '@/src/components/checkout/Checkout';
 
 const BookingPage = () => {
   const router = useRouter();
@@ -39,7 +40,6 @@ const BookingPage = () => {
   });
 
   const { data: bookingsData, refetch } = useGetAllBookingsQuery({});
-  console.log(bookingsData)
   const [deleteBooking] = useDeleteBookingMutation();
   const [initiatePayment, { isLoading:isProcessingPayment }] = useInitiatePaymentMutation();
   const bookings: Booking[] = bookingsData?.data || [];
@@ -132,7 +132,6 @@ const BookingPage = () => {
         productIds: selectedProducts.map(p => p._id),
         quantities: selectedProducts.map(p => quantityMap[p._id] || 1)
       };
-      console.log(paymentData)
       if (paymentMethod === 'cod') {
         const response = await initiatePayment(paymentData).unwrap();
         if (response?.success) {
@@ -214,9 +213,9 @@ const BookingPage = () => {
           animate={{ y: 0 }}
           className="text-center mb-12"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
             {activeTab === 'manage' ? 'Manage Your Bookings' : 'Checkout'}
-          </h1>
+          </h3>
           <p className="text-gray-600">
             {activeTab === 'manage' 
               ? 'View and manage your booked products' 
@@ -230,7 +229,7 @@ const BookingPage = () => {
               onClick={() => setActiveTab('manage')}
               className={`flex-1 py-4 px-6 cursor-pointer font-medium ${activeTab === 'manage' ? 'text-[#088178] border-b-2 border-[#088178]' : 'text-gray-500'}`}
             >
-              Manage Bookings
+               Bookings
             </button>
             <button
               onClick={handleProceedToCheckout}
@@ -249,9 +248,9 @@ const BookingPage = () => {
                 className="space-y-6"
               >
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold text-gray-800">
+                  <h3 className="text-xl font-semibold text-gray-800">
                     Your Booked Products ({bookings.length})
-                  </h2>
+                  </h3>
                 </div>
 
                 {showNoSelectionWarning && selectedProducts.length === 0 && (
@@ -286,74 +285,91 @@ const BookingPage = () => {
                     </Link>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {bookings.map(booking => (
-                      <motion.div
-                        key={booking._id}
-                        whileHover={{ y: -2 }}
-                        className="border rounded-lg p-4 flex items-start"
-                      >
-                        <div className="flex-shrink-0 mr-4">
-                          <input
-                            type="checkbox"
-                            checked={selectedProducts.some(p => p._id === booking.productId._id)}
-                            onChange={() => toggleProductSelection(booking.productId)}
-                            className="h-5 w-5 text-[#088178] rounded mt-2"
-                          />
-                        </div>
-                        <div className="flex-1 flex items-start">
-                          <div className="flex-shrink-0 mr-4">
-                            <Image
-                              src={booking.productId.images[0] || '/img/placeholder-product.png'}
-                              width={80}
-                              height={80}
-                              alt={booking.productId.title}
-                              className="rounded-md object-cover"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <Link href={`/productDetails/${booking.productId._id}`}>
-                              <h3 className="font-medium text-gray-800 hover:text-[#088178]">{booking.productId.title}</h3>
-                            </Link>
-                            <div className="flex items-center mt-2">
-                              <span className="text-sm text-gray-600 mr-4">
-                                ${booking.productId.price} each
-                              </span>
-                              <div className="flex items-center">
-                                <button 
-                                  className="px-2 py-1 border rounded-l-lg"
-                                  onClick={() => handleQuantityChange(
-                                    booking._id, 
-                                    (quantityMap[booking._id] || booking.bookingQuantity) - 1
-                                  )}
-                                >
-                                  -
-                                </button>
-                                <span className="px-3 py-1 border-t border-b text-center w-12">
-                                  {quantityMap[booking._id] || booking.bookingQuantity}
-                                </span>
-                                <button 
-                                  className="px-2 py-1 border rounded-r-lg"
-                                  onClick={() => handleQuantityChange(
-                                    booking._id, 
-                                    (quantityMap[booking._id] || booking.bookingQuantity) + 1
-                                  )}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteBooking(booking._id)}
-                          className="p-2 text-red-500 hover:text-red-700 cursor-pointer"
-                        >
-                          <FaTrash />
-                        </button>
-                      </motion.div>
-                    ))}
-                  </div>
+                <div className="space-y-4">
+  {bookings.map(booking => (
+    <motion.div
+      key={booking._id}
+      whileHover={{ y: -2 }}
+      className="border rounded-lg p-4 flex flex-col sm:flex-row items-start gap-4"
+    >
+      {/* Checkbox - Top on mobile, left on desktop */}
+      <div className="flex items-center sm:flex-shrink-0 sm:mr-4">
+        <input
+          type="checkbox"
+          checked={selectedProducts.some(p => p._id === booking.productId._id)}
+          onChange={() => toggleProductSelection(booking.productId)}
+          className="h-5 w-5 text-[#088178] rounded"
+        />
+      </div>
+
+      {/* Product Image and Info - Stacked on mobile, row on desktop */}
+      <div className="flex-1 flex flex-col sm:flex-row items-start gap-4 w-full">
+        {/* Product Image */}
+        <div className="w-full sm:w-auto sm:flex-shrink-0">
+          <Image
+            src={booking.productId.images[0] || '/img/placeholder-product.png'}
+            width={80}
+            height={100}
+            alt={booking.productId.title}
+            className="rounded-md object-cover w-full sm:w-20 h-20"
+          />
+        </div>
+
+        {/* Product Details */}
+        <div className="flex-1 w-full">
+          <Link href={`/productDetails/${booking.productId._id}`} className="block">
+            <h3 className="font-medium text-gray-800 hover:text-[#088178] line-clamp-2">
+              {booking.productId.title}
+            </h3>
+          </Link>
+          
+          {/* Price and Quantity Controls */}
+          <div className="mt-2 flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4">
+            <span className="text-sm text-gray-600">
+              ${booking.productId.price} each
+            </span>
+            
+            <div className="flex items-center">
+              <button 
+                className="px-2 py-1 border rounded-l-lg hover:bg-gray-50"
+                onClick={() => handleQuantityChange(
+                  booking._id, 
+                  (quantityMap[booking._id] || booking.bookingQuantity) - 1
+                )}
+                disabled={(quantityMap[booking._id] || booking.bookingQuantity) <= 1}
+              >
+                -
+              </button>
+              <span className="px-3 py-1 border-t border-b text-center w-12">
+                {quantityMap[booking._id] || booking.bookingQuantity}
+              </span>
+              <button 
+                className="px-2 py-1 border rounded-r-lg hover:bg-gray-50"
+                onClick={() => handleQuantityChange(
+                  booking._id, 
+                  (quantityMap[booking._id] || booking.bookingQuantity) + 1
+                )}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete Button - Bottom right on mobile, top right on desktop */}
+      <div className="self-end sm:self-start ml-auto sm:ml-0">
+        <button
+          onClick={() => handleDeleteBooking(booking._id)}
+          className="p-2 text-red-500 hover:text-red-700 cursor-pointer"
+          aria-label="Delete booking"
+        >
+          <FaTrash />
+        </button>
+      </div>
+    </motion.div>
+  ))}
+</div>
                 )}
 
                 {bookings.length > 0 && (
@@ -361,7 +377,8 @@ const BookingPage = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleProceedToCheckout}
-                    className="w-full py-3 bg-[#088178] text-white rounded-lg font-medium mt-6"
+                    className={`w-full md:py-3 lg:py-3 ${selectedProducts.length ? "bg-[#088178] cursor-pointer" :"bg-gray-400 cursor-not-allowed"} text-white rounded-lg font-medium mt-6`}
+                    disabled={selectedProducts.length===0}
                   >
                     Proceed to Checkout ({selectedProducts.length})
                   </motion.button>
@@ -369,209 +386,21 @@ const BookingPage = () => {
               </motion.div>
             )}
 
-            {activeTab === 'checkout' && selectedProducts.length > 0 && (
-              <motion.div
-                initial={{ x: 10, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                className="space-y-8"
-              >
-                <h2 className="text-xl font-semibold text-gray-800">Checkout</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="p-6 bg-gray-50 rounded-lg">
-                      <h3 className="font-medium mb-4">Customer Information</h3>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm text-gray-600 mb-1">Full Name*</label>
-                          <input 
-                            type="text" 
-                            placeholder="John Doe" 
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                            value={customerInfo.name}
-                            onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm text-gray-600 mb-1">Email*</label>
-                          <input 
-                            type="email" 
-                            placeholder="john@example.com" 
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                            value={customerInfo.email}
-                            onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm text-gray-600 mb-1">Phone Number*</label>
-                          <input 
-                            type="tel" 
-                            placeholder="01XXXXXXXXX" 
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                            value={customerInfo.phone}
-                            onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm text-gray-600 mb-1">Address*</label>
-                          <textarea 
-                            placeholder="Your address" 
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                            value={customerInfo.address}
-                            onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
-                            required
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-1">City</label>
-                            <input 
-                              type="text" 
-                              placeholder="City" 
-                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                              value={customerInfo.city}
-                              onChange={(e) => setCustomerInfo({...customerInfo, city: e.target.value})}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-1">Postal Code</label>
-                            <input 
-                              type="text" 
-                              placeholder="Postal Code" 
-                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
-                              value={customerInfo.postcode}
-                              onChange={(e) => setCustomerInfo({...customerInfo, postcode: e.target.value})}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Payment Method Selection */}
-                    <div className="p-6 bg-gray-50 rounded-lg">
-                      <h3 className="font-medium mb-4">Payment Method</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="online-payment"
-                            name="paymentMethod"
-                            checked={paymentMethod === 'online'}
-                            onChange={() => setPaymentMethod('online')}
-                            className="h-4 w-4 text-[#088178] focus:ring-[#088178]"
-                          />
-                          <label htmlFor="online-payment" className="ml-3 block text-sm font-medium text-gray-700">
-                            Pay Online (SSLCommerz)
-                          </label>
-                        </div>
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            id="cod-payment"
-                            name="paymentMethod"
-                            checked={paymentMethod === 'cod'}
-                            onChange={() => setPaymentMethod('cod')}
-                            className="h-4 w-4 text-[#088178] focus:ring-[#088178]"
-                          />
-                          <label htmlFor="cod-payment" className="ml-3 block text-sm font-medium text-gray-700">
-                            Cash on Delivery (COD)
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="p-6 bg-gray-50 rounded-lg">
-                      <h3 className="font-medium mb-4">Order Summary</h3>
-                      
-                      <div className="space-y-3">
-                        {selectedProducts.map(product => (
-                          <div key={product._id} className="flex justify-between items-center">
-                            <div>
-                              <p className="text-gray-600">{product.title}</p>
-                              <p className="text-xs text-gray-500">
-                                Qty: {quantityMap[product._id] || 1}
-                              </p>
-                            </div>
-                            <span>
-                              ${(product.price * (quantityMap[product._id] || 1)).toFixed(2)}
-                            </span>
-                          </div>
-                        ))}
-                        
-                        <div className="border-t pt-3 mt-3">
-                          <div className="flex justify-between font-medium">
-                            <span>Total</span>
-                            <span className="text-[#088178]">
-                              ${
-                                selectedProducts.reduce(
-                                  (total, product) => 
-                                    total + (product.price * (quantityMap[product._id] || 1)),
-                                  0
-                                ).toFixed(2)
-                              }
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex space-x-4">
-                      <button
-                        onClick={() => setActiveTab('manage')}
-                        className="flex-1 py-3 border border-gray-300 rounded-lg font-medium"
-                      >
-                        Back
-                      </button>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handlePayment}
-                        className={`flex-1 py-3 rounded-lg font-medium flex items-center justify-center ${
-                          paymentMethod === 'cod' 
-                            ? 'bg-green-600 text-white' 
-                            : 'bg-[#088178] text-white'
-                        }`}
-                        disabled={isProcessingPayment}
-                      >
-                        {isProcessingPayment ? (
-                          <div className="flex items-center">
-                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Processing...
-                          </div>
-                        ) : (
-                          <>
-                            {paymentMethod === 'cod' ? (
-                              <>
-                                <FaMoneyBillWave className="mr-2" />
-                                Place Order
-                              </>
-                            ) : (
-                              <>
-                                <FaShoppingCart className="mr-2" />
-                                Pay with SSLCommerz
-                              </>
-                            )}
-                          </>
-                        )}
-                      </motion.button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
+   {activeTab === 'checkout' && selectedProducts.length > 0 && (
+        <Checkout 
+        customerInfo={customerInfo}
+        setCustomerInfo={setCustomerInfo}
+        paymentMethod={paymentMethod}
+        setPaymentMethod={setPaymentMethod}
+        isProcessingPayment={isProcessingPayment}
+        handlePayment={handlePayment}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        selectedProducts={selectedProducts}
+        quantityMap={quantityMap}
+      />
+           
+      )}
           </div>
         </div>
       </div>

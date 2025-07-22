@@ -4,7 +4,7 @@ import Loader from "@/src/hooks/loader"
 import { useGetProductByIdQuery } from "@/src/redux/features/productManagement/productApi"
 import { useParams } from "next/navigation"
 import Image from 'next/image'
-import { faStar, faHeart, faShoppingCart, faFlag, faEllipsisV } from '@fortawesome/free-solid-svg-icons'
+import { faStar, faHeart, faShoppingCart, faFlag } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useState } from 'react'
 import { useAppDispatch } from "@/src/redux/hooks"
@@ -52,16 +52,18 @@ function ProductDetails() {
     })
     const [selectedComment, setSelectedComment] = useState<any>(null);
     const [editingComment, setEditingComment] = useState<any>(null);
+       const [updateRating,setUpdateRating]=useState(editingComment?.rating || 0)
+    const[updateComment,setUpdateComment]=useState(editingComment?.comment || "")
     const [bookingMutation,{isLoading:bookingLoading}]=useCreateBookingMutation()
     const [ReportProduct]=useReportProductMutation()
     const [createComment,{isLoading:createCommentLoading}]=useCreateProductCommentMutation()
     const {data:comments}=useGetProductCommentsQuery({productId:id})
     const [deleteComment] = useDeleteProductCommentMutation();
-    const [updateComment] = useUpdateProductCommentMutation();
+    const [updateCommentMutation] = useUpdateProductCommentMutation();
+
     const handleAddToWishlist = (product: any) => {
         dispatch(addItem(product))
     }
-
 
 const handleDeleteComment = async (commentId: string) => {
     try {
@@ -75,14 +77,14 @@ const handleDeleteComment = async (commentId: string) => {
 
 const handleUpdateReview = async () => {
     if (!editingComment) return;
-    
+    const commentData={
+        rating:updateRating ? updateRating : editingComment.rating,
+        comment: updateComment ? updateComment : editingComment.comment
+    }
     try {
-      const res=  await updateComment({
+      const res=  await updateCommentMutation({
             commentId: editingComment._id,
-            commentData: {
-                rating,
-                comment: review
-            }
+            commentData
         }).unwrap();
         console.log(res,'update review',rating)
     if(res.success){
@@ -91,8 +93,8 @@ const handleUpdateReview = async () => {
             autoClose:1000
         })
         setEditingComment(null);
-        setReview('');
-        setRating(0);
+        setUpdateComment('');
+        setUpdateRating(0);
     }
         
     } catch (error) {
@@ -166,8 +168,26 @@ const handleBookingMutation=async(productId:string)=>{
 }
 
 const handleAddReview=async()=>{
-    alert("clicked")
+    const payload={
+        productId:product._id,
+        comment:review,
+        rating
+    }
+    try {
+        const res= await createComment(payload).unwrap()
+        console.log(res,payload)
+        if(res.success){
+            toast.success("Comment added successfully",{
+                position:"top-center",
+                autoClose:1000
+            })
+            setRating(0)
+        }
+    } catch (error) {
+        
+    }
 }
+
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -204,18 +224,18 @@ const handleAddReview=async()=>{
 
                 {/* Product Info */}
                 <div className="w-full md:w-1/2">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2">{product.title}</h1>
+                    <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-2">{product.title}</h3>
                     <div className="flex items-center mb-4">
                         <div className="flex text-yellow-400 mr-2">
                             {[...Array(5)].map((_, i) => (
                                 <FontAwesomeIcon 
                                     key={i} 
                                     icon={faStar} 
-                                    className={`w-4 h-4 ${i < Math.floor(product.rating?.average || 0) ? 'text-yellow-400' : 'text-gray-300'}`} 
+                                    className={`w-4 h-4 ${i < Math.floor(product.rating?.average || 0) && 'text-yellow-400' }`} 
                                 />
                             ))}
                         </div>
-                        <span className="text-gray-600 text-sm">({product.rating?.count || 0} customer reviews)</span>
+                        <span className="text-gray-600 text-sm">({product.rating?.count || Math.floor(Math.random() * 10)} customer reviews)</span>
                     </div>
 
                     <div className="mb-6">
@@ -278,9 +298,7 @@ const handleAddReview=async()=>{
                             Add to Cart
                             
                         </button>
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors cursor-pointer">
-                            Buy Now
-                        </button>
+                       
                     </div>}
 
                     <div className="border-t pt-4">
@@ -334,41 +352,41 @@ const handleAddReview=async()=>{
             <h3 className="text-lg font-semibold mb-4">What Customers Are Saying</h3>
             {comments?.data?.meta.total > 0 ? (
                 <div className="space-y-6">
-                    {comments?.data?.result.map((review: any) => (
-                        <div key={review._id} className="border-b pb-4 relative">
+                    {comments?.data?.result.map((comment: any) => (
+                        <div key={comment._id} className="border-b pb-4 relative">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <h4 className="font-medium">{review?.userName || "Guest"}</h4>
+                                    <h4 className="font-medium">{comment?.userName || "Guest"}</h4>
                                 <div className="flex text-yellow-400 my-1">
                                          {[...Array(5)].map((_, i) => (
                                            <FontAwesomeIcon
                                              key={i}
                                              icon={faStar}
-                                             className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                                             className={`w-4 h-4 ${i < comment.rating ? 'text-yellow-400' : 'text-gray-300'}`}
                                            />
                                          ))}
                                 </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="text-gray-500 text-sm">
-                                        {new Date(review.createdAt).toLocaleDateString()}
+                                        {new Date(comment.createdAt).toLocaleDateString()}
                                     </span>
                                     <div className="relative">
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setSelectedComment(selectedComment?._id === review._id ? null : review);
+                                                setSelectedComment(selectedComment?._id === comment._id ? null : comment);
                                             }}
                                             className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
                                         >
                                             <FaEllipsisV className="w-4 h-4" />
                                         </button>
                                         
-                                        {selectedComment?._id === review._id && (
+                                        {selectedComment?._id === comment._id && (
                                             <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg z-50 border border-gray-200">
                                                 <button
                                                     onClick={() => {
-                                                        setEditingComment(review);
+                                                        setEditingComment(comment);
                                                         setSelectedComment(null);
                                                     }}
                                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -376,7 +394,7 @@ const handleAddReview=async()=>{
                                                     Edit
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDeleteComment(review._id)}
+                                                    onClick={() => handleDeleteComment(comment._id)}
                                                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                                                 >
                                                     Delete
@@ -386,7 +404,7 @@ const handleAddReview=async()=>{
                                     </div>
                                 </div>
                             </div>
-                            <p className="text-gray-700 mt-2">{review.comment}</p>
+                            <p className="text-gray-700 mt-2">{comment.comment}</p>
                         </div>
                     ))}
                 </div>
@@ -429,74 +447,75 @@ const handleAddReview=async()=>{
                 onClick={handleAddReview}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors"
             >
-                Submit Review
+               {createCommentLoading ? "Saving..." :"Submit Review"}
             </button>
         </div>
 
         {/* Edit Comment Modal */}
-        {editingComment && (
-            <div className="fixed inset-0 bg-gray-900/10 backdrop-blur-sm flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold">Edit Your Review</h3>
+     {editingComment && (
+  <div className="fixed inset-0 bg-gray-900/10 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">Edit Your Review</h3>
+        <button
+          onClick={() => {
+            setEditingComment(null);
+         setUpdateComment(""); 
+            setUpdateRating(""); 
+          }}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          <FaTimes />
+        </button>
+      </div>
+      <div className="mb-4">
+        <label className="block text-gray-700 mb-2">Your Rating</label>
+        <div className="flex">
+          {[1, 2, 3, 4, 5].map((star) => (
                         <button
-                            onClick={() => {
-                                setEditingComment(null);
-                                setReview('');
-                                setRating(0);
-                            }}
-                            className="text-gray-500 hover:text-gray-700"
+                            key={star}
+                            onClick={() => setUpdateRating(star)}
+                            className="text-2xl mr-1 focus:outline-none"
                         >
-                            <FaTimes />
+                            <FontAwesomeIcon
+                                icon={faStar}
+                                className={star <= updateRating ? 'text-yellow-400' : 'text-gray-300'}
+                            />
                         </button>
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 mb-2">Your Rating</label>
-                        <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                                <button
-                                    key={star}
-                                    onClick={() => setRating(star)}
-                                    className="text-2xl mr-1 focus:outline-none"
-                                >
-                                    <FontAwesomeIcon
-                                        icon={faStar}
-                                        className={star <= rating ? 'text-yellow-400' : 'text-gray-300'}
-                                    />
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 mb-2">Your Review</label>
-                        <textarea
-                            value={review}
-                            onChange={(e) => setReview(e.target.value)}
-                            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                            rows={4}
-                        ></textarea>
-                    </div>
-                    <div className="flex justify-end space-x-3">
-                        <button
-                            onClick={() => {
-                                setEditingComment(null);
-                                setReview('');
-                                setRating(0);
-                            }}
-                            className="px-4 py-2 border rounded-md hover:bg-gray-100"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleUpdateReview}
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
-                        >
-                            Update Review
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )}
+                    ))}
+        </div>
+      </div>
+      <div className="mb-4">
+        <label className="block text-gray-700 mb-2">Your Review</label>
+        <textarea
+          value={updateComment ? updateComment : editingComment?.comment}
+          onChange={(e) => setUpdateComment(e.target.value)}
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+          rows={4}
+        ></textarea>
+      </div>
+
+      <div className="flex justify-end space-x-3">
+        <button
+          onClick={() => {
+            setEditingComment(null);
+            setUpdateComment('');
+            setUpdateRating(0);
+          }}
+          className="px-4 py-2 border rounded-md hover:bg-gray-100"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleUpdateReview}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+        >
+          Update Review
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
 )}
                 </div>

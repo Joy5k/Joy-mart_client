@@ -10,7 +10,11 @@ import { useLoginMutation } from '@/src/redux/features/Auth/authApi';
 import { getToken, setToken } from '@/src/utils/localStorageManagement';
 import { useAppDispatch } from '@/src/redux/hooks';
 import { setUser } from '@/src/redux/features/Auth/authSlice';
-import { toast } from 'react-toastify';
+import Link from 'next/link';
+import { handleSocialLogin } from '../actions';
+import { auth } from '../auth';
+import { SocialSession } from '@/src/utils/socialAuth';
+
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -27,6 +31,7 @@ const LoginPage = () => {
 
   const redirect = searchParams.get('redirect') || '/'
 
+ 
 
 
  const getCookie = (name:string) => {
@@ -70,22 +75,22 @@ const LoginPage = () => {
     }
   };
 
- const handleSocialLogin = async (provider: 'google' | 'facebook') => {
-  toast.success(`clicked ${provider} social auth`)
-    // try {
-    //   setIsLoading(true);
-    //   const result = await signIn(provider, { callbackUrl: '/' });
+  const handleSocialAuth = async (provider: 'google' | 'facebook') => {
+    try {
       
-    //   if (result?.error) {
-    //     setError(result.error);
-    //   }
-    // } catch (err) {
-    //   setError('Failed to initiate login');
-    // } finally {
-    //   setIsLoading(false);
-    // }
+      // Manually create FormData
+      const formData = new FormData();
+      formData.append('action', provider);
+      
+     const res= await handleSocialLogin(formData, redirect);
+      if(res.success){
+        const res= await SocialSession()
+        console.log(res)
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
-
 
 
   return (
@@ -108,23 +113,23 @@ const LoginPage = () => {
 
         <div className="p-6 sm:p-8">
           {/* Social Login Buttons */}
-          <div className="flex justify-between gap-4 mb-6">
-            <button
-              onClick={() => handleSocialLogin('google')}
-              className="cursor-pointer  flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              <FaGoogle className="text-red-500" />
-              <span className="text-sm">Google</span>
-            </button>
+        <div className="flex justify-between gap-4 mb-6">
+      <button
+        onClick={() => handleSocialAuth('google')}
+        className="cursor-pointer flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700 hover:bg-gray-50 transition-colors"
+      >
+        <FaGoogle className="text-red-500" />
+        <span className="text-sm">Google</span>
+      </button>
 
-            <button
-              onClick={() => handleSocialLogin('facebook')}
-              className="cursor-pointer  flex-1 flex items-center justify-center gap-2 bg-[#1877F2] text-white rounded-md py-2 px-4 hover:bg-[#166FE5] transition-colors"
-            >
-              <FaFacebook />
-              <span className="text-sm">Facebook</span>
-            </button>
-          </div>
+      <button
+        onClick={() => handleSocialAuth('facebook')}
+        className="cursor-pointer flex-1 flex items-center justify-center gap-2 bg-[#1877F2] text-white rounded-md py-2 px-4 hover:bg-[#166FE5] transition-colors"
+      >
+        <FaFacebook />
+        <span className="text-sm">Facebook</span>
+      </button>
+    </div>
 
           <div className="flex items-center my-4">
             <div className="flex-grow border-t border-gray-300"></div>
@@ -182,9 +187,9 @@ const LoginPage = () => {
                 </button>
               </div>
               <div className="mt-2 text-right">
-                <a href="/forgot-password" className="text-sm text-[#088178] hover:text-[#0abab5]">
+                <Link href="/forgot-password" className="text-sm text-[#088178] hover:text-[#0abab5]">
                   Forgot password?
-                </a>
+                </Link>
               </div>
             </div>
 

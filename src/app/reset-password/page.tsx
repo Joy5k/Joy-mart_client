@@ -55,7 +55,7 @@ const ResetPasswordPage = () => {
       }
     try {
       const response = await resetPassword({data}).unwrap();
-
+      console.log(response,'reset response')
       if (response.success) {
         setTimeout(() => router.push('/login'), 3000);
       } else {

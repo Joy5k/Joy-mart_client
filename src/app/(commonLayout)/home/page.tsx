@@ -1,4 +1,3 @@
-'use client'
 
 import Banner from "@/src/components/Banner/Banner"
 import Hero from "@/src/components/Hero/Hero"
@@ -19,8 +18,8 @@ import Subscribe from "@/src/components/userSubscribe/Subscribe"
     { id:6, image: '/img/features/f6.png', title: '24/7 Support' },
   ]
 
-const HomePage: NextPage = () => {
- 
+const HomePage: NextPage = async() => {
+
   return (
     <>
  

@@ -2,18 +2,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from 'react';
+import {  useEffect, useState } from 'react';
 import { useRouter,useSearchParams } from 'next/navigation';
 import { FaGoogle, FaFacebook, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Image from 'next/image';
-import { useLoginMutation } from '@/src/redux/features/Auth/authApi';
-import { getToken, setToken } from '@/src/utils/localStorageManagement';
+import { useLoginMutation, useLoginWithSocialMutation } from '@/src/redux/features/Auth/authApi';
+import {  setToken } from '@/src/utils/localStorageManagement';
 import { useAppDispatch } from '@/src/redux/hooks';
 import { setUser } from '@/src/redux/features/Auth/authSlice';
 import Link from 'next/link';
 import { handleSocialLogin } from '../actions';
 import { auth } from '../auth';
-import { SocialSession } from '@/src/utils/socialAuth';
 
 
 const LoginPage = () => {
@@ -24,31 +23,11 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const router = useRouter();
   const [LoginMutation]=useLoginMutation();
-  const userToken=getToken()
   const dispatch=useAppDispatch()
 
   const searchParams = useSearchParams()
-
   const redirect = searchParams.get('redirect') || '/'
 
- 
-
-
- const getCookie = (name:string) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) {
-      const part = parts.pop();
-      return part ? part.split(';').shift() : undefined;
-    }
-  }; 
-  const cookieToken=getCookie('authToken')
-  useEffect(() => {
-
-    if (cookieToken) {
-      router.push('/');
-    }
-  }, [userToken, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,12 +60,9 @@ const LoginPage = () => {
       // Manually create FormData
       const formData = new FormData();
       formData.append('action', provider);
-      
      const res= await handleSocialLogin(formData, redirect);
-      if(res.success){
-        const res= await SocialSession()
-        console.log(res)
-      }
+      
+     
     } catch (error) {
       console.error("Login failed:", error);
     }

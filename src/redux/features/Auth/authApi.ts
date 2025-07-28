@@ -9,6 +9,13 @@ const authApi = baseApi.injectEndpoints({
                     body:userInfo
             })
         }),
+        loginWithSocial:builder.mutation({
+            query:(userInfo)=>({
+                url:"/auth/social-login",
+                method:"POST",
+                body:userInfo
+            })
+        }),
         register: builder.mutation({
             query: (userInfo) => ({
                 url: "/auth/register",
@@ -73,6 +80,7 @@ const authApi = baseApi.injectEndpoints({
 
 export const {
     useLoginMutation,
+    useLoginWithSocialMutation,
     useRegisterMutation,
     useAuth2Mutation,
     useVerifyAuth2Mutation,

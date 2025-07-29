@@ -10,10 +10,10 @@ const authApi = baseApi.injectEndpoints({
             })
         }),
         loginWithSocial:builder.mutation({
-            query:(userInfo)=>({
+            query:({data})=>({
                 url:"/auth/social-login",
                 method:"POST",
-                body:userInfo
+                body:data
             })
         }),
         register: builder.mutation({

@@ -4,7 +4,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { FaUser, FaHeart,FaEdit, FaTrash, FaPlus, FaEyeSlash, FaEye, FaLock, FaFlag, FaTimes, FaExternalLinkAlt, FaBoxOpen, FaTrashAlt, FaExclamationTriangle } from 'react-icons/fa';
+import { FaUser, FaHeart,FaEdit, FaTrash, FaPlus, FaEyeSlash, FaEye, FaLock, FaFlag, FaTimes, FaExternalLinkAlt, FaBoxOpen, FaTrashAlt, FaExclamationTriangle, FaStore, FaInfoCircle } from 'react-icons/fa';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -12,7 +12,7 @@ import { toast } from 'react-toastify';
 import { removeToken } from '@/src/utils/localStorageManagement';
 import uploadImage from '@/src/hooks/imageUploader';
 import { IOrder, IProfile, ReportedProduct } from '@/src/types';
-import { useDeleteProfileMutation, useGetProfileQuery } from '@/src/redux/features/profile/profileApi';
+import { useDeleteProfileMutation, useGetProfileQuery, useUpdateProfileMutation } from '@/src/redux/features/profile/profileApi';
 import { useChangePasswordMutation, useLogoutMutation } from '@/src/redux/features/Auth/authApi';
 import { format } from 'date-fns';
 import TransId from '@/src/components/profileComponents/transId/TransId';
@@ -48,17 +48,20 @@ const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:a
     dateOfBirth: '',
     isDeleted: false,
   });
-
+console.log(user)
 
   const [changePassword,setChangePassword]=useState({
     currentPassword:"",
     newPassword:"",
     confirmPassword:""
   })
+  
   const [passwordError,setPasswordError]=useState<string>("")
   const [changePasswordMutation]=useChangePasswordMutation()
   const [deleteProfile,{isLoading:isProfileDeleting}]=useDeleteProfileMutation()
   const [logout]=useLogoutMutation()
+       const [updateProfile] = useUpdateProfileMutation();
+  
   // Initialize user data when component mounts or user changes
   useEffect(() => {
     if (user) {
@@ -186,7 +189,24 @@ const handleProfileDelete = async() => {
       
     }
   };
-
+const handleRoleChange = async (newRole:'user'|'seller') => {
+  try {
+    
+    
+    // Call API to update user role
+    const response = await updateProfile({role:newRole}).unwrap(); 
+    
+    if (response.success) {
+   
+      toast.success(`You are now a ${newRole}`);
+    } else {
+      toast.error(response.message || 'Failed to update role');
+    }
+  } catch (error) {
+    toast.error('An error occurred while updating your role');
+  } finally {
+  }
+};
 
  
 
@@ -739,10 +759,49 @@ const handleProfileDelete = async() => {
                 )}
 
                 {activeTab === 'settings' && (
-                  <div className="p-6">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Account Settings</h3>
-                    
-                    <div className="space-y-8">
+                   <div className="p-6">
+    <h3 className="text-2xl font-bold text-gray-900 mb-6">Account Settings</h3>
+    
+    <div className="space-y-8">
+      {/* Role Switching Section */}
+   <div className="border-b pb-6">
+  <h3 className="text-lg font-medium text-gray-900 mb-4">Account Type</h3>
+  <div className="max-w-md space-y-2">
+    <p className="text-gray-600 text-sm">
+      You're currently a {user?.role === 'seller' ? 'Seller' : 'User'}. 
+      {user?.role === 'user' ? ' Switch to seller account to start selling.' : ' Switch back to user account.'}
+    </p>
+    
+    <div className="flex items-center gap-4 mt-4">
+
+
+      {user?.role === 'seller' && (
+        <button
+          onClick={() => handleRoleChange('user')}
+          className="px-6 py-2.5 rounded-lg flex items-center gap-2 bg-[#088178] text-white hover:bg-[#076b64] transition-colors shadow-md hover:shadow-lg"
+        >
+          <FaUser /> Become User
+        </button>
+      )}
+      
+      {/* Show Become Seller button only if user is user */}
+      {user?.role === 'user' && (
+        <button
+          onClick={() => handleRoleChange('seller')}
+          className="px-6 py-2.5 rounded-lg flex items-center gap-2 bg-[#088178] text-white hover:bg-[#076b64] transition-colors shadow-md hover:shadow-lg"
+        >
+          <FaStore /> Become Seller
+        </button>
+      )}
+    </div>
+    
+    {user?.role === 'seller' && (
+      <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
+        <FaInfoCircle /> Seller account gives you access to list and manage products.
+      </p>
+    )}
+  </div>
+</div>
                       <div className="border-b pb-6">
                         <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
                         <div className="max-w-md space-y-4">
@@ -847,6 +906,7 @@ const handleProfileDelete = async() => {
                       
                             {/*  Handle User subscribetion belo */}
                             <SubscribeHandler></SubscribeHandler>
+
 {/* Profile Delete method and Modal  below  */}
                      <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Account</h3>

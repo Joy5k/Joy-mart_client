@@ -14,7 +14,8 @@ import { GrLogin } from "react-icons/gr";
 import TrackOrderModal from "../OrderTrackModal";
 import { verifyToken } from "@/src/utils/jwt";
 import { FaRegHeart } from "react-icons/fa";
-import { useLogoutMutation } from "@/src/redux/features/Auth/authApi";
+import { useLoginWithSocialMutation, useLogoutMutation } from "@/src/redux/features/Auth/authApi";
+import { SocialSession } from "@/src/utils/socialAuth";
 
 const Navbar = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -35,7 +36,17 @@ const Navbar = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-
+ const [socialLoginMutation]=useLoginWithSocialMutation()
+  
+    const handleSocialLogin=async()=>{
+    const session= await  SocialSession()
+    if(session){
+     await socialLoginMutation({data:session})
+    }
+  }
+  useEffect(()=>{
+    handleSocialLogin()
+  },[])
 
 useEffect(() => {
   if (authToken) {

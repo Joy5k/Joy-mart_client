@@ -8,25 +8,8 @@ export async function middleware(request: NextRequest) {
   const authRoutes = ['/login', '/register']
   const currentPath = request.nextUrl.pathname
   
-  // Get tokens from cookies
-  let authToken = request.cookies.get('authToken')?.value
-
-  // Check if authToken is expired
-  let isTokenExpired = false
-  let decodedToken: any = null
-  
-  if (authToken) {
-    try {
-      decodedToken = jwtDecode(authToken)
-      isTokenExpired = decodedToken.exp ? Date.now() >= decodedToken.exp * 1000 : false
-    } catch (error) {
-      isTokenExpired = true
-    }
-  }
-
-  // If authToken is expired but refreshToken exists, try to refresh
-  if ((!authToken || isTokenExpired)) {
-    try {
+  const authHandler=async()=>{
+        try {
       const response = await fetch(`${process.env.BACKEND_URL}/auth/refresh-token`, {
         method: 'POST',
         headers: {
@@ -73,8 +56,34 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const isAuthenticated = Boolean(authToken && !isTokenExpired)
+  // Get tokens from cookies
+  let authToken = request.cookies.get('authToken')?.value
 
+  // Check if authToken is expired
+  let isTokenExpired = false
+  let decodedToken: any = null
+  
+  if (authToken) {
+    try {
+      decodedToken = jwtDecode(authToken)
+      isTokenExpired = decodedToken.exp ? Date.now() >= decodedToken.exp * 1000 : false
+    } catch (error) {
+      isTokenExpired = true
+    }
+  }
+
+
+  // If authToken is expired but refreshToken exists, try to refresh
+  if (!authToken) {
+        authHandler()
+
+  } 
+   if (isTokenExpired){
+    authHandler()
+
+  }
+
+  const isAuthenticated = Boolean(authToken && !isTokenExpired)
   // 1. Protect private routes
   if (protectedRoutes.some(route => currentPath.startsWith(route))) {
     if (!isAuthenticated) {

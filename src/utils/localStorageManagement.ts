@@ -4,9 +4,9 @@ export const setToken = (token: string): void => {
   if (typeof window !== 'undefined') {
     // Using js-cookie for consistency (instead of document.cookie)
     Cookies.set('authToken', token, { 
-      expires: 365, // days
+      expires: 365, 
       path: '/',
-      secure: process.env.NODE_ENV === 'production', // secure in production
+      secure: process.env.NODE_ENV === 'production', 
       sameSite: 'strict'
     });
   }

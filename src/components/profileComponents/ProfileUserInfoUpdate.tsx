@@ -69,7 +69,9 @@ const { data, refetch } = useGetProfileQuery({});
                       value={updatedData.email}
                       onChange={handleInputChange}
                       placeholder='john@gmail.com'
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#088178] focus:border-[#088178] outline-none"
+                      disabled
+                      readOnly
+                      className="w-full px-4 py-2 border rounded-lg  outline-none text-[#088178]"
                     />
                   </div>
                   <div>

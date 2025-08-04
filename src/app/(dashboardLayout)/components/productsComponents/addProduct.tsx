@@ -50,7 +50,7 @@ function AddProduct({ isAddModalOpen, setIsAddModalOpen, onProductAdded }: AddPr
       processingTime: '3-5 business days'
     },
     isDeleted: false,
-    isActive: true
+    isActive: true,
   });
   const resetForm = () => {
     setNewProduct({
@@ -133,7 +133,6 @@ function AddProduct({ isAddModalOpen, setIsAddModalOpen, onProductAdded }: AddPr
 
     try {
       const response=await addProduct(newProduct).unwrap();
-      console.log(response,'response from addProduct')
       if (response.success) {
         toast.success('Product added successfully');
         setIsAddModalOpen(false);

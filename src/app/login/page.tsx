@@ -6,21 +6,12 @@ import {  useState } from 'react';
 import { useRouter,useSearchParams } from 'next/navigation';
 import { FaGoogle, FaFacebook, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Image from 'next/image';
-import { useLoginMutation, useLoginWithSocialMutation } from '@/src/redux/features/Auth/authApi';
+import { useLoginMutation } from '@/src/redux/features/Auth/authApi';
 import {  setToken } from '@/src/utils/localStorageManagement';
 import { useAppDispatch } from '@/src/redux/hooks';
 import { setUser } from '@/src/redux/features/Auth/authSlice';
 import Link from 'next/link';
 import { handleSocialLogin } from '../actions';
-import { SocialSession } from '@/src/utils/socialAuth';
-   // Define a type for the user object to satisfy TypeScript
-    type SocialUser = {
-      given_name?: string;
-      family_name?: string;
-      name?: string;
-      email: string;
-      [key: string]: any;
-    };
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');

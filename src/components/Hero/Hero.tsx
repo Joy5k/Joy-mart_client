@@ -1,25 +1,8 @@
-'use client'
 
-import { useLoginWithSocialMutation } from "@/src/redux/features/Auth/authApi";
-import { SocialSession } from "@/src/utils/socialAuth";
 import Image from "next/image";
-import { useEffect } from "react";
 
 const Hero = () => {
-    const [socialLoginMutation]=useLoginWithSocialMutation()
-  
-    const handleSocialLogin=async()=>{
-    const session= await  SocialSession()
-    if(session){
-      
-      const res=await socialLoginMutation({data:session})
-      console.log(res,'response from social login')
-    }
-    console.log(session)
-  }
-  useEffect(()=>{
-    handleSocialLogin()
-  },[])
+   
   return (
     <section className="relative w-full h-[90vh] md:h-[80vh]">
       {/* Background image */}

@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { useRegisterMutation } from '@/src/redux/features/Auth/authApi';
 import { setToken } from '@/src/utils/localStorageManagement';
 import { IFormData } from '@/src/types';
+import { handleSocialLogin } from '../actions';
 
 const RegisterPage = () => {
  const searchParams = useSearchParams()
@@ -56,9 +57,10 @@ const RegisterPage = () => {
     }
   };
 
-  const handleSocialRegister = (provider: string) => {
-    console.log(`Registering with ${provider}`);
-  };
+  const handleSocialRegister = async(provider: 'google' | 'facebook') => {
+    const formData = new FormData()
+    formData.append('action', provider)
+    await handleSocialLogin(formData)  };
 
   return (
     <section className=" md:px-10 lg:px-10 md:py-20 lg:py-20 flex items-center justify-center min-h-screen bg-[#E3E6F3]">

@@ -9,17 +9,9 @@ const productApi=baseApi.injectEndpoints({
         const queryParams = new URLSearchParams();
         
         // Search term
-        if (params?.searchTerm) {
-          queryParams.append('searchTerm', params.searchTerm);
-        }
+        if (params?.searchTerm) queryParams.append('searchTerm', params.searchTerm);
         
-        // Categories (handle both array and string)
-        if (params?.category) {
-          const categories = Array.isArray(params.category) 
-            ? params.category.join(',') 
-            : params.category;
-          queryParams.append('category', categories);
-        }
+      
         
         // Price range
         if (params?.minPrice) {
@@ -54,6 +46,30 @@ const productApi=baseApi.injectEndpoints({
       },
       providesTags: [tagTypes.product],
     }),
+
+   getAllProductsForAdmin: builder.query({
+    query: (queryParams) => {
+    const params = new URLSearchParams();
+    
+    // Add all possible parameters
+    if (queryParams.searchTerm) params.append('searchTerm', queryParams.searchTerm);
+    if (queryParams.title) params.append('title', queryParams.title);
+    if (queryParams.category) params.append('category', queryParams.category);
+    if (queryParams.minPrice) params.append('minPrice', queryParams.minPrice.toString());
+    if (queryParams.maxPrice) params.append('maxPrice', queryParams.maxPrice.toString());
+    if (queryParams.sort) params.append('sort', queryParams.sort);
+    if (queryParams.inStock) params.append('inStock', queryParams.inStock.toString());
+    if (queryParams.discountPercentage) params.append('discountPercentage', queryParams.discountPercentage.toString());
+    params.append('page', queryParams.page.toString());
+    params.append('limit', queryParams.limit.toString());
+    
+    return {
+      url: `/product/get-all-products-for-admin?${params.toString()}`,
+      method: 'GET',
+    };
+  },
+  providesTags: [tagTypes.product],
+}),
         getProductById: builder.query({
             query: (id) => ({
                 url: `/product/getSingle-product/${id}`,
@@ -90,6 +106,7 @@ const productApi=baseApi.injectEndpoints({
 
 export const {
     useGetProductsQuery,
+    useGetAllProductsForAdminQuery,
     useGetProductByIdQuery,
     useCreateProductMutation,
     useUpdateProductMutation,

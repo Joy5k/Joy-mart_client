@@ -7,22 +7,9 @@ import { useGetProductsQuery } from '@/src/redux/features/productManagement/prod
 import { IProduct, TCategory } from '@/src/types'
 import { useGetCategoriesQuery } from '@/src/redux/features/productManagement/categoryApi'
 
-interface ProductQueryParams {
-  searchTerm?: string
-  category?: string
-  minPrice?: number
-  maxPrice?: number
-  sort?: string
-  inStock?: boolean
-  page?: number
-  limit?: number
-}
-
 const ProductsPage = () => {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const pageFromUrl = searchParams.get('page')
-  const categoryFromUrl = searchParams.get('category')
 
   // Filter and sort states
   const [searchQuery, setSearchQuery] = useState('')
@@ -30,7 +17,7 @@ const ProductsPage = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000])
   const [sortOption, setSortOption] = useState('-createdAt')
   const [inStockOnly, setInStockOnly] = useState(false)
-  // Pagination
+
   const [currentPage, setCurrentPage] = useState(pageFromUrl ? parseInt(pageFromUrl) : 1)
   const productsPerPage = 12
 
@@ -57,14 +44,12 @@ const ProductsPage = () => {
   }, [])
 
 
-  // Fetch products with all filters
   const { data, isLoading, isError } = useGetProductsQuery({
     searchTerm: searchQuery,
     category: selectedCategories.join(','), 
     minPrice: priceRange[0],
     maxPrice: priceRange[1],
     sort: sortOption,
-    // inStock: inStockOnly,
     page: currentPage,
     limit: productsPerPage,
   })
@@ -89,7 +74,7 @@ const ProductsPage = () => {
         : [...prev, categoryId]
       return newCategories
     })
-    setCurrentPage(1) // Reset to first page when filters change
+    setCurrentPage(1)
   }
 
   const handlePriceChange = (index: number, value: number) => {
@@ -98,7 +83,6 @@ const ProductsPage = () => {
     setPriceRange(newPriceRange)
     setCurrentPage(1)
   }
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

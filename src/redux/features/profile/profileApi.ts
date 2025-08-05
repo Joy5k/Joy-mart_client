@@ -41,6 +41,14 @@ const profileApi=baseApi.injectEndpoints({
             }),
             invalidatesTags:[tagTypes.profile]
         }),
+        updateRole:builder.mutation({
+            query: () => ({
+                url: `/profiles/become-seller-or-user`,
+                method: "PUT",
+               
+            }),
+            invalidatesTags: [tagTypes.profile],
+        }),
     
    getMe: builder.query({
             query: () => ({
@@ -59,6 +67,7 @@ export const {
     useCreateProfileMutation,
     useDeleteProfileMutation,
     useUpdateProfileMutation,
+    useUpdateRoleMutation,
     useGetMeQuery
 
 } = profileApi;

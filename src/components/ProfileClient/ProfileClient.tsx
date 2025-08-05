@@ -12,7 +12,7 @@ import { toast } from 'react-toastify';
 import { removeToken } from '@/src/utils/localStorageManagement';
 import uploadImage from '@/src/hooks/imageUploader';
 import { IOrder, IProfile, ReportedProduct } from '@/src/types';
-import { useDeleteProfileMutation, useGetProfileQuery, useUpdateProfileMutation } from '@/src/redux/features/profile/profileApi';
+import { useDeleteProfileMutation, useGetProfileQuery, useUpdateRoleMutation } from '@/src/redux/features/profile/profileApi';
 import { useChangePasswordMutation, useLogoutMutation } from '@/src/redux/features/Auth/authApi';
 import { format } from 'date-fns';
 import TransId from '@/src/components/profileComponents/transId/TransId';
@@ -48,7 +48,6 @@ const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:a
     dateOfBirth: '',
     isDeleted: false,
   });
-console.log(user)
 
   const [changePassword,setChangePassword]=useState({
     currentPassword:"",
@@ -60,7 +59,7 @@ console.log(user)
   const [changePasswordMutation]=useChangePasswordMutation()
   const [deleteProfile,{isLoading:isProfileDeleting}]=useDeleteProfileMutation()
   const [logout]=useLogoutMutation()
-       const [updateProfile] = useUpdateProfileMutation();
+       const [updateProfile] = useUpdateRoleMutation();
   
   // Initialize user data when component mounts or user changes
   useEffect(() => {
@@ -194,7 +193,7 @@ const handleRoleChange = async (newRole:'user'|'seller') => {
     
     
     // Call API to update user role
-    const response = await updateProfile({role:newRole}).unwrap(); 
+    const response = await updateProfile({}).unwrap(); 
     
     if (response.success) {
    
@@ -778,7 +777,7 @@ const handleRoleChange = async (newRole:'user'|'seller') => {
       {user?.role === 'seller' && (
         <button
           onClick={() => handleRoleChange('user')}
-          className="px-6 py-2.5 rounded-lg flex items-center gap-2 bg-[#088178] text-white hover:bg-[#076b64] transition-colors shadow-md hover:shadow-lg"
+          className="px-6 py-2.5 rounded-lg cursor-pointer flex items-center gap-2 bg-[#088178] text-white hover:bg-[#076b64] transition-colors shadow-md hover:shadow-lg"
         >
           <FaUser /> Become User
         </button>
@@ -788,7 +787,7 @@ const handleRoleChange = async (newRole:'user'|'seller') => {
       {user?.role === 'user' && (
         <button
           onClick={() => handleRoleChange('seller')}
-          className="px-6 py-2.5 rounded-lg flex items-center gap-2 bg-[#088178] text-white hover:bg-[#076b64] transition-colors shadow-md hover:shadow-lg"
+          className="px-6 py-2.5 rounded-lg flex cursor-pointer items-center gap-2 bg-[#088178] text-white hover:bg-[#076b64] transition-colors shadow-md hover:shadow-lg"
         >
           <FaStore /> Become Seller
         </button>

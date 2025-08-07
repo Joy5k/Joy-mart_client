@@ -7,7 +7,7 @@ import { useRouter,useSearchParams } from 'next/navigation';
 import { FaGoogle, FaFacebook, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Image from 'next/image';
 import { useLoginMutation } from '@/src/redux/features/Auth/authApi';
-import {  setToken } from '@/src/utils/localStorageManagement';
+import {  getToken, setToken } from '@/src/utils/localStorageManagement';
 import { useAppDispatch } from '@/src/redux/hooks';
 import { setUser } from '@/src/redux/features/Auth/authSlice';
 import Link from 'next/link';
@@ -37,9 +37,8 @@ const LoginPage = () => {
          dispatch(setUser({
         authToken: res.data.accessToken
       }));
-   
-        setToken(res.data.accessToken);
-        const decodedRedirect = decodeURIComponent(redirect)
+      setToken(res.data?.accessToken);
+      const decodedRedirect = decodeURIComponent(redirect)
       router.push(decodedRedirect)
       }
     } catch (err:any) {
@@ -49,6 +48,8 @@ const LoginPage = () => {
       setIsLoading(false);
     }
   };
+
+
 
 const handleSocialAuth = async (provider: 'google' | 'facebook') => {
   
@@ -105,9 +106,23 @@ const handleSocialAuth = async (provider: 'google' | 'facebook') => {
           <div className="flex items-center my-4">
             <div className="flex-grow border-t border-gray-300"></div>
             <span className="mx-4 text-gray-500 text-sm">or</span>
+            
             <div className="flex-grow border-t border-gray-300"></div>
+            
           </div>
-
+<div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+  <p className="text-sm font-medium text-gray-700 mb-2">Login as Super Admin</p>
+  <div className="flex flex-col md:flex-row justify-center items-center gap-2 text-sm text-gray-600">
+    <div className="flex items-center">
+      <FaEnvelope className="mr-2 text-[#088178]" />
+      <span>mmehedihasanjoyv@gmail.com</span>
+    </div>
+    <div className="flex items-center">
+      <FaLock className="mr-2 text-[#088178]" />
+      <span>1922745769</span>
+    </div>
+  </div>
+</div>
           {/* Login Form */}
           <form onSubmit={handleSubmit}>
             {error && (
@@ -184,7 +199,7 @@ const handleSocialAuth = async (provider: 'google' | 'facebook') => {
               )}
             </button>
           </form>
-
+            
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don&apos;t have an account?{' '}

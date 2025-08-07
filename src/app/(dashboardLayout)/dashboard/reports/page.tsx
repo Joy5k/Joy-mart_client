@@ -12,6 +12,8 @@ import Loader from '@/src/hooks/loader';
 import { FaTrash, FaTimes, FaExternalLinkAlt, FaCheck, FaBan } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { ReportedProduct } from '@/src/types';
+import { useRouter } from 'next/navigation';
+import { getUserRole } from '@/src/utils/localStorageManagement';
 
 
 
@@ -32,7 +34,13 @@ const AdminReportedProductsPage = () => {
     searchTerm,
     status: statusFilter === 'all' ? undefined : statusFilter,
   });
+  const router=useRouter()
+  const userRole = getUserRole();
 
+if (userRole !== 'superAdmin' && userRole !== 'admin') {
+    router.push('/dashboard');
+    return null;
+}
   // Mutations
   const [replyToReport,{isLoading:adminReplyLoading}] = useReplyReportedProductMutation();
   const [deleteReportedProduct] = useDeleteReportedProductByAdminMutation();

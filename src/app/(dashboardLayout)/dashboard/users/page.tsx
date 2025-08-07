@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiUser, FiEdit2, FiTrash2, FiPlus, FiSearch, FiRefreshCw } from 'react-icons/fi';
-import { IFormData, IProfile, Role } from '@/src/types';
+import { IFormData, Role } from '@/src/types';
 
 import {  useCreateUserByAdminMutation, useGetAllUsersQuery, useUpdateUserMutation,useDeleteUserBySuperAdminMutation } from '@/src/redux/features/userManagement/usersApi';
 import { toast } from 'react-toastify';
 import { FaEnvelope, FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
+import { getUserRole } from '@/src/utils/localStorageManagement';
+import { useRouter } from 'next/navigation';
 
 export type UserStatus = 'in-progress' | 'active' | 'blocked';
 
@@ -30,7 +32,14 @@ interface ApiUser {
 }
 
 export default function UserManagementPage() {
- 
+  const router=useRouter()
+  const userRole = getUserRole();
+
+if (userRole !== 'superAdmin' && userRole !== 'admin') {
+    router.push('/dashboard');
+    return null;
+}
+
   const [userUpdatedInfo, setUserUpdateInfo] = useState<TUserUpdate>({
     id: '',
     role: 'user',
@@ -59,7 +68,6 @@ export default function UserManagementPage() {
   const [error, setError] = useState('');
   const { data: apiResponse, isLoading, refetch } = useGetAllUsersQuery(searchQuery);
 
-console.log(searchQuery)
   const [createUserByAdminMutation] = useCreateUserByAdminMutation();
   const [deleteUserMutation]=useDeleteUserBySuperAdminMutation()
 
@@ -159,7 +167,6 @@ console.log(searchQuery)
       console.error('Error updating user:', error);
     }
   };
-console.log(apiResponse)
 
 
   return (

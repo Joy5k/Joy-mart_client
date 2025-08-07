@@ -18,6 +18,8 @@ export default function UserDropdown() {
     const [logoutUser]=useLogoutMutation()
     const {data}=useGetMeQuery({})
   const {firstName,lastName,email,image}=data?.data ? data.data : {}
+
+  
   const handleLogout=async()=>{
 
     try {
@@ -30,7 +32,7 @@ export default function UserDropdown() {
     }))
     removeToken()
 
-    navigate.push('/login')
+    navigate.push('/')
   }
     catch (error) {
       console.error('Logout failed:', error);

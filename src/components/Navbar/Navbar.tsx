@@ -9,13 +9,14 @@ import { FaShop } from "react-icons/fa6";
 import { RiDashboard3Line } from "react-icons/ri";
 import { CiHeart } from "react-icons/ci";
 import { FiMenu, FiX } from "react-icons/fi";
-import { getToken } from "@/src/utils/localStorageManagement";
+import { getToken, removeToken } from "@/src/utils/localStorageManagement";
 import { GrLogin } from "react-icons/gr";
 import TrackOrderModal from "../OrderTrackModal";
 import { verifyToken } from "@/src/utils/jwt";
 import { FaRegHeart } from "react-icons/fa";
 import { useLoginWithSocialMutation, useLogoutMutation } from "@/src/redux/features/Auth/authApi";
 import { SocialSession } from "@/src/utils/socialAuth";
+import Loader from "@/src/hooks/loader";
 
 const Navbar = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -27,8 +28,8 @@ const Navbar = () => {
   const [userRole,setUserRole]=useState<string>('user')
 
   const [logoutUser]=useLogoutMutation()
+  
   const authToken = getToken();
-
   const toggleNav = () => {
     setIsNavOpen(!isNavOpen);
   };
@@ -36,7 +37,7 @@ const Navbar = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
- const [socialLoginMutation]=useLoginWithSocialMutation()
+ const [socialLoginMutation,{isLoading}]=useLoginWithSocialMutation()
   
     const handleSocialLogin=async()=>{
     const session= await  SocialSession()
@@ -49,12 +50,13 @@ const Navbar = () => {
   },[])
 
 useEffect(() => {
-  if (authToken) {
+  if (!authToken) {
+    return
+  }
     const {role}=verifyToken(authToken) as { role: string };
     console.log(role)
     setUserRole(role);
     setToken(authToken);
-  }
 
   const handleClickOutside = (event: MouseEvent) => {
   // Close dropdown if clicking outside
@@ -76,7 +78,7 @@ useEffect(() => {
 
  document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
- }, []);
+ }, [authToken]);
 
 const handleLogout = async () => {
   try {
@@ -89,6 +91,7 @@ const handleLogout = async () => {
     setToken('');
     setIsDropdownOpen(false);
     setIsNavOpen(false);
+    removeToken()
     
   } catch (error) {
     console.error('Logout failed:', error);
@@ -191,6 +194,9 @@ const handleLogout = async () => {
               </Link>
             </li>
 
+          <>
+          
+          </>
             {/* Mobile-only profile links */}
             {! token ?
             <div className="md:hidden lg:hidden ">
@@ -288,13 +294,14 @@ const handleLogout = async () => {
       { !token ? 
         <div className=" flex items-center gap-4 pr-10  justify-center align-middle">
         {/* Wishlist */}
+     {isLoading ? <Loader></Loader> : <>
         <Link href="/wishlist" className="text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300 ">
           <FaRegHeart className="text-xl   font-extrabold" />
         </Link>
         <Link href="/login" className=" hover:text-[#088178] transition-colors duration-300 flex justify-center items-center align-bottom gap-1">
         
           <GrLogin  className="text-2xl"/> <span className="font-bold">Login</span>
-        </Link>
+        </Link></>}
         </div>
         
         :

@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { FaGoogle, FaFacebook, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser } from 'react-icons/fa';
 import Image from 'next/image';
 import { useRegisterMutation } from '@/src/redux/features/Auth/authApi';
-import { setToken } from '@/src/utils/localStorageManagement';
+import { getToken, setToken } from '@/src/utils/localStorageManagement';
 import { IFormData } from '@/src/types';
 import { handleSocialLogin } from '../actions';
 
@@ -27,6 +27,11 @@ const RegisterPage = () => {
   const [error, setError] = useState('');
   const router = useRouter();
   const [registerMutation] = useRegisterMutation();
+
+  const token=getToken()
+  if(token){
+    router.push('/')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

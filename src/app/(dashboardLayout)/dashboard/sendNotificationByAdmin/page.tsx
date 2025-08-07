@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { usePushNotification } from '@/src/hooks/sendNotification';
+import { getUserRole } from '@/src/utils/localStorageManagement';
+import { useRouter } from 'next/navigation';
 
 const SendNotificationByAdmin = () => {
   const { sendPush } = usePushNotification();
@@ -12,7 +14,14 @@ const SendNotificationByAdmin = () => {
     message: ''
   });
   const [isSending, setIsSending] = useState(false);
+  
+  const router=useRouter()
+  const userRole = getUserRole();
 
+if (userRole !== 'superAdmin' && userRole !== 'admin') {
+    router.push('/dashboard');
+    return null;
+}
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({

@@ -2,12 +2,14 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtDecode } from 'jwt-decode'
+import { getToken } from './utils/localStorageManagement'
 
 export async function middleware(request: NextRequest) {
   const protectedRoutes = ['/dashboard', '/profile', '/settings', '/booking', '/payment','/OrderTrackingPage']
   const authRoutes = ['/login', '/register']
   const currentPath = request.nextUrl.pathname
-  
+  let token = request.cookies.get('authToken')?.value
+
   const authHandler=async()=>{
         try {
       const response = await fetch(`${process.env.BACKEND_URL}/auth/refresh-token`, {
@@ -19,11 +21,11 @@ export async function middleware(request: NextRequest) {
       })
       if (response.ok) {
         const data = await response.json()
-        authToken = data.accessToken
+        token = data.accessToken
         
         // Decode the new token
-        if (authToken) {
-          decodedToken = jwtDecode(authToken)
+        if (token) {
+          decodedToken = jwtDecode(token)
         }
 
         // Clone the request to modify headers
@@ -57,33 +59,29 @@ export async function middleware(request: NextRequest) {
   }
 
   // Get tokens from cookies
-  let authToken = request.cookies.get('authToken')?.value
 
   // Check if authToken is expired
   let isTokenExpired = false
   let decodedToken: any = null
   
-  if (authToken) {
+  if (token) {
     try {
-      decodedToken = jwtDecode(authToken)
+      decodedToken = jwtDecode(token)
       isTokenExpired = decodedToken.exp ? Date.now() >= decodedToken.exp * 1000 : false
     } catch (error) {
       isTokenExpired = true
     }
   }
 
-
-  // If authToken is expired but refreshToken exists, try to refresh
-  if (!authToken) {
+  // If token is expired but refreshToken exists, try to refresh
+  if (!token) {
         authHandler()
-
   } 
    if (isTokenExpired){
     authHandler()
-
   }
 
-  const isAuthenticated = Boolean(authToken && !isTokenExpired)
+  const isAuthenticated = Boolean(token && !isTokenExpired)
   // 1. Protect private routes
   if (protectedRoutes.some(route => currentPath.startsWith(route))) {
     if (!isAuthenticated) {

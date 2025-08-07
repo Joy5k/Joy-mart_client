@@ -1,10 +1,19 @@
 // app/(dashboardLayout)/dashboard/settings/page.tsx
 'use client';
 
+import { getUserRole } from '@/src/utils/localStorageManagement';
 import { motion } from 'framer-motion';
-import { FiShield, FiUsers, FiDatabase, FiServer, FiKey, FiSettings } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
+import { FiShield, FiUsers, FiDatabase, FiServer, FiKey, } from 'react-icons/fi';
 
 export default function SuperAdminSettingsPage() {
+    const router=useRouter()
+  const userRole = getUserRole();
+
+if (userRole !== 'superAdmin' && userRole !== 'admin') {
+    router.push('/dashboard');
+    return null;
+}
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <motion.div

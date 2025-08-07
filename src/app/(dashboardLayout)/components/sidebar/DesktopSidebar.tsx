@@ -1,6 +1,5 @@
 'use client'
 
-
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -8,21 +7,34 @@ import { FiHome, FiPieChart, FiSettings, FiUsers, FiFileText } from 'react-icons
 import { AiOutlineProduct } from "react-icons/ai";
 import { MdCategory } from 'react-icons/md';
 import { TiMessages } from "react-icons/ti";
+import { getUserRole } from '@/src/utils/localStorageManagement';
 
-const navItems = [
-  { name: 'Dashboard', href: '/dashboard', icon: FiHome },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: FiPieChart },
-  { name: 'Users', href: '/dashboard/users', icon: FiUsers },
-  { name: 'Products', href: '/dashboard/products', icon: AiOutlineProduct },
-  {name:'Category',href:'/dashboard/category',icon:MdCategory},
-  {name:"Messages",href:'/dashboard/sendNotificationByAdmin',icon:TiMessages},
-  { name: 'Reports', href: '/dashboard/reports', icon: FiFileText },
-  { name: 'Settings', href: '/dashboard/settings', icon: FiSettings },
-  
+
+// Define the type for navigation items
+interface NavItem {
+  name: string;
+  href: string;
+  icon: any;
+  roles: ('seller' | 'admin' | 'superAdmin')[];
+}
+
+const navItems: NavItem[] = [
+  { name: 'Dashboard', href: '/dashboard', icon: FiHome, roles: ['seller', 'admin', 'superAdmin'] },
+  { name: 'Analytics', href: '/dashboard/analytics', icon: FiPieChart, roles: ['admin', 'superAdmin','seller'] },
+  { name: 'Users', href: '/dashboard/users', icon: FiUsers, roles: ['admin', 'superAdmin'] },
+  { name: 'Products', href: '/dashboard/products', icon: AiOutlineProduct, roles: ['seller', 'admin', 'superAdmin'] },
+  { name: 'Category', href: '/dashboard/category', icon: MdCategory, roles: ['admin', 'superAdmin'] },
+  { name: "Messages", href: '/dashboard/sendNotificationByAdmin', icon: TiMessages, roles: ['admin', 'superAdmin'] },
+  { name: 'Reports', href: '/dashboard/reports', icon: FiFileText, roles: ['admin', 'superAdmin'] },
+  { name: 'Settings', href: '/dashboard/settings', icon: FiSettings, roles: ['admin', 'superAdmin'] },
 ];
 
 export function DesktopSidebar() {
   const pathname = usePathname();
+  const role=getUserRole()
+  
+  // Filter nav items based on user role
+  const filteredNavItems = navItems.filter(item => item.roles.includes(role as 'seller' | 'admin' | 'superAdmin'));
 
   return (
     <motion.div 
@@ -32,17 +44,17 @@ export function DesktopSidebar() {
       transition={{ type: 'spring', stiffness: 100 }}
     >
       <div className="flex flex-shrink-0 items-center px-6">
-        <h1 className="text-xl font-bold text-[#088178]">Dashboard</h1>
+        <Link href="/" className="text-xl font-bold text-[#088178]">Go Home</Link>
       </div>
       <div className="mt-5 flex h-0 flex-1 flex-col overflow-y-auto">
         <nav className="flex-1 space-y-1 px-2">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium  ${
+                className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium ${
                   isActive
                     ? 'bg-[#c8faf7] text-[#088178]'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'

@@ -7,7 +7,9 @@ import {
   useGetCategoriesQuery,
   useUpdateCategoryMutation 
 } from '@/src/redux/features/productManagement/categoryApi';
+import { getUserRole } from '@/src/utils/localStorageManagement';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiX, FiCheck } from 'react-icons/fi';
 import { toast } from 'react-toastify';
@@ -36,7 +38,13 @@ export default function CategoryManagement() {
     description: '',
     isActive: true
   });
+  const router=useRouter()
+  const userRole = getUserRole();
 
+if (userRole !== 'superAdmin' && userRole !== 'admin') {
+    router.push('/dashboard');
+    return null;
+}
   const [createCategory] = useCreateCategoryMutation();
   const { data: categoriesResponse, isLoading: loading, refetch } = useGetCategoriesQuery({});
   const [deleteCategory] = useDeleteCategoryMutation();

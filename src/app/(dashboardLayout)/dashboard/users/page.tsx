@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiUser, FiEdit2, FiTrash2, FiPlus, FiSearch, FiRefreshCw } from 'react-icons/fi';
+import { FiUser, FiEdit2, FiTrash2, FiPlus, FiSearch, FiRefreshCw, FiCheckCircle } from 'react-icons/fi';
 import { IFormData, Role } from '@/src/types';
 
-import {  useCreateUserByAdminMutation, useGetAllUsersQuery, useUpdateUserMutation,useDeleteUserBySuperAdminMutation } from '@/src/redux/features/userManagement/usersApi';
+import {  useCreateUserByAdminMutation, useGetAllUsersQuery, useUpdateUserMutation,useDeleteUserBySuperAdminMutation, useRestoredUserMutation } from '@/src/redux/features/userManagement/usersApi';
 import { toast } from 'react-toastify';
 import { FaEnvelope, FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
 import { getUserRole } from '@/src/utils/localStorageManagement';
 import { useRouter } from 'next/navigation';
+import Loader from '@/src/hooks/loader';
 
 export type UserStatus = 'in-progress' | 'active' | 'blocked';
 
@@ -70,6 +71,7 @@ if (userRole !== 'superAdmin' && userRole !== 'admin') {
 
   const [createUserByAdminMutation] = useCreateUserByAdminMutation();
   const [deleteUserMutation]=useDeleteUserBySuperAdminMutation()
+  const [restoreUserMutation,{isLoading:restoring}]=useRestoredUserMutation()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,7 +169,19 @@ if (userRole !== 'superAdmin' && userRole !== 'admin') {
       console.error('Error updating user:', error);
     }
   };
-
+const handleRestoreUser = async (email: string) => {
+  try {
+    // Call your API endpoint to restore the user
+    const res = await restoreUserMutation({ email }).unwrap();
+    if (res.success) {
+      toast.success('User restored successfully');
+      refetch(); // Refresh the user list
+    }
+  } catch (error) {
+    toast.error('Failed to restore user');
+    console.error('Restore error:', error);
+  }
+};
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -233,28 +247,27 @@ if (userRole !== 'superAdmin' && userRole !== 'admin') {
               onChange={(e) => setSearchQuery({ ...searchQuery, role: e.target.value as Role | '' })}
             >
               <option value="">All Roles</option>
-              <option value="superAdmin">Super Admin</option>
               <option value="admin">Admin</option>
               <option value="user">User</option>
             </select>
           </div>
 
-          <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-              Status
-            </label>
-            <select
-              id="status"
-              className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
-              value={searchQuery.status}
-              onChange={(e) => setSearchQuery({ ...searchQuery, status: e.target.value as UserStatus | '' })}
-            >
-              <option selected value="">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="in-progress">In Progress</option>
-              <option value="blocked">Blocked</option>
-            </select>
-          </div>
+        <div>
+  <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+    Status
+  </label>
+  <select
+    id="status"
+    className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-[#088178] focus:outline-none focus:ring-[#088178] sm:text-sm"
+    value={searchQuery.status || ""}
+    onChange={(e) => setSearchQuery({ ...searchQuery, status: e.target.value as UserStatus | '' })}
+  >
+    <option value="">All Statuses</option>
+    <option value="active">Active</option>
+    <option value="in-progress">In Progress</option>
+    <option value="blocked">Blocked</option>
+  </select>
+</div>
         </div>
       </motion.div>
 
@@ -272,84 +285,143 @@ if (userRole !== 'superAdmin' && userRole !== 'admin') {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                      Name
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Email
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Role
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Status
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Created At
-                    </th>
-                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {apiResponse?.data?.result.map((user:any) => (
-                    <tr key={user._id}>
-                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 flex-shrink-0">
-                        
-                            <div className="flex items-center justify-center h-10 w-10 rounded-full bg-[#c8faf7] text-[#088178]">
-                              <FiUser className="h-5 w-5" />
-                            </div>
-                          </div>
-                          <div className="ml-4">
-                            <div className="font-medium text-gray-900">{user.email.split('@')[0]}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{user.email}</td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <div className="flex space-x-2 justify-end">
-                          <button
-                            onClick={() => handleEditUser(user)}
-                            className={`text-[#088178] hover:text-[#07756e] cursor-pointer  ${user.role==='superAdmin' ? 'cursor-not-allowed' : 'cursor-pointer hover:text-[#07756e]  '}`}
-                          >
-                            <FiEdit2 className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setCurrentUser(user);
-                              setIsDeleteModalOpen(true);
-                            }}
-                            className={` text-red-600  ${user.role==='superAdmin' ? 'cursor-not-allowed' : 'cursor-pointer hover:text-red-900 '}`}
-                            disabled={user.role==='superAdmin'}
-                          >
-                            <FiTrash2 className="h-5 w-5" />
-                            
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+             <table className="min-w-full divide-y divide-gray-300">
+  <thead className="bg-gray-50">
+    <tr>
+      <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+        Name
+      </th>
+      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+        Email
+      </th>
+      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+        Role
+      </th>
+      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+        Status
+      </th>
+      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+        Created At
+      </th>
+      {userRole === 'superAdmin' && (
+        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+          Deleted
+        </th>
+      )}
+      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+        <span className="sr-only">Actions</span>
+      </th>
+    </tr>
+  </thead>
+  <tbody className="divide-y divide-gray-200 bg-white">
+    {apiResponse?.data?.result.map((user: ApiUser) => (
+      <tr key={user._id}>
+        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+          <div className="flex items-center">
+            <div className="h-10 w-10 flex-shrink-0">
+              <div className={`flex items-center justify-center h-10 w-10 rounded-full ${
+                user.isDeleted ? 'bg-gray-200 text-gray-500' : 'bg-[#c8faf7] text-[#088178]'
+              }`}>
+                <FiUser className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="ml-4">
+              <div className={`font-medium ${
+                user.isDeleted ? 'text-gray-400 line-through' : 'text-gray-900'
+              }`}>
+                {user.email.split('@')[0]}
+              </div>
+            </div>
+          </div>
+        </td>
+        <td className={`whitespace-nowrap px-3 py-4 text-sm ${
+          user.isDeleted ? 'text-gray-400' : 'text-gray-500'
+        }`}>
+          {user.email}
+        </td>
+        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            user.isDeleted ? 'bg-gray-100 text-gray-500' : getRoleColor(user.role)
+          }`}>
+            {user.role}
+          </span>
+        </td>
+        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            user.isDeleted ? 'bg-gray-100 text-gray-500' : getStatusColor(user.status)
+          }`}>
+            {user.isDeleted ? 'Deleted' : user.status}
+          </span>
+        </td>
+        <td className={`whitespace-nowrap px-3 py-4 text-sm ${
+          user.isDeleted ? 'text-gray-400' : 'text-gray-500'
+        }`}>
+          {new Date(user.createdAt).toLocaleDateString()}
+        </td>
+        {userRole === 'superAdmin' && (
+          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+           {restoring ? <Loader></Loader> : 
+           <>
+           {
+             user.isDeleted ? (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                <FiTrash2 className="mr-1 h-3 w-3" />
+                Deleted
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <FiCheckCircle className="mr-1 h-3 w-3" />
+                Active
+              </span>
+            )}
+            </>
+           }
+          
+          
+           
+          </td>
+        )}
+        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+          <div className="flex space-x-2 justify-end">
+            {user.isDeleted ? (
+              <button
+                onClick={() => handleRestoreUser(user.email)}
+                className="text-green-600 hover:text-green-900"
+                title="Restore user"
+              >
+                <FiRefreshCw className="h-5 w-5" />
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleEditUser(user)}
+                  className={`text-[#088178] hover:text-[#07756e] ${
+                    user.role === 'superAdmin' ? 'cursor-not-allowed opacity-50' : ''
+                  }`}
+                  disabled={user.role === 'superAdmin'}
+                >
+                  <FiEdit2 className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentUser(user);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  className={`text-red-600 hover:text-red-900 ${
+                    user.role === 'superAdmin' ? 'cursor-not-allowed opacity-50' : ''
+                  }`}
+                  disabled={user.role === 'superAdmin'}
+                >
+                  <FiTrash2 className="h-5 w-5" />
+                </button>
+              </>
+            )}
+          </div>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
             </div>
           )}
         </div>
@@ -521,7 +593,6 @@ if (userRole !== 'superAdmin' && userRole !== 'admin') {
                           <option value="user">User</option>
                           <option value="seller">Seller</option>
                           <option value="admin">Admin</option>
-                          <option value="superAdmin">Super Admin</option>
                         </select>
                        )}
                       </div>
@@ -543,6 +614,7 @@ if (userRole !== 'superAdmin' && userRole !== 'admin') {
                           <option value="blocked">Blocked</option>
                         </select>
                       </div>
+                      
                     </div>
                   </div>
                 </div>

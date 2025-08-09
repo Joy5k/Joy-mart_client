@@ -294,6 +294,15 @@ const [queryParams, setQueryParams] = useState({
                                 <FiStar className="mr-1 h-3 w-3" /> Featured
                               </span>
                             )}
+                            {product.isDeleted && (
+      <span 
+        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 ring-1 ring-amber-600/20"
+        aria-label="Deleted product"
+      >
+        <FiTrash2 className="mr-1 h-3 w-3 flex-shrink-0" />
+        Archived
+      </span>
+    )}
                           </div>
                         </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

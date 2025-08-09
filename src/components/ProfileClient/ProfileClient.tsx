@@ -136,7 +136,7 @@ const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:a
       console.log(err)
     }
     removeToken();
-    router.push('/');
+    router.push('/login');
   };
 
   const removeImage = () => {

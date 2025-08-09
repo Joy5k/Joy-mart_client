@@ -54,6 +54,14 @@ export const usersApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: [tagTypes.user],
     }),
+     restoredUser:builder.mutation<any, {email: string;}>({
+            query: ({ email }) => ({
+                url: `/users/restoredUser`,
+                method: 'PUT',
+                body: {email},
+            }),
+            invalidatesTags: [tagTypes.user],
+    }),
     deleteUserBySuperAdmin:builder.mutation<any,{email:string}>({
         query:({email})=>{
            return {
@@ -78,6 +86,7 @@ export const {
     useChangeStatusMutation,
     useGetAllUsersQuery,
     useUpdateUserMutation,
+    useRestoredUserMutation,
     useDeleteUserBySuperAdminMutation
 
 } = usersApi;

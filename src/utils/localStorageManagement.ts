@@ -13,16 +13,17 @@ export const setToken = (token: string): void => {
   }
 };
 
-export const getToken = (): string | null => {
+export const getToken = (): string | undefined => {
   if (typeof window !== 'undefined') {
     // First check cookies
     const tokenFromCookies = document.cookie.split('; ').find(row => row.startsWith('authToken='))?.split('=')[1] || Cookies.get('authToken');
-    if (tokenFromCookies) {
-      return tokenFromCookies;
+    if (!tokenFromCookies) {
+      return Cookies.get('authToken');
     }
+    return tokenFromCookies
      
   } 
-  return null;
+  ;
 };
 
 export const removeToken = (): void => {

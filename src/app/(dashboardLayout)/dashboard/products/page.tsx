@@ -45,7 +45,7 @@ const [queryParams, setQueryParams] = useState({
     setQueryParams(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
-      page: 1 // Reset to first page when filters change
+      page: 1 
     }));
   };
 
@@ -63,7 +63,7 @@ const [queryParams, setQueryParams] = useState({
   const handlePageChange = (newPage: number) => {
     setQueryParams(prev => ({ ...prev, page: newPage }));
   };
-
+console.log(products)
   // Modal state management
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

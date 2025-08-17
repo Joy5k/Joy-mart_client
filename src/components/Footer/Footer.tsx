@@ -24,20 +24,17 @@ const Footer = () => {
 
       <div className="col">
         <h4>About</h4>
-        <Link href="#">About Us</Link>
-        <Link href="#">Delivery Information</Link>
-        <Link href="#">Privacy Policy</Link>
-        <Link href="#">Terms & Condition</Link>
-        <Link href="#">Contact Us</Link>
+        <Link href="/about">About Us</Link>
+        <Link href="/terms-of-service">Privacy Policy</Link>
+        <Link href="/terms-of-service">Terms & Condition</Link>
+        <Link href="/contact">Contact Us</Link>
       </div>
 
       <div className="col">
         <h4>My Account</h4>
-        <Link href="#">Sign In</Link>
-        <Link href="#">View Cart</Link>
-        <Link href="#">My Wishlist</Link>
-        <Link href="#">Track My Order</Link>
-        <Link href="#">Help</Link>
+        <Link href=".booking">View Cart</Link>
+        <Link href="/wishlist">My Wishlist</Link>
+        <Link href="contact">Help</Link>
       </div>
 
       <div className="col install">

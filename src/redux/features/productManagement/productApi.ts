@@ -94,6 +94,18 @@ const productApi=baseApi.injectEndpoints({
             }),
             invalidatesTags:[tagTypes.product]
         }),
+         restoreProduct: builder.mutation({
+            query: ({ id }) => {
+              console.log(id,"in redux console")
+              return {
+                url: `/product/restoreProduct`,
+                method: "PUT",
+                body: {id},
+            }
+            },
+            invalidatesTags:[tagTypes.product]
+        }),
+        
         deleteProduct: builder.mutation({
             query: (id) => ({
                 url: `/product/delete/${id}`,
@@ -110,5 +122,6 @@ export const {
     useGetProductByIdQuery,
     useCreateProductMutation,
     useUpdateProductMutation,
+    useRestoreProductMutation,
     useDeleteProductMutation,
 } = productApi;

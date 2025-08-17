@@ -12,30 +12,33 @@ import {
   FiStar,
   FiChevronLeft,
   FiChevronRight,
+  FiRefreshCw,
+  FiCheckCircle
 } from 'react-icons/fi';
 import { IProduct } from '@/src/types';
 import AddProduct from '../../components/productsComponents/addProduct';
-import { useGetAllProductsForAdminQuery } from '@/src/redux/features/productManagement/productApi';
+import { useGetAllProductsForAdminQuery, useRestoreProductMutation } from '@/src/redux/features/productManagement/productApi';
 import UpdateProduct from '../../components/productsComponents/updateProduct';
 import DeleteProductModal from '../../components/productsComponents/deleteProductModal';
 import Loader from '@/src/hooks/loader';
+import { toast } from 'react-toastify';
 
 export default function ProductManagementPage() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-const [queryParams, setQueryParams] = useState({
-  searchTerm: '',
-  minPrice: 0,
-  maxPrice: 10000,
-  sort: '',
-  inStock: '',
-  page: 1,
-  limit: 10,
-});
-
+  const [queryParams, setQueryParams] = useState({
+    searchTerm: '',
+    minPrice: 0,
+    maxPrice: 10000,
+    sort: '',
+    inStock: '',
+    page: 1,
+    limit: 10,
+  });
 
   // Fetch products using the query parameters
-  const { data: products, isLoading: loading } = useGetAllProductsForAdminQuery(queryParams);
+  const { data: products, isLoading: loading, refetch } = useGetAllProductsForAdminQuery(queryParams);
+  const [restoreProductMutation, { isLoading: restoring }] = useRestoreProductMutation();
 
   // Handle input changes for all filter fields
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -63,7 +66,22 @@ const [queryParams, setQueryParams] = useState({
   const handlePageChange = (newPage: number) => {
     setQueryParams(prev => ({ ...prev, page: newPage }));
   };
-console.log(products)
+
+
+  // Handle product restoration
+  const handleRestoreProduct = async (id: string) => {
+    try {
+      const res = await restoreProductMutation({ id }).unwrap();
+      if (res.success) {
+        toast.success('Product restored successfully');
+        refetch();
+      }
+    } catch (error) {
+      toast.error('Failed to restore product');
+      console.error('Restore error:', error);
+    }
+  };
+
   // Modal state management
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -123,8 +141,6 @@ console.log(products)
             </div>
           </div>
 
-         
-
           {/* Price Range */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Price Range</label>
@@ -148,8 +164,6 @@ console.log(products)
             </div>
           </div>
 
-         
-
           {/* Sort */}
           <div>
             <label htmlFor="sort" className="block text-sm font-medium text-gray-700">
@@ -166,8 +180,6 @@ console.log(products)
               <option value="oldest">Oldest</option>
             </select>
           </div>
-
-         
 
           {/* Items Per Page */}
           <div>
@@ -250,15 +262,19 @@ console.log(products)
                               )}
                             </div>
                             <div className="ml-4">
-                              <div className="font-medium text-gray-900">{product.title}</div>
-                              <div className="text-gray-500 line-clamp-1">{product.shortTitle || product.description?.slice(0, 20)}...</div>
+                              <div className={`font-medium ${product.isDeleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                                {product.title}
+                              </div>
+                              <div className={`text-gray-500 line-clamp-1 ${product.isDeleted ? 'text-gray-400' : ''}`}>
+                                {product.shortTitle || product.description?.slice(0, 20)}...
+                              </div>
                             </div>
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 capitalize">
+                        <td className={`whitespace-nowrap px-3 py-4 text-sm ${product.isDeleted ? 'text-gray-400' : 'text-gray-500'} capitalize`}>
                           {product?.category?.categoryName || "Uncategorized"}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className={`whitespace-nowrap px-3 py-4 text-sm ${product.isDeleted ? 'text-gray-400' : 'text-gray-500'}`}>
                           <div className="flex items-center">
                             <FiDollarSign className="mr-1 h-3 w-3 text-gray-400" />
                             {product.price.toFixed(2)}
@@ -270,10 +286,10 @@ console.log(products)
                             )}
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className={`whitespace-nowrap px-3 py-4 text-sm ${product.isDeleted ? 'text-gray-400' : 'text-gray-500'}`}>
                           <div className="flex items-center">
                             {product.stock}
-                            {product.lowStockThreshold && product.stock <= product.lowStockThreshold && (
+                            {product.lowStockThreshold && product.stock <= product.lowStockThreshold && !product.isDeleted && (
                               <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                 Low
                               </span>
@@ -283,50 +299,55 @@ console.log(products)
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           <div className="flex flex-wrap gap-1">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              product.isActive 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
+                              product.isDeleted 
+                                ? 'bg-gray-100 text-gray-500' 
+                                : product.isActive 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
                             }`}>
-                              {product.isActive ? 'Active' : 'Inactive'}
+                              {product.isDeleted ? 'Deleted' : product.isActive ? 'Active' : 'Inactive'}
                             </span>
-                            {product.featured && (
+                            {product.featured && !product.isDeleted && (
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                 <FiStar className="mr-1 h-3 w-3" /> Featured
                               </span>
                             )}
-                            {product.isDeleted && (
-      <span 
-        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 ring-1 ring-amber-600/20"
-        aria-label="Deleted product"
-      >
-        <FiTrash2 className="mr-1 h-3 w-3 flex-shrink-0" />
-        Archived
-      </span>
-    )}
                           </div>
                         </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => {
-                                setCurrentProduct(product);
-                                setIsEditModalOpen(true);
-                              }}
-                              className="text-[#088178] hover:text-[#07756e]"
-                              aria-label="Edit product"
-                            >
-                              <FiEdit2 className="h-5 w-5" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setCurrentProduct(product);
-                                setIsDeleteModalOpen(true);
-                              }}
-                              className="text-red-600 hover:text-red-900"
-                              aria-label="Delete product"
-                            >
-                              <FiTrash2 className="h-5 w-5" />
-                            </button>
+                          <div className="flex space-x-2 justify-end">
+                            {product.isDeleted ? (
+                              <button
+                                onClick={() => handleRestoreProduct(product._id)}
+                                className="text-green-600 hover:text-green-900"
+                                title="Restore product"
+                              >
+                                <FiRefreshCw className="h-5 w-5" />
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setCurrentProduct(product);
+                                    setIsEditModalOpen(true);
+                                  }}
+                                  className="text-[#088178] hover:text-[#07756e]"
+                                  aria-label="Edit product"
+                                >
+                                  <FiEdit2 className="h-5 w-5" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setCurrentProduct(product);
+                                    setIsDeleteModalOpen(true);
+                                  }}
+                                  className="text-red-600 hover:text-red-900"
+                                  aria-label="Delete product"
+                                >
+                                  <FiTrash2 className="h-5 w-5" />
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>

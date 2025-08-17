@@ -115,11 +115,11 @@ const handleSocialAuth = async (provider: 'google' | 'facebook') => {
   <div className="flex flex-col md:flex-row justify-center items-center gap-2 text-sm text-gray-600">
     <div className="flex items-center">
       <FaEnvelope className="mr-2 text-[#088178]" />
-      <span>mmehedihasanjoyv@gmail.com</span>
+      <span>admin@gmail.com</span>
     </div>
     <div className="flex items-center">
       <FaLock className="mr-2 text-[#088178]" />
-      <span>1922745769</span>
+      <span>12345</span>
     </div>
   </div>
 </div>

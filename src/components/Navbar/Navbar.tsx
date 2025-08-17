@@ -31,8 +31,10 @@ const Navbar = () => {
   const [userRole, setUserRole] = useState<string>('user');
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-
+  
+  const [socialLoginMutation, { isLoading: isSocialLoading }] = useLoginWithSocialMutation();
   const [logoutUser] = useLogoutMutation();
+
     const handleLogout = async () => {
     try {
       const res = await logoutUser({}).unwrap();
@@ -60,7 +62,6 @@ const Navbar = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  const [socialLoginMutation, { isLoading: isSocialLoading }] = useLoginWithSocialMutation();
   
   const handleSocialLogin = async () => {
     try {
@@ -69,9 +70,12 @@ const Navbar = () => {
         return;
       }
       const res = await socialLoginMutation({ data: session }).unwrap();
-      document.cookie = `authToken=${res.data?.accessToken}`;
+      console.log(res,'Navbar response')
+     if(res.success){
+       document.cookie = `authToken=${res.data?.accessToken}`;
       document.cookie = `refreshToken=${res.data?.refreshToken}`;
       setToken(res?.data?.accessToken);
+     }
     } catch (error) {
       console.warn('Social login failed');
     } finally {
@@ -296,14 +300,14 @@ const Navbar = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    href="/logout" 
+                  <p 
+                 
                     className="flex items-center gap-4 py-3 text-[#1a1a1a] hover:text-[#088178] font-semibold transition-colors duration-300"
-                    onClick={() => setIsNavOpen(false)}
+                    onClick={() => handleLogout()}
                   >
                     <BiLogOut className="text-lg font-bold" />
                     <span className="text-lg">Logout</span>
-                  </Link>
+                  </p>
                 </li>
               </div>
             )}

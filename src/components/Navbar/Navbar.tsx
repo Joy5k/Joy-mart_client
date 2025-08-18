@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
-import { BiLogOut } from "react-icons/bi";
 import { FaBlog, FaEnvelope, FaHome, FaInfoCircle, FaUser, FaShoppingBag, FaTruck } from "react-icons/fa";
 import { FaShop } from "react-icons/fa6";
 import { RiDashboard3Line } from "react-icons/ri";
@@ -14,10 +13,9 @@ import { GrLogin } from "react-icons/gr";
 import TrackOrderModal from "../OrderTrackModal";
 import { verifyToken } from "@/src/utils/jwt";
 import { FaRegHeart } from "react-icons/fa";
-import { useLoginWithSocialMutation, useLogoutMutation } from "@/src/redux/features/Auth/authApi";
+import { useLoginWithSocialMutation } from "@/src/redux/features/Auth/authApi";
 import { SocialSession } from "@/src/utils/socialAuth";
 import Loader from "@/src/hooks/loader";
-import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
 const Navbar = () => {
@@ -33,24 +31,6 @@ const Navbar = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   
   const [socialLoginMutation, { isLoading: isSocialLoading }] = useLoginWithSocialMutation();
-  const [logoutUser] = useLogoutMutation();
-
-    const handleLogout = async () => {
-    try {
-      const res = await logoutUser({}).unwrap();
-      if (!res.success) {
-        throw new Error('Logout failed');
-      }
-      localStorage.removeItem('authToken');
-     
-      setIsDropdownOpen(false);
-      setIsNavOpen(false);
-      removeToken();
-      route.replace('/login')
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
 
 
   
@@ -70,7 +50,6 @@ const Navbar = () => {
         return;
       }
       const res = await socialLoginMutation({ data: session }).unwrap();
-      console.log(res,'Navbar response')
      if(res.success){
        document.cookie = `authToken=${res.data?.accessToken}`;
       document.cookie = `refreshToken=${res.data?.refreshToken}`;
@@ -299,16 +278,7 @@ const Navbar = () => {
                     <span className="text-lg">Dashboard</span>
                   </Link>
                 </li>
-                <li>
-                  <p 
-                 
-                    className="flex items-center gap-4 py-3 text-[#1a1a1a] hover:text-[#088178] font-semibold transition-colors duration-300"
-                    onClick={() => handleLogout()}
-                  >
-                    <BiLogOut className="text-lg font-bold" />
-                    <span className="text-lg">Logout</span>
-                  </p>
-                </li>
+               
               </div>
             )}
           </ul>
@@ -408,16 +378,7 @@ const Navbar = () => {
                     <span>Track Order</span>
                   </button>
                 </li>
-                <li className="border-t border-gray-200">
-                  <Link 
-                    href="/login" 
-                    className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300"
-                    onClick={() => handleLogout()}
-                  >
-                    <BiLogOut />
-                    <span>Logout</span>
-                  </Link>
-                </li>
+               
               </ul>
             )}
           </div>

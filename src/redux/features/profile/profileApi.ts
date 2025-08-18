@@ -4,7 +4,7 @@ import { tagTypes } from "../../tagTypes";
 const profileApi=baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getProfile: builder.query({
-            query: (id) => ({
+            query: () => ({
                 url: `/profiles/me`,
                 method: "GET",
             }),

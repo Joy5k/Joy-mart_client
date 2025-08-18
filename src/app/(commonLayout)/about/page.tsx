@@ -6,6 +6,8 @@ import Image from "next/image";
 import FeatureBox from "@/src/components/FeatureBox/FeatureBox";
 import Banner from "@/src/components/Banner/Banner";
 import { useSendNotificationMutation } from "@/src/redux/features/pushNotifications/pushNotificationApi";
+import Link from "next/link";
+import { FaCode, FaMobileAlt, FaServer } from "react-icons/fa";
 
 const AboutPage = () => {
   const features = [
@@ -90,13 +92,184 @@ const AboutPage = () => {
                 <a href="tel:+8801601588531" className="text-[#088178] hover:underline">+880 1601 588531</a>
               </div>
             </div>
-            
-            <button className="bg-[#088178] text-white px-6 py-3 rounded-lg hover:bg-[#066b63] transition-colors">
+            <Link href="https://developer-mehedi.vercel.app/">
+            <button className="bg-[#088178] cursor-pointer text-white px-6 py-3 rounded-lg hover:bg-[#066b63] transition-colors">
               View My Projects
             </button>
+            </Link>
           </div>
         </motion.div>
       </motion.section>
+
+<motion.section
+  initial="hidden"
+  whileInView="show"
+  viewport={{ once: true, margin: "-100px" }}
+  variants={staggerContainer(0.1, 0.3)}
+  className="relative py-28 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden"
+>
+  {/* Animated background elements */}
+  <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20">
+    <div className="absolute top-20 left-10 w-80 h-80 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+    <div className="absolute top-0 right-20 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+    <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-emerald-600 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+  </div>
+
+  <div className="relative max-w-7xl mx-auto z-10">
+    {/* Section Header */}
+    <motion.div
+      variants={fadeIn('up', 'spring', 0.5, 1)}
+      className="text-center mb-20"
+    >
+      <div className="inline-flex items-center justify-center px-6 py-2 bg-[#088178]/10 rounded-full mb-6">
+        <span className="text-[#088178] font-medium">Premium Services</span>
+      </div>
+      <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+        <span className="bg-gradient-to-r from-[#088178] to-emerald-400 bg-clip-text text-transparent">
+          Expert
+        </span> Development Solutions
+      </h2>
+      <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+        Cutting-edge services designed to elevate your digital presence with modern technologies
+      </p>
+    </motion.div>
+
+    {/* Main Services Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* Service Card 1 */}
+      <motion.div
+        variants={fadeIn('right', 'spring', 0.3, 1)}
+        whileHover={{ y: -10 }}
+        className="group relative bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 hover:border-[#088178]/30 transition-all duration-500 overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-[#088178]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="relative z-10 p-8 h-full">
+          <div className="w-16 h-16 mb-6 rounded-lg bg-gradient-to-br from-[#088178] to-emerald-400 flex items-center justify-center text-white">
+            <FaCode className="text-2xl" />
+          </div>
+          <h3 className="text-2xl font-bold text-white mb-4">Frontend Development</h3>
+          <p className="text-slate-300 mb-6">
+            Pixel-perfect interfaces with React, Next.js, and modern frameworks.
+          </p>
+          <ul className="space-y-3">
+            <li className="flex items-center">
+              <div className="w-6 h-6 bg-[#088178]/10 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-3 h-3 text-[#088178]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-slate-300">React/Next.js SPAs</span>
+            </li>
+            <li className="flex items-center">
+              <div className="w-6 h-6 bg-[#088178]/10 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-3 h-3 text-[#088178]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-slate-300">Tailwind CSS</span>
+            </li>
+            <li className="flex items-center">
+              <div className="w-6 h-6 bg-[#088178]/10 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-3 h-3 text-[#088178]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-slate-300">Responsive Design</span>
+            </li>
+          </ul>
+        </div>
+      </motion.div>
+
+      {/* Service Card 2 */}
+      <motion.div
+        variants={fadeIn('up', 'spring', 0.5, 1)}
+        whileHover={{ y: -10 }}
+        className="group relative bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 hover:border-[#088178]/30 transition-all duration-500 overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-[#088178]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="relative z-10 p-8 h-full">
+          <div className="w-16 h-16 mb-6 rounded-lg bg-gradient-to-br from-[#088178] to-emerald-400 flex items-center justify-center text-white">
+            <FaServer className="text-2xl" />
+          </div>
+          <h3 className="text-2xl font-bold text-white mb-4">Backend Solutions</h3>
+          <p className="text-slate-300 mb-6">
+            Scalable server architectures with Node.js and modern databases.
+          </p>
+          <ul className="space-y-3">
+            <li className="flex items-center">
+              <div className="w-6 h-6 bg-[#088178]/10 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-3 h-3 text-[#088178]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-slate-300">Node.js & Express</span>
+            </li>
+            <li className="flex items-center">
+              <div className="w-6 h-6 bg-[#088178]/10 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-3 h-3 text-[#088178]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-slate-300">MongoDB/PostgreSQL</span>
+            </li>
+            <li className="flex items-center">
+              <div className="w-6 h-6 bg-[#088178]/10 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-3 h-3 text-[#088178]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-slate-300">REST/GraphQL APIs</span>
+            </li>
+          </ul>
+        </div>
+      </motion.div>
+
+      {/* Service Card 3 */}
+      <motion.div
+        variants={fadeIn('left', 'spring', 0.7, 1)}
+        whileHover={{ y: -10 }}
+        className="group relative bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 hover:border-[#088178]/30 transition-all duration-500 overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-[#088178]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="relative z-10 p-8 h-full">
+          <div className="w-16 h-16 mb-6 rounded-lg bg-gradient-to-br from-[#088178] to-emerald-400 flex items-center justify-center text-white">
+            <FaMobileAlt className="text-2xl" />
+          </div>
+          <h3 className="text-2xl font-bold text-white mb-4">Full-Stack Apps</h3>
+          <p className="text-slate-300 mb-6">
+            Complete solutions from frontend to backend with seamless integration.
+          </p>
+          <ul className="space-y-3">
+            <li className="flex items-center">
+              <div className="w-6 h-6 bg-[#088178]/10 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-3 h-3 text-[#088178]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-slate-300">End-to-End Development</span>
+            </li>
+            <li className="flex items-center">
+              <div className="w-6 h-6 bg-[#088178]/10 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-3 h-3 text-[#088178]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-slate-300">TypeScript Integration</span>
+            </li>
+            <li className="flex items-center">
+              <div className="w-6 h-6 bg-[#088178]/10 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-3 h-3 text-[#088178]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-slate-300">Performance Optimization</span>
+            </li>
+          </ul>
+        </div>
+      </motion.div>
+    </div>
+  </div>
+</motion.section>
 
       {/* Skills Section */}
       <motion.section

@@ -32,7 +32,7 @@ const Footer = () => {
 
       <div className="col">
         <h4>My Account</h4>
-        <Link href=".booking">View Cart</Link>
+        <Link href="/booking">View Cart</Link>
         <Link href="/wishlist">My Wishlist</Link>
         <Link href="contact">Help</Link>
       </div>

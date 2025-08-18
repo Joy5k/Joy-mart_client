@@ -9,7 +9,7 @@ import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { removeToken } from '@/src/utils/localStorageManagement';
+import { getToken, removeToken } from '@/src/utils/localStorageManagement';
 import uploadImage from '@/src/hooks/imageUploader';
 import { IOrder, IProfile, ReportedProduct } from '@/src/types';
 import { useDeleteProfileMutation, useGetProfileQuery, useUpdateRoleMutation } from '@/src/redux/features/profile/profileApi';
@@ -22,8 +22,6 @@ import ProfileUserInfoUpdate from '../profileComponents/ProfileUserInfoUpdate';
 
 const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:any,reports:any}) => {
   const router = useRouter();
-  const { data } = useGetProfileQuery({});
-  const user = data?.data;
   const [showPassword, setShowPassword] = useState(false);
   const [selectedReport, setSelectedReport] = useState<ReportedProduct | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -56,11 +54,13 @@ const ProfileClient = ({ orders, wishlist,reports }: {orders:IOrder[],wishlist:a
   })
   
   const [passwordError,setPasswordError]=useState<string>("")
+
   const [changePasswordMutation]=useChangePasswordMutation()
   const [deleteProfile,{isLoading:isProfileDeleting}]=useDeleteProfileMutation()
   const [logout]=useLogoutMutation()
-       const [updateProfile] = useUpdateRoleMutation();
-  
+  const [updateProfile] = useUpdateRoleMutation();
+   const { data } = useGetProfileQuery({});
+  const user = data?.data;
   // Initialize user data when component mounts or user changes
   useEffect(() => {
     if (user) {

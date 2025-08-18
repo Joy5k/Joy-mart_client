@@ -111,7 +111,7 @@ const handleSocialAuth = async (provider: 'google' | 'facebook') => {
             
           </div>
 <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
-  <p className="text-sm font-medium text-gray-700 mb-2">Login as Super Admin</p>
+  <p className="text-sm font-medium text-gray-700 mb-2">Login as Admin</p>
   <div className="flex flex-col md:flex-row justify-center items-center gap-2 text-sm text-gray-600">
     <div className="flex items-center">
       <FaEnvelope className="mr-2 text-[#088178]" />
@@ -119,7 +119,7 @@ const handleSocialAuth = async (provider: 'google' | 'facebook') => {
     </div>
     <div className="flex items-center">
       <FaLock className="mr-2 text-[#088178]" />
-      <span>12345</span>
+      <span>123456</span>
     </div>
   </div>
 </div>

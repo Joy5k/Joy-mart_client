@@ -41,26 +41,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
     }),
     FacebookProvider({
-      clientId: process.env.FACEBOOK_CLIENT_ID!,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: "consent",
-          response_type: "code",
-          scope: "email,public_profile" // Facebook specific scopes
-        }
-      },
-      profile(profile) {
-        return {
-          id: profile.id,
-          name: profile.name || "",
-          email: profile.email,
-          given_name: profile.first_name || profile.name?.split(' ')[0] || "",
-          family_name: profile.last_name || profile.name?.split(' ').slice(1).join(' ') || "",
-          image: profile.picture?.data?.url || `https://graph.facebook.com/${profile.id}/picture?type=large`
-        }
-      }
+      clientId: process.env.FACEBOOK_CLIENT_ID,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
     }),
+    
   ],
   callbacks: {
     async jwt({ token, user, account, profile }) {
@@ -92,6 +76,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }
   },
   session: {
-    strategy: "jwt" // Required for server components/actions
+    strategy: "jwt"
   }
 })

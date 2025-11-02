@@ -7,11 +7,12 @@ import { useRouter,useSearchParams } from 'next/navigation';
 import { FaGoogle, FaFacebook, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Image from 'next/image';
 import { useLoginMutation } from '@/src/redux/features/Auth/authApi';
-import {  getToken, setToken } from '@/src/utils/localStorageManagement';
+import {  setToken } from '@/src/utils/localStorageManagement';
 import { useAppDispatch } from '@/src/redux/hooks';
 import { setUser } from '@/src/redux/features/Auth/authSlice';
 import Link from 'next/link';
 import { handleSocialLogin } from '../actions';
+import Cookies from 'js-cookie';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -24,7 +25,6 @@ const LoginPage = () => {
   const dispatch=useAppDispatch()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/'
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -33,12 +33,14 @@ const LoginPage = () => {
     try {
       const res = await LoginMutation({ email, password }).unwrap();
       if(res.success){
-        localStorage.setItem('authToken', res.data.accessToken);
+        localStorage.setItem('authToken', res?.data?.accessToken);
          dispatch(setUser({
-        authToken: res.data.accessToken
+        token: res?.data?.accessToken
       }));
-      setToken(res.data?.accessToken);
+      setToken(res?.data?.accessToken);
+      Cookies.set('refreshToken', res?.data?.refreshToken, { expires: 30 });
       const decodedRedirect = decodeURIComponent(redirect)
+
       router.push(decodedRedirect)
       }
     } catch (err:any) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import ProductCard from '@/src/components/ProductCart/ProductCart'
 import { useGetProductsQuery } from '@/src/redux/features/productManagement/productApi'
 import { IProduct, TCategory } from '@/src/types'

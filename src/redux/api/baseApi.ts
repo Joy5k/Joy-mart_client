@@ -11,19 +11,22 @@ import {
 import { RootState } from "../store";
 import { logout, setUser } from "../features/Auth/authSlice";
 import {  tagTypesList } from "../tagTypes";
+import Cookies from 'js-cookie'
 
 const baseQuery = fetchBaseQuery({
-  // baseUrl: "http://localhost:5000/api/v1",
-  baseUrl: "https://joy-mart-server.vercel.app/api/v1",
+  baseUrl: "http://localhost:5000/api/v1",
+  // baseUrl: "https://joy-mart-server.vercel.app/api/v1",
 
   //below the line set the cookies on browser
   credentials: "include",
   prepareHeaders: (headers, { getState }) => {
     const state = getState() as RootState;
     const token = state.auth && 'token' in state.auth ? (state.auth as any).token as string : undefined;
-    if (token) {
-      headers.set("authorization", `${token}`);
-    }
+    const authToken=Cookies.get('authToken')||""
+
+
+    authToken ? headers.set("authorization",`${authToken}`): headers.set("authorization",`${token}`)
+  
     return headers;
   },
 });
@@ -40,8 +43,8 @@ const baseQueryWithRefreshToken:BaseQueryFn<FetchArgs,BaseQueryApi,DefinitionTyp
    }
 
   if (result?.error?.status === 401) {
-    // const res = await fetch("http://localhost:5000/api/v1/auth/refresh-token", {
-    const res = await fetch("https://joy-mart-server.vercel.app/api/v1/auth/refresh-token", {
+    const res = await fetch("http://localhost:5000/api/v1/auth/refresh-token", {
+    // const res = await fetch("https://joy-mart-server.vercel.app/api/v1/auth/refresh-token", {
       method: "POST",
       credentials: "include",
     });

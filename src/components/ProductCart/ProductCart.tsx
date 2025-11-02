@@ -9,6 +9,10 @@ import { addItem } from '@/src/redux/features/localstorage/wishlistSlice'
 import { IProduct } from '@/src/types'
 import { useCreateBookingMutation } from '@/src/redux/features/booking/bookingApi'
 import { toast } from 'react-toastify'
+import Cookies from 'js-cookie'
+import { verifyToken } from '@/src/utils/jwt'
+import { config } from '@/src/middleware'
+import Loader from '@/src/hooks/loader'
 
 interface ProductCardProps {
   product: IProduct
@@ -20,24 +24,33 @@ const ProductCard = ({ product }: ProductCardProps) => {
     dispatch(addItem(product))
   }
       const [bookingMutation,{isLoading:bookingLoading}]=useCreateBookingMutation()
+  const authToken=Cookies.get('authToken')||""
+  if(!authToken){
+    toast.error('Please login to add items to cart',{
+      autoClose:3000,
+      position:'bottom-center'
+    })
+  }
+// convert token to string and take userId from the token
+const {userId}= verifyToken(authToken)
   
   const handleBookingMutation=async(productId:string)=>{
       const payload= {
           bookingQuantity:1,
-          productId
+          productId,
+          userId
       }
       try {
           const res=await bookingMutation(payload).unwrap()
           console.log(res)
           if(res.success){
               toast.success('Saved the product on you cart',{
-                  position:"top-center"
+                  position:"bottom-center",
+                  autoClose:2000,
               })
           }
       } catch (err) {
-          
-      } finally {
-          
+      toast
       }
   }
   return (
@@ -84,12 +97,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
             className="relative overflow-hidden"
           
           >
-            <button  className="w-5 h-5 bg-green-100 rounded-full flex items-start justify-start shadow-md hover:bg-green-200 transition-all duration-300 ">
+           {bookingLoading ?  <div className="flex justify-center items-center p-[2px]">
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#088178]"></div>
+            </div>: <button  className="w-5 h-5 bg-green-100 rounded-full flex items-start justify-start shadow-md hover:bg-green-200 transition-all duration-300 ">
               <FontAwesomeIcon 
                 icon={faShoppingCart} 
                 className="text-green-700 hover:text-green-800 transition-colors"
               />
-            </button>
+            </button>}
             <span onClick={() => handleBookingMutation(product._id)} className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-xs font-medium text-green-700 opacity-0 ">
               Add to Cart
             </span>

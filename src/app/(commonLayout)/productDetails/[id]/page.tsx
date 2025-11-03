@@ -555,7 +555,7 @@ const handleAddReview=async()=>{
             </div>
             
             <div>
-                <label className=" text-sm font-medium text-gray-700 mb-1">
+                <label className="text-sm font-medium text-gray-700 mb-1">
                     Upload Images (Optional)
                 </label>
                 
@@ -578,7 +578,7 @@ const handleAddReview=async()=>{
                                 strokeLinejoin="round"
                             />
                         </svg>
-                        <div className=" text-sm text-gray-600 hidden md:block lg:block">
+                        <div className="text-sm text-gray-600 hidden md:block lg:block">
                             <span className="relative inline bg-white rounded-md font-medium text-red-600 hover:text-red-500">
                                 Click to upload
                             </span>

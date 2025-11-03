@@ -28,7 +28,7 @@ const HomePage: NextPage = async() => {
      
           <Hero></Hero>
         </div>
-      <section id="feature" className=" py-10 md:py-20 lg:py-20 flex justify-center align-middle items-center flex-wrap">
+      <section id="feature" className="py-10 md:py-20 lg:py-20 flex justify-center align-middle items-center flex-wrap">
         {features.map((feature, index) => (
           <FeatureBox key={index} image={feature.image} title={feature.title} />
         ))}

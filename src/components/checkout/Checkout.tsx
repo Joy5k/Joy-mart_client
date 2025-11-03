@@ -103,7 +103,7 @@ const Checkout = ({
             </div>
 
             {/* Payment Method Selection */}
-            <div className=" md:p-6 lg:p-6 bg-gray-50 rounded-lg">
+            <div className="md:p-6 lg:p-6 bg-gray-50 rounded-lg">
               <h3 className="font-medium mb-4">Payment Method</h3>
               <div className="space-y-4">
                 <div className="flex items-center">

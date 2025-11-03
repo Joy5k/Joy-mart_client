@@ -61,7 +61,7 @@ const handleSocialAuth = async (provider: 'google' | 'facebook') => {
     // 1. Trigger social auth (without redirect)
     const formData = new FormData()
     formData.append('action', provider)
-    await handleSocialLogin(formData)
+  const res=  await handleSocialLogin(formData)
 
  
 }

@@ -435,7 +435,7 @@ const handleRestoreUser = async (email: string) => {
             <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
               <div>
                 <div className="mt-3 text-start sm:mt-5">
-                  <h3 className=" leading-6 text-xl font-bold text-center text-[#088178]">Add New User</h3>
+                  <h3 className="leading-6 text-xl font-bold text-center text-[#088178]">Add New User</h3>
                    <form onSubmit={handleSubmit}>
                               {error && (
                                 <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">

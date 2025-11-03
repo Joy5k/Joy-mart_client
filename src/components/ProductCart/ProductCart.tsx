@@ -4,16 +4,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShoppingCart, faStar, faHeart } from '@fortawesome/free-solid-svg-icons'
-import { useAppDispatch } from '@/src/redux/hooks'
+import { useAppDispatch, useAppSelector } from '@/src/redux/hooks'
 import { addItem } from '@/src/redux/features/localstorage/wishlistSlice'
 import { IProduct } from '@/src/types'
 import { useCreateBookingMutation } from '@/src/redux/features/booking/bookingApi'
 import { toast } from 'react-toastify'
-import Cookies from 'js-cookie'
 import { verifyToken } from '@/src/utils/jwt'
-import { config } from '@/src/middleware'
-import Loader from '@/src/hooks/loader'
-
+import Cookies from 'js-cookie'
 interface ProductCardProps {
   product: IProduct
 }
@@ -24,35 +21,54 @@ const ProductCard = ({ product }: ProductCardProps) => {
     dispatch(addItem(product))
   }
       const [bookingMutation,{isLoading:bookingLoading}]=useCreateBookingMutation()
-  const authToken=Cookies.get('authToken')||""
-  if(!authToken){
-    toast.error('Please login to add items to cart',{
-      autoClose:3000,
-      position:'bottom-center'
-    })
-  }
+ 
 // convert token to string and take userId from the token
-const {userId}= verifyToken(authToken)
-  
-  const handleBookingMutation=async(productId:string)=>{
-      const payload= {
-          bookingQuantity:1,
-          productId,
-          userId
+const handleBookingMutation = async (productId: string) => {
+    try {
+      // 1️⃣ Get token from cookies
+      const token = Cookies.get("authToken");
+
+      if (!token) {
+        toast.error("Please login first!", {
+          position: "bottom-center",
+          autoClose: 2000,
+        });
+        return;
       }
+
+      // 2️⃣ Decode token safely
+      let decoded;
       try {
-          const res=await bookingMutation(payload).unwrap()
-          console.log(res)
-          if(res.success){
-              toast.success('Saved the product on you cart',{
-                  position:"bottom-center",
-                  autoClose:2000,
-              })
-          }
+        decoded = verifyToken(token);
       } catch (err) {
-      toast
+        toast.error("Invalid token, please re-login!");
+        return;
       }
-  }
+
+      const userId = decoded.userId;
+
+      // 3️⃣ Make API call
+      const payload = {
+        bookingQuantity: 1,
+        productId,
+        userId,
+      };
+
+      const res = await bookingMutation(payload).unwrap();
+      if (res.success) {
+        toast.success("Saved the product to your cart!", {
+          position: "bottom-center",
+          autoClose: 2000,
+        });
+      }
+    } catch (err) {
+      toast.error("Something went wrong!", {
+        position: "bottom-center",
+        autoClose: 2000,
+      });
+      console.error(err);
+    }
+  };
   return (
     <div className="pro group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
       {/* Image with zoom effect */}

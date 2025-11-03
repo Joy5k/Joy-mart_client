@@ -51,7 +51,6 @@ const BookingPage = () => {
     });
     return initialQuantities;
   });
-
   useEffect(() => {
     setIsClient(true);
   }, []);

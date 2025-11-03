@@ -11,8 +11,8 @@ import {
 import { RootState } from "../store";
 import { logout, setUser } from "../features/Auth/authSlice";
 import {  tagTypesList } from "../tagTypes";
-import Cookies from 'js-cookie'
-
+import Cookies from "js-cookie";
+const authToken=Cookies.get("authToken")|| "";
 const baseQuery = fetchBaseQuery({
   baseUrl: "http://localhost:5000/api/v1",
   // baseUrl: "https://joy-mart-server.vercel.app/api/v1",
@@ -22,12 +22,12 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState }) => {
     const state = getState() as RootState;
     const token = state.auth && 'token' in state.auth ? (state.auth as any).token as string : undefined;
-    const authToken=Cookies.get('authToken')||""
 
+  if (token && token !== "undefined" && token.split(".").length === 3 || authToken && authToken !== "undefined" && authToken.split(".").length === 3) {
+    headers.set("authorization", `${token || authToken}`);
+  }
+  return headers;
 
-    authToken ? headers.set("authorization",`${authToken}`): headers.set("authorization",`${token}`)
-  
-    return headers;
   },
 });
 
@@ -39,7 +39,7 @@ const baseQueryWithRefreshToken:BaseQueryFn<FetchArgs,BaseQueryApi,DefinitionTyp
   let result:any = await baseQuery(arg, api, extraOptions);
 
   if (result?.error?.status === 404) {
-    console.error(result?.error?.data.massage)
+    console.error(result?.error?.data.message)
    }
 
   if (result?.error?.status === 401) {

@@ -35,7 +35,7 @@ function Subscribe() {
         <form className="form">
           <input type="email" onChange={(e)=>setEmail(e.target.value)} placeholder="Your email address" />
           {
-            isLoading ? <Loader></Loader> :    <button type="submit" onClick={handleSubscribe} className=" px-5 rounded-r-2xl cursor-pointer">Sign Up</button>
+            isLoading ? <Loader></Loader> :    <button type="submit" onClick={handleSubscribe} className="px-5 rounded-r-2xl cursor-pointer">Sign Up</button>
 
           }
         </form>

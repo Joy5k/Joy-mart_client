@@ -2,14 +2,17 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtDecode } from 'jwt-decode'
-import { getToken } from './utils/localStorageManagement'
 
 export async function middleware(request: NextRequest) {
   const protectedRoutes = ['/dashboard', '/profile', '/settings', '/booking', '/payment','/OrderTrackingPage']
   const authRoutes = ['/login', '/register']
   const currentPath = request.nextUrl.pathname
   let token = request.cookies.get('authToken')?.value
-
+  
+  const headersToken=request.headers.get('authorization')
+  if(!token && headersToken){
+    token=headersToken
+  }
   const authHandler=async()=>{
         try {
       const response = await fetch(`${process.env.BACKEND_URL}/auth/refresh-token`, {

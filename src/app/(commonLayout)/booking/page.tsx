@@ -17,6 +17,7 @@ import { useInitiatePaymentMutation } from '@/src/redux/features/payment/payment
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Checkout from '@/src/components/checkout/Checkout';
+import Loader from '@/src/hooks/loader';
 
 const BookingPage = () => {
   const router = useRouter();
@@ -39,7 +40,7 @@ const BookingPage = () => {
     country: 'Bangladesh'
   });
 
-  const { data: bookingsData, refetch } = useGetAllBookingsQuery({});
+  const { data: bookingsData, refetch,isLoading } = useGetAllBookingsQuery({});
   const [deleteBooking] = useDeleteBookingMutation();
   const [initiatePayment, { isLoading:isProcessingPayment }] = useInitiatePaymentMutation();
   const bookings: Booking[] = bookingsData?.data || [];
@@ -199,6 +200,11 @@ const BookingPage = () => {
       </motion.div>
     );
   }
+if(isLoading){
+  return <div className='h-screen my-auto mx-auto'>
+    <Loader></Loader>
+  </div>
+}
 
   return (
     <motion.div 

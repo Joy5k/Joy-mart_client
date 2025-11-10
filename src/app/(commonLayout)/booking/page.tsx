@@ -143,6 +143,7 @@ const BookingPage = () => {
 
       // Online payment flow
       const response = await initiatePayment(paymentData).unwrap();
+      console.log(response,"Payment Response")
       if (response?.data?.paymentUrl) {
         router.push(response.data?.paymentUrl);
       }

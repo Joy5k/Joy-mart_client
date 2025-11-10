@@ -15,7 +15,6 @@ const OrderTrackingPage = () => {
   const { transId } = useParams();
   const { data, isLoading, isError } = useTrackOrderQuery({ transId: transId as string });
   const order = data?.data;
-console.log(order)
   // Status configuration
   const statusConfig: Record<OrderStatus, { color: string; icon: JSX.Element; text: string }> = {
     pending: { color: "bg-yellow-500", icon: <MdLocalShipping className="text-lg" />, text: "Pending" },

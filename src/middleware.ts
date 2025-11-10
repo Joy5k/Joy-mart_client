@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 import { jwtDecode } from 'jwt-decode'
 
 export async function middleware(request: NextRequest) {
-  const protectedRoutes = ['/dashboard', '/profile', '/settings', '/booking', '/payment','/OrderTrackingPage']
+  const protectedRoutes = ['/dashboard', '/profile', '/settings', '/booking','/OrderTrackingPage']
   const authRoutes = ['/login', '/register']
   const currentPath = request.nextUrl.pathname
   let token = request.cookies.get('authToken')?.value

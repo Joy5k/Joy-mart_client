@@ -15,7 +15,6 @@ import { useTrackOrderQuery } from "@/src/redux/features/payment/paymentApi";
 import { useParams } from "next/navigation";
 
 const TrackOrderPage = () => {
-  const [orderId, setOrderId] = useState("");
   const { transId } = useParams();
   const [localOrderId, setLocalOrderId] = useState("");
 

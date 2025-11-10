@@ -110,10 +110,10 @@ function SuccessPage() {
               <FaHome className="mr-2" />
               Back to Home
             </Link>
-            <Link href="/orders" className="flex items-center justify-center px-6 py-3 bg-white border border-[#088178] text-[#088178] hover:bg-gray-50 cursor-pointer rounded-lg font-medium transition-colors shadow-sm">
+            {/* <Link href="/orders" className="flex items-center justify-center px-6 py-3 bg-white border border-[#088178] text-[#088178] hover:bg-gray-50 cursor-pointer rounded-lg font-medium transition-colors shadow-sm">
               <FaShoppingBag className="mr-2" />
               View Orders
-            </Link>
+            </Link> */}
           </div>
         </div>
         

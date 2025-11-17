@@ -151,11 +151,18 @@ const Checkout = ({
                       </p>
                     </div>
                     <span>
-                      ${(product.price * (quantityMap[product._id] || 1)).toFixed(2)}
+                      ${(product.productId.price * (quantityMap[product._id] || 1)).toFixed(2)}
                     </span>
                   </div>
                 ))}
-                
+                    <div className=" pt-3 mt-3">
+                  <div className="flex justify-between font-medium">
+                    <span>Shipping cost :</span>
+                    <span >
+                     110
+                    </span>
+                  </div>
+                </div>
                 <div className="border-t pt-3 mt-3">
                   <div className="flex justify-between font-medium">
                     <span>Total</span>
@@ -163,7 +170,7 @@ const Checkout = ({
                       ${
                         selectedProducts.reduce(
                           (total: number, product: any) => 
-                            total + (product.price * (quantityMap[product._id] || 1)),
+                            total + (product.productId.price * (quantityMap[product._id] || 1))+110,
                           0
                         ).toFixed(2)
                       }

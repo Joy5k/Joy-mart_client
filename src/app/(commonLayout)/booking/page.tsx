@@ -24,7 +24,7 @@ const BookingPage = () => {
   const [isClient, setIsClient] = useState(false);
   const [activeTab, setActiveTab] = useState('manage');
   const [bookingSuccess, setBookingSuccess] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [showNoSelectionWarning, setShowNoSelectionWarning] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('online');
   const { items: wishlistItems } = useSelector((state: RootState) => state.wishlist);
@@ -39,19 +39,25 @@ const BookingPage = () => {
     postcode: '1000',
     country: 'Bangladesh'
   });
-
   const { data: bookingsData, refetch,isLoading } = useGetAllBookingsQuery({});
   const [deleteBooking] = useDeleteBookingMutation();
   const [initiatePayment, { isLoading:isProcessingPayment }] = useInitiatePaymentMutation();
   const bookings: Booking[] = bookingsData?.data || [];
 
-  const [quantityMap, setQuantityMap] = useState<Record<string, number>>(() => {
-    const initialQuantities: Record<string, number> = {};
-    bookingsData?.data?.forEach((booking: any) => {
-      initialQuantities[booking._id] = booking.bookingQuantity;
-    });
-    return initialQuantities;
+
+  // getting realtime product quantity. That means bookingsData.data?.bookingQantity is the fixed quatity, but user may change their quantity
+const [quantityMap, setQuantityMap] = useState<Record<string, number>>(() => {
+  const initialQuantities: Record<string, number> = {};
+
+  bookingsData?.data?.forEach((booking: any) => {
+    initialQuantities[booking.productId] = booking.bookingQuantity;
   });
+
+  return initialQuantities;
+});
+
+
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -80,7 +86,8 @@ const BookingPage = () => {
     }
   };
 
-  const toggleProductSelection = (product: Product) => {
+  const toggleProductSelection = (product: any) => {
+    console.log(product,"selecting product")
     setSelectedProducts(prev => {
       if (prev.some(p => p._id === product._id)) {
         return prev.filter(p => p._id !== product._id);
@@ -106,6 +113,7 @@ const BookingPage = () => {
     }
   };
 
+
   const handlePayment = async () => {
     try {
       if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address) {
@@ -115,12 +123,12 @@ const BookingPage = () => {
 
       const total_amount = selectedProducts.reduce(
         (total, product) => 
-          total + (product.price * (quantityMap[product._id] || 1)),
+          total + (product.productId.price * (quantityMap[product._id] || 1)),
         0
       );
 
       const bookingIds = bookings
-        .filter(booking => selectedProducts.some(p => p._id === booking.productId._id))
+        .filter(booking => selectedProducts.some(p => p.productId._id === booking.productId._id))
         .map(booking => booking._id);
 
       const paymentData = {
@@ -129,9 +137,9 @@ const BookingPage = () => {
         currency: 'BDT',
         customer: customerInfo,
         paymentMethod: paymentMethod,
-        productIds: selectedProducts.map(p => p._id),
-        quantities: selectedProducts.map(p => quantityMap[p._id] || 1)
-      };
+         productIds : selectedProducts.map(p => ({ productId: p.productId._id, productQuantity:quantityMap[p._id] ||1})),
+    };
+    console.log(paymentData,"PaymentData")
       if (paymentMethod === 'cod') {
         const response = await initiatePayment(paymentData).unwrap();
         if (response?.success) {
@@ -302,8 +310,8 @@ if(isLoading){
       <div className="flex items-center sm:flex-shrink-0 sm:mr-4">
         <input
           type="checkbox"
-          checked={selectedProducts.some(p => p._id === booking.productId._id)}
-          onChange={() => toggleProductSelection(booking.productId)}
+          checked={selectedProducts.some((p:any) => p.productId.title === booking.productId.title )}
+          onChange={() => toggleProductSelection(booking)}
           className="h-5 w-5 text-[#088178] rounded"
         />
       </div>

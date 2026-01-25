@@ -46,7 +46,7 @@ const RegisterPage = () => {
     
     try {
       const res = await registerMutation(formData).unwrap();
-      localStorage.setItem('token', res.data.accessToken);
+      localStorage.setItem('authToken', res.data.accessToken);
         console.log(res)
       if(res.success){
         setToken(res.data.accessToken);

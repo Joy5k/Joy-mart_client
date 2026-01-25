@@ -381,8 +381,8 @@ const handleRoleChange = async (newRole:'user'|'seller') => {
     <h2 className="text-2xl font-bold text-gray-900 mb-6">My Orders</h2>
     
     {orders?.length > 0 ? (
-      orders.map((sampleOrder: IOrder) => (
-        <div className="space-y-4" key={sampleOrder.orderId}>
+      orders.map((sampleOrder: IOrder,index) => (
+        <div className="space-y-4" key={index}>
           <div className="border border-gray-200 rounded-xl overflow-hidden">
             <div 
               className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer"
@@ -402,7 +402,7 @@ const handleRoleChange = async (newRole:'user'|'seller') => {
                   {sampleOrder.orderStatus}
                 </div>
                 <div className="text-right">
-                  <p className="font-bold">{sampleOrder.paymentDetails.currency} {sampleOrder.totalAmount.toFixed(2)}</p>
+                  <p className="font-bold">{sampleOrder?.paymentDetails?.currency} {sampleOrder?.totalAmount?.toFixed(2)}</p>
                 </div>
                 {expandedOrder === sampleOrder.orderId ? (
                   <FiChevronUp className="text-gray-500" />
@@ -432,44 +432,14 @@ const handleRoleChange = async (newRole:'user'|'seller') => {
                       
                       <div>
                         <h5 className="font-medium mb-2">Payment Information</h5>
-                        <p>Method: {sampleOrder.paymentMethod}</p>
+                        <p>Method: {sampleOrder.paymentMethod||"Online"}</p>
+                        <p>Transection-ID: {sampleOrder?.orderId}</p>
                         <p>Status: {sampleOrder.paymentStatus}</p>
-                        <p>Amount: {sampleOrder.paymentDetails.currency} {sampleOrder.totalAmount.toFixed(2)}</p>
+                        <p>Amount: {sampleOrder?.paymentDetails?.currency} {sampleOrder?.totalAmount?.toFixed(2)}</p>
                       </div>
-                      
-                      {sampleOrder.productIds.length > 0 ? (
-                        <div>
-                          <h5 className="font-medium mb-2">Order Items</h5>
-                          {sampleOrder.productIds.map((product: any) => (
-                            <div key={product.id} className="flex items-center gap-4 py-2 border-b">
-                              <div className="w-16 h-16 bg-gray-100 rounded-lg"></div>
-                              <div className="flex-1">
-                                <p className="font-medium">{product.name}</p>
-                                <p className="text-sm text-gray-500">Quantity: {product.quantity}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="font-medium">{sampleOrder.paymentDetails.currency} {product.price.toFixed(2)}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-4">
-                          <p>No products in this order</p>
-                        </div>
-                      )}
+                 
                     </div>
-                    
-                    <div className="mt-6 pt-6 border-t">
-                      <div className="flex justify-end gap-3">
-                        <button className="px-4 py-2 border border-gray-300 rounded-lg">
-                          Contact Support
-                        </button>
-                        <button className="px-4 py-2 bg-[#088178] text-white rounded-lg">
-                          Track Order
-                        </button>
-                      </div>
-                    </div>
+                  
                   </div>
                 </motion.div>
               )}
@@ -509,9 +479,9 @@ const handleRoleChange = async (newRole:'user'|'seller') => {
         </div>
       ) : (
         <div className="space-y-4">
-          {reports?.result?.map((report: ReportedProduct) => (
+          {reports?.result?.map((report: ReportedProduct,index:number) => (
             <motion.div
-              key={report._id}
+              key={index}
               whileHover={{ y: -5 }}
               className="border border-gray-200 rounded-xl p-4 cursor-pointer"
               onClick={() => setSelectedReport(report)}
@@ -720,9 +690,9 @@ const handleRoleChange = async (newRole:'user'|'seller') => {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {wishlist?.map((item: any) => (
+                        {wishlist?.map((item: any,index:number) => (
                           <motion.div
-                            key={item.id}
+                            key={index}
                             whileHover={{ y: -5 }}
                             className="border border-gray-200 rounded-xl overflow-hidden"
                           >

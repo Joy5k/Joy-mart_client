@@ -66,7 +66,7 @@ const AboutPage = () => {
         >
           <div className="md:w-1/3">
             <Image
-              src="https://i.ibb.co/k05htkr/Mehedi-Hasan.png"
+              src="https://i.ibb.co.com/fVr3NyhT/Mehedi.png"
               alt="Mehedi Hasan"
               width={400}
               height={500}

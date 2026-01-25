@@ -41,6 +41,7 @@ export const usePushNotification = () => {
   const sendPush = async (message: { title: string; body: string }) => {
     try {
       const res = await sendNotification({ message }).unwrap();
+      console.log(res)
       return res.success;
     } catch (error) {
       console.error("Failed to send notification:", error);

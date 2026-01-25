@@ -2,12 +2,12 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyDstooiACHbHK9CWFz5aomTKdni0VGanOM",
+  authDomain: "joy-mart-client.firebaseapp.com",
+  projectId: "joy-mart-client",
+  storageBucket: "joy-mart-client.appspot.com",
+  messagingSenderId: "463004595788",
+  appId: "1:463004595788:web:623705dacf0d482c2e66e9",
 };
 
 let app:any;
@@ -36,7 +36,7 @@ export const requestForToken = async () => {
 
     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
     const token = await getToken(messaging, {
-      vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY,
+      vapidKey: "BEx6toXqEuPffFvZcc5kXmuTNXaiurwyp7QkHnlHeVZP4PB6ifYxsEpqHznRPc6F12kfcgK1-VIjuo2FyYUAIko",
       serviceWorkerRegistration: registration
     });
     if (token) {
@@ -51,10 +51,13 @@ export const requestForToken = async () => {
 };
 
 export const onMessageListener = () =>
-  new Promise((resolve) => {
+  new Promise((resolve,reject) => {
     if (messaging) {
       onMessage(messaging, (payload) => {
         resolve(payload);
       });
+    }else {
+      reject(new Error('Messaging is not supported or not initialized'));
     }
+    
   });

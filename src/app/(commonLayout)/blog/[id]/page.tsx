@@ -1,6 +1,7 @@
 import { FaCalendarAlt, FaUser, FaTags, FaArrowLeft, FaFacebook, FaTwitter, FaLinkedin, FaPinterest } from 'react-icons/fa'
 import { IoMdShareAlt } from 'react-icons/io'
 import Link from 'next/link'
+import sanitizeHTML from '@/src/utils/htmlSanitizer'
 
 function BlogDetails() {
   // Mock blog data with online placeholder images
@@ -9,62 +10,62 @@ function BlogDetails() {
     title: 'JavaScript Closures Explained: From Child to Advanced Concepts',
     content: `
       <p class="mb-4">Closures are one of JavaScript's most powerful yet misunderstood concepts. In this deep dive, we'll explore closures from basic understanding to advanced implementations.</p>
-      
+
       <h2 class="text-2xl font-bold my-6 text-[#088178]">What is a Closure?</h2>
       <p class="mb-4">A closure is a function that has access to its own scope, the outer function's variables, and global variables—even after the outer function has returned.</p>
-      
+
       <div class="bg-[#088178]/10 p-6 rounded-lg my-6">
         <h3 class="font-bold text-[#088178] mb-2">Simple Example</h3>
         <pre class="bg-gray-800 text-white p-4 rounded overflow-x-auto">
           <code>
   function outer() {
     const outerVar = 'I am outside!';
-    
+
     function inner() {
       console.log(outerVar); // Accesses outerVar
     }
-    
+
     return inner;
   }
-  
+
   const closureFn = outer();
   closureFn(); // Logs: "I am outside!"
           </code>
         </pre>
       </div>
-      
+
       <h2 class="text-2xl font-bold my-6 text-[#088178]">How Closures Work</h2>
       <p class="mb-4">When a function is created, it carries with it a reference to its lexical environment. This combination of the function and its environment is called a closure.</p>
-      
+
       <h3 class="font-bold text-lg my-4 text-[#088178]">Key Characteristics</h3>
       <ul class="list-disc pl-6 mb-6 space-y-2">
         <li>Preserves the scope chain</li>
         <li>Remembers variables even after outer function execution</li>
         <li>Creates private variables in JavaScript</li>
       </ul>
-      
+
       <h2 class="text-2xl font-bold my-6 text-[#088178]">Practical Use Cases</h2>
-      
+
       <h3 class="font-bold text-lg my-4 text-[#088178]">1. Data Encapsulation</h3>
       <p class="mb-4">Closures help create private variables and methods:</p>
       <pre class="bg-gray-800 text-white p-4 rounded overflow-x-auto mb-6">
         <code>
   function createCounter() {
     let count = 0;
-    
+
     return {
       increment: function() { count++; },
       getCount: function() { return count; }
     };
   }
-  
+
   const counter = createCounter();
   counter.increment();
   console.log(counter.getCount()); // 1
   console.log(counter.count); // undefined (private)
         </code>
       </pre>
-      
+
       <h3 class="font-bold text-lg my-4 text-[#088178]">2. Function Factories</h3>
       <p class="mb-4">Create specialized functions based on parameters:</p>
       <pre class="bg-gray-800 text-white p-4 rounded overflow-x-auto mb-6">
@@ -74,22 +75,22 @@ function BlogDetails() {
       return x * factor;
     };
   }
-  
+
   const double = multiplier(2);
   const triple = multiplier(3);
-  
+
   console.log(double(5)); // 10
   console.log(triple(5)); // 15
         </code>
       </pre>
-      
+
       <h3 class="font-bold text-lg my-4 text-[#088178]">3. Event Handlers</h3>
       <p class="mb-4">Maintain state in event callbacks:</p>
       <pre class="bg-gray-800 text-white p-4 rounded overflow-x-auto mb-6">
         <code>
   function setupButtons() {
     const buttons = document.querySelectorAll('button');
-    
+
     for (var i = 0; i < buttons.length; i++) {
       (function(index) {
         buttons[index].addEventListener('click', function() {
@@ -100,39 +101,39 @@ function BlogDetails() {
   }
         </code>
       </pre>
-      
+
       <h2 class="text-2xl font-bold my-6 text-[#088178]">Advanced Closure Patterns</h2>
-      
+
       <h3 class="font-bold text-lg my-4 text-[#088178]">1. Module Pattern</h3>
       <p class="mb-4">Create self-contained modules with private and public access:</p>
       <pre class="bg-gray-800 text-white p-4 rounded overflow-x-auto mb-6">
         <code>
   const myModule = (function() {
     const privateVar = 'I am private';
-    
+
     function privateMethod() {
       console.log(privateVar);
     }
-    
+
     return {
       publicMethod: function() {
         privateMethod();
       }
     };
   })();
-  
+
   myModule.publicMethod(); // "I am private"
   myModule.privateMethod(); // Error: private
         </code>
       </pre>
-      
+
       <h3 class="font-bold text-lg my-4 text-[#088178]">2. Memoization</h3>
       <p class="mb-4">Cache expensive function calls:</p>
       <pre class="bg-gray-800 text-white p-4 rounded overflow-x-auto mb-6">
         <code>
   function memoize(fn) {
     const cache = {};
-    
+
     return function(...args) {
       const key = JSON.stringify(args);
       if (cache[key]) {
@@ -143,20 +144,20 @@ function BlogDetails() {
       return result;
     };
   }
-  
+
   const factorial = memoize(function(n) {
     return n <= 1 ? 1 : n * factorial(n - 1);
   });
         </code>
       </pre>
-      
+
       <h2 class="text-2xl font-bold my-6 text-[#088178]">Common Pitfalls</h2>
       <ul class="list-disc pl-6 mb-6 space-y-2">
         <li>Accidentally creating closures in loops (use let instead of var)</li>
         <li>Memory leaks from holding references to large objects</li>
         <li>Overusing closures when simpler solutions exist</li>
       </ul>
-      
+
       <h2 class="text-2xl font-bold my-6 text-[#088178]">Final Thoughts</h2>
       <p class="mb-4">Mastering closures will give you a deeper understanding of JavaScript's execution context and scope chain. They're fundamental to many patterns and frameworks in modern JavaScript development.</p>
     `,
@@ -259,9 +260,9 @@ function BlogDetails() {
 
             {/* Blog Content */}
             <div className="bg-white p-6 md:p-8 rounded-lg shadow-sm mb-8">
-              <div 
+              <div
                 className="prose max-w-none"
-                dangerouslySetInnerHTML={{ __html: blogPost.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHTML(blogPost.content) }}
               />
             </div>
 

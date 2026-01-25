@@ -78,7 +78,7 @@ if (userRole !== 'superAdmin' && userRole !== 'admin') {
     setError('');
     try {
       const res = await createUserByAdminMutation(formData).unwrap();
-      localStorage.setItem('token', res.data.accessToken);
+      localStorage.setItem('authToken', res.data.accessToken);
       if(res.success){
         toast.success("Created User successfully",{
           position:"bottom-center",

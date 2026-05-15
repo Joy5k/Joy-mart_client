@@ -33,12 +33,21 @@ const LoginPage = () => {
     try {
       const res = await LoginMutation({ email, password }).unwrap();
       if(res.success){
+        // Set authToken in localStorage for client-side access
         localStorage.setItem('authToken', res?.data?.accessToken);
-         dispatch(setUser({
+        // Set authToken cookie for middleware/server-side access
+        Cookies.set('authToken', res?.data?.accessToken, { 
+          expires: 1/24, // 1 hour (expires in fraction of days)
+          path: '/',
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict'
+        });
+        // Set refreshToken cookie
+        Cookies.set('refreshToken', res?.data?.refreshToken, { expires: 30, path: '/' });
+        dispatch(setUser({
         token: res?.data?.accessToken
       }));
       setToken(res?.data?.accessToken);
-      Cookies.set('refreshToken', res?.data?.refreshToken, { expires: 30 });
       const decodedRedirect = decodeURIComponent(redirect)
 
       router.push(decodedRedirect)

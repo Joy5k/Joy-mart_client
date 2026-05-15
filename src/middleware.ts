@@ -5,7 +5,7 @@ import { jwtDecode } from 'jwt-decode'
 
 // Enhanced security middleware with improved JWT handling
 export async function middleware(request: NextRequest) {
-  const protectedRoutes = ['/dashboard', '/profile', '/settings', '/booking','/OrderTrackingPage']
+  const protectedRoutes = ['/dashboard', '/profile', '/settings', '/booking', '/bookingHistory', '/OrderTrackingPage', '/wishlist'];
   const authRoutes = ['/login', '/register']
   const currentPath = request.nextUrl.pathname
   let token = request.cookies.get('authToken')?.value

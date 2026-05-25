@@ -567,11 +567,7 @@ export default function AiAssistant() {
                     </div>
                   </div>
                 ))}
-                {sending && (
-                  <div className="flex justify-start">
-                    <div className="rounded-2xl rounded-bl-sm bg-gray-100 px-3 py-2 text-sm text-gray-500">…</div>
-                  </div>
-                )}
+                {sending && <TypingIndicator />}
                 {chatError && <div className="text-xs text-red-600">{chatError}</div>}
                 <div ref={messagesEndRef} />
               </div>
@@ -654,6 +650,72 @@ export default function AiAssistant() {
         </div>
       )}
     </>
+  );
+}
+
+const TYPING_PHRASES = [
+  'Thinking',
+  'Pondering',
+  'Reasoning',
+  'Brewing ideas',
+  'Composing',
+  'Writing',
+  'Crafting reply',
+  'Putting it together',
+];
+
+function TypingIndicator() {
+  const [idx, setIdx] = useState(() => Math.floor(Math.random() * TYPING_PHRASES.length));
+  useEffect(() => {
+    const t = setInterval(() => setIdx((i) => (i + 1) % TYPING_PHRASES.length), 1500);
+    return () => clearInterval(t);
+  }, []);
+  const phrase = TYPING_PHRASES[idx];
+  return (
+    <div className="flex justify-start">
+      <div className="rounded-2xl rounded-bl-sm bg-gray-100 px-3 py-2 text-sm">
+        <span
+          key={phrase}
+          className="ai-typing-shimmer inline-block font-medium ai-typing-fade"
+        >
+          {phrase}
+          <span className="ai-typing-ellipsis" aria-hidden>
+            <span>.</span><span>.</span><span>.</span>
+          </span>
+        </span>
+      </div>
+      <style>{`
+        .ai-typing-shimmer {
+          background: linear-gradient(90deg, #9ca3af 0%, #088178 35%, #14b8a6 50%, #088178 65%, #9ca3af 100%);
+          background-size: 200% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          animation: ai-typing-shimmer 2.2s linear infinite;
+        }
+        @keyframes ai-typing-shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        .ai-typing-fade {
+          animation: ai-typing-shimmer 2.2s linear infinite, ai-typing-fade 0.5s ease-out;
+        }
+        @keyframes ai-typing-fade {
+          0%   { opacity: 0; transform: translateY(2px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .ai-typing-ellipsis span {
+          display: inline-block;
+          animation: ai-typing-dot 1.2s infinite ease-in-out;
+        }
+        .ai-typing-ellipsis span:nth-child(2) { animation-delay: 0.2s; }
+        .ai-typing-ellipsis span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes ai-typing-dot {
+          0%, 60%, 100% { opacity: 0.2; transform: translateY(0); }
+          30%           { opacity: 1;   transform: translateY(-2px); }
+        }
+      `}</style>
+    </div>
   );
 }
 

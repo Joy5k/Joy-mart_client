@@ -17,6 +17,17 @@ import { useLoginWithSocialMutation } from "@/src/redux/features/Auth/authApi";
 import { SocialSession } from "@/src/utils/socialAuth";
 import Loader from "@/src/hooks/loader";
 import { useRouter } from "next/navigation";
+import { useAppSelector } from "@/src/redux/hooks";
+import { useGetAllBookingsQuery } from "@/src/redux/features/booking/bookingApi";
+
+function CountBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="absolute -top-2 -right-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#088178] px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
+      {count > 99 ? '99+' : count}
+    </span>
+  );
+}
 
 const Navbar = () => {
   const route=useRouter()
@@ -31,6 +42,15 @@ const Navbar = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   
   const [socialLoginMutation, { isLoading: isSocialLoading }] = useLoginWithSocialMutation();
+
+  // Counts shown as badges on the heart/cart icons.
+  // `mounted` defers rendering the badge until after hydration so the
+  // server (0 items) and client (localStorage items) HTML match.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const wishlistCount = useAppSelector((state) => state.wishlist.items.length);
+  const { data: bookingsData } = useGetAllBookingsQuery({}, { skip: !token });
+  const bookingCount: number = bookingsData?.data?.length ?? 0;
 
 
   
@@ -300,17 +320,18 @@ const Navbar = () => {
           {isSocialLoading || isCheckingAuth || isInitialLoad ? (  <Loader  />
           ) : (
             <>
-              <Link 
-                href="/wishlist" 
-                className="text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300"
+              <Link
+                href="/wishlist"
+                className="relative text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300"
               >
                 <FaRegHeart className="text-xl font-extrabold" />
+                {mounted && <CountBadge count={wishlistCount} />}
               </Link>
-              <Link 
-                href="/login" 
+              <Link
+                href="/login"
                 className="hover:text-[#088178] transition-colors duration-300 flex justify-center items-center align-bottom gap-1"
               >
-                <GrLogin className="text-2xl" /> 
+                <GrLogin className="text-2xl" />
                 <span className="font-bold">Login</span>
               </Link>
             </>
@@ -318,18 +339,20 @@ const Navbar = () => {
         </div>
       ) : (
         <div className="hidden md:flex items-center gap-4 pr-10">
-          <Link 
-            href="/wishlist" 
-            className="text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300"
+          <Link
+            href="/wishlist"
+            className="relative text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300"
           >
             <CiHeart className="text-2xl" />
+            {mounted && <CountBadge count={wishlistCount} />}
           </Link>
-          
-          <Link 
-            href="/booking" 
-            className="text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300"
+
+          <Link
+            href="/booking"
+            className="relative text-[#1a1a1a] hover:text-[#088178] transition-colors duration-300"
           >
             <FaShoppingBag className="text-xl" />
+            {mounted && <CountBadge count={bookingCount} />}
           </Link>
           
           <div ref={dropdownRef} className="relative">

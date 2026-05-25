@@ -4,6 +4,7 @@ import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import { Suspense } from "react";
 import Providers from "./providers"; // New component we'll create
+import AiAssistant from "@/src/components/AiAssistant/AiAssistant";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({
         }>
           <Providers>
             {children}
+            <AiAssistant />
          <ToastContainer />
           </Providers>
         </Suspense>

@@ -6,6 +6,13 @@ import { NextPage } from "next"
 import SummerCollection from "@/src/components/summerCollection/SummerCollection"
 import NewArrivals from "@/src/components/newArrivalsCollections/NewArrivals"
 import Subscribe from "@/src/components/userSubscribe/Subscribe"
+import ShopByCategory from "@/src/components/home/ShopByCategory"
+import FlashDeal from "@/src/components/home/FlashDeal"
+import TrustedStats from "@/src/components/home/TrustedStats"
+import Testimonials from "@/src/components/home/Testimonials"
+import BlogPreview from "@/src/components/home/BlogPreview"
+import EditorialPick from "@/src/components/home/EditorialPick"
+import BlogTopics from "@/src/components/home/BlogTopics"
 
 
 
@@ -34,17 +41,26 @@ const HomePage: NextPage = async() => {
         ))}
       </section>
 
+      {/* Shop by category — visual category navigation */}
+      <ShopByCategory />
+
       {/* //new arrivals products appearing */}
         <NewArrivals></NewArrivals>
 
-      <Banner 
-        title="Repair Services" 
-        subtitle="Up to 70% Off - All t-shirts & Accessories" 
-        buttonText="Explore More" 
+      {/* Flash deal with live countdown */}
+      <FlashDeal />
+
+      <Banner
+        title="Repair Services"
+        subtitle="Up to 70% Off - All t-shirts & Accessories"
+        buttonText="Explore More"
       />
-      
+
 {/* // summer collection products appearing here */}
           <SummerCollection></SummerCollection>
+
+      {/* Trusted-by stat counters */}
+      <TrustedStats />
 
 {/* Advertisement Static two carts */}
       <section id="sm-banner" className="px-10 py-10 md:py-20 lg:py-20">
@@ -62,6 +78,8 @@ const HomePage: NextPage = async() => {
         </div>
       </section>
 
+      {/* Customer testimonials carousel */}
+      <Testimonials />
 
 {/* products vareities Advertisement */}
       <section id="banner3">
@@ -78,6 +96,15 @@ const HomePage: NextPage = async() => {
           <h3>New Trendy Prints</h3>
         </div>
       </section>
+
+      {/* Latest blog posts */}
+      <BlogPreview />
+
+      {/* Editor's-picks magazine layout */}
+      <EditorialPick />
+
+      {/* Browse the journal by topic */}
+      <BlogTopics />
 
         <Subscribe></Subscribe>
 

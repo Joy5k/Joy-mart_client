@@ -1,7 +1,6 @@
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaPaperPlane } from "react-icons/fa";
 import { BsTwitter, BsLinkedin, BsGithub } from "react-icons/bs";
 import Link from "next/link";
-import AiAssistant from "./AiAssistant";
 
 function Contact() {
   return (
@@ -147,8 +146,6 @@ function Contact() {
           </div>
         </div>
       </div>
-
-      <AiAssistant />
     </div>
   );
 }

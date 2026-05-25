@@ -29,13 +29,25 @@ export async function middleware(request: NextRequest) {
         return null
       }
 
-      const response = await fetch(`${process.env.BACKEND_URL}/auth/refresh-token`, {
+      // Guard: in production, never hit a missing or localhost BACKEND_URL — the
+      // fetch would otherwise hang the entire page request until the function
+      // times out.
+      const backendUrl = process.env.BACKEND_URL
+      if (!backendUrl || /^https?:\/\/(localhost|127\.0\.0\.1)/i.test(backendUrl)) {
+        if (process.env.NODE_ENV === 'production') {
+          console.warn('[middleware] BACKEND_URL missing or localhost in prod; skipping refresh')
+          return null
+        }
+      }
+
+      const response = await fetch(`${backendUrl}/auth/refresh-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${refreshToken}`, // Use Authorization header instead of body
         },
-        // body: JSON.stringify({ refreshToken }) // Removed body since we're using header
+        // Hard cap so a slow/dead backend cannot hang the entire page response.
+        signal: AbortSignal.timeout(3000),
       })
 
       if (response.ok) {
